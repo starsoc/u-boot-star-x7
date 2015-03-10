@@ -1,0 +1,5 @@
+Generating include/autoconf.mk
+Generating include/autoconf.mk.dep
+arm-xilinx-linux-gnueabi-gcc -DDO_DEPS_ONLY \
+		-g  -Os   -fno-common -ffixed-r8 -msoft-float  -fno-strict-aliasing  -fno-common -ffixed-r8 -mhard-float  -D__KERNEL__ -I/home/samba-share/afu/digilent/u-boot-digilent-2012.04-digilent-13.01/include -fno-builtin -ffreestanding -nostdinc -isystem /home/afu/CodeSourcery/Sourcery_CodeBench_Lite_for_Xilinx_GNU_Linux/bin/../lib/gcc/arm-xilinx-linux-gnueabi/4.6.1/include -pipe  -DCONFIG_ARM -D__ARM__ -marm -mabi=aapcs-linux -mno-thumb-interwork -march=armv5 -march=armv7-a -I/home/samba-share/afu/digilent/u-boot-digilent-2012.04-digilent-13.01/board/xilinx/common -I/home/samba-share/afu/digilent/u-boot-digilent-2012.04-digilent-13.01/board/xilinx/zynq_common -Wall -Wstrict-prototypes -mno-unaligned-access       \
+		-o lib/asm-offsets.s lib/asm-offsets.c -c -S

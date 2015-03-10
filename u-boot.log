@@ -1,0 +1,240 @@
+for dir in tools examples/standalone examples/api arch/arm/cpu/armv7  ; do \
+			make -C $dir _depend ; done
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/tools'
+make[1]: Nothing to be done for `_depend'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/tools'
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/examples/standalone'
+make[1]: Nothing to be done for `_depend'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/examples/standalone'
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/examples/api'
+make[1]: Nothing to be done for `_depend'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/examples/api'
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/arch/arm/cpu/armv7'
+make[1]: Nothing to be done for `_depend'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/arch/arm/cpu/armv7'
+make -C tools all
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/tools'
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/tools'
+make -C arch/arm/cpu/armv7 start.o
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/arch/arm/cpu/armv7'
+arm-xilinx-linux-gnueabi-gcc   -D__ASSEMBLY__ -g  -Os    -fno-strict-aliasing  -fno-common -ffixed-r8 -mhard-float  -D__KERNEL__ -DCONFIG_SYS_TEXT_BASE=0x04000000 -I/home/alex/share/github/u-boot-star-zynq7000/include -I/home/alex/share/github/u-boot-star-zynq7000/zynq/include -fno-builtin -ffreestanding -nostdinc -isystem /home/alex/CodeSourcery/Sourcery_CodeBench_Lite_for_Xilinx_GNU_Linux/bin/../lib/gcc/arm-xilinx-linux-gnueabi/4.6.1/include -pipe  -DCONFIG_ARM -D__ARM__ -marm -mabi=aapcs-linux -mno-thumb-interwork -march=armv5 -march=armv7-a -I/home/alex/share/github/u-boot-star-zynq7000/board/xilinx/common -I/home/alex/share/github/u-boot-star-zynq7000/board/xilinx/zynq_common   -o start.o start.S -c
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/arch/arm/cpu/armv7'
+make -C api/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/api'
+make[1]: `libapi.o' is up to date.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/api'
+make -C arch/arm/cpu/armv7/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/arch/arm/cpu/armv7'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/arch/arm/cpu/armv7'
+make -C arch/arm/cpu/armv7/zynq/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/arch/arm/cpu/armv7/zynq'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/arch/arm/cpu/armv7/zynq'
+make -C arch/arm/lib/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/arch/arm/lib'
+arm-xilinx-linux-gnueabi-gcc  -g  -Os    -fno-strict-aliasing  -fno-common -ffixed-r8 -mhard-float  -D__KERNEL__ -DCONFIG_SYS_TEXT_BASE=0x04000000 -I/home/alex/share/github/u-boot-star-zynq7000/include -I/home/alex/share/github/u-boot-star-zynq7000/zynq/include -fno-builtin -ffreestanding -nostdinc -isystem /home/alex/CodeSourcery/Sourcery_CodeBench_Lite_for_Xilinx_GNU_Linux/bin/../lib/gcc/arm-xilinx-linux-gnueabi/4.6.1/include -pipe  -DCONFIG_ARM -D__ARM__ -marm -mabi=aapcs-linux -mno-thumb-interwork -march=armv5 -march=armv7-a -I/home/alex/share/github/u-boot-star-zynq7000/board/xilinx/common -I/home/alex/share/github/u-boot-star-zynq7000/board/xilinx/zynq_common -Wall -Wstrict-prototypes -mno-unaligned-access -fno-stack-protector -Wno-format-nonliteral -Wno-format-security -fstack-usage     -o board.o board.c -c
+arm-xilinx-linux-gnueabi-ld  -r -o libarm.o  board.o bootm.o interrupts.o reset.o cache.o cache-cp15.o
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/arch/arm/lib'
+make -C common/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/common'
+arm-xilinx-linux-gnueabi-gcc  -g  -Os    -fno-strict-aliasing  -fno-common -ffixed-r8 -mhard-float  -D__KERNEL__ -DCONFIG_SYS_TEXT_BASE=0x04000000 -I/home/alex/share/github/u-boot-star-zynq7000/include -I/home/alex/share/github/u-boot-star-zynq7000/zynq/include -fno-builtin -ffreestanding -nostdinc -isystem /home/alex/CodeSourcery/Sourcery_CodeBench_Lite_for_Xilinx_GNU_Linux/bin/../lib/gcc/arm-xilinx-linux-gnueabi/4.6.1/include -pipe  -DCONFIG_ARM -D__ARM__ -marm -mabi=aapcs-linux -mno-thumb-interwork -march=armv5 -march=armv7-a -I/home/alex/share/github/u-boot-star-zynq7000/board/xilinx/common -I/home/alex/share/github/u-boot-star-zynq7000/board/xilinx/zynq_common -Wall -Wstrict-prototypes -mno-unaligned-access -fno-stack-protector -Wno-format-nonliteral -Wno-format-security -fstack-usage     -o cmd_version.o cmd_version.c -c
+arm-xilinx-linux-gnueabi-gcc  -g  -Os    -fno-strict-aliasing  -fno-common -ffixed-r8 -mhard-float  -D__KERNEL__ -DCONFIG_SYS_TEXT_BASE=0x04000000 -I/home/alex/share/github/u-boot-star-zynq7000/include -I/home/alex/share/github/u-boot-star-zynq7000/zynq/include -fno-builtin -ffreestanding -nostdinc -isystem /home/alex/CodeSourcery/Sourcery_CodeBench_Lite_for_Xilinx_GNU_Linux/bin/../lib/gcc/arm-xilinx-linux-gnueabi/4.6.1/include -pipe  -DCONFIG_ARM -D__ARM__ -marm -mabi=aapcs-linux -mno-thumb-interwork -march=armv5 -march=armv7-a -I/home/alex/share/github/u-boot-star-zynq7000/board/xilinx/common -I/home/alex/share/github/u-boot-star-zynq7000/board/xilinx/zynq_common -Wall -Wstrict-prototypes -mno-unaligned-access -fno-stack-protector -Wno-format-nonliteral -Wno-format-security -fstack-usage     -o main.o main.c -c
+arm-xilinx-linux-gnueabi-ld  -r -o libcommon.o  cmd_bdinfo.o cmd_boot.o cmd_bootm.o cmd_console.o cmd_date.o cmd_echo.o cmd_ext2.o cmd_fat.o cmd_fdt.o cmd_fpga.o cmd_help.o cmd_i2c.o cmd_itest.o cmd_load.o cmd_mem.o cmd_misc.o cmd_mmc.o cmd_net.o cmd_nvedit.o cmd_pcmcia.o cmd_sf.o cmd_source.o cmd_spi.o cmd_version.o cmd_ximg.o cmd_zynq_verify.o command.o console.o dlmalloc.o env_common.o env_nowhere.o exports.o fdt_support.o flash.o image.o main.o memsize.o s_record.o stdio.o xyzModem.o
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/common'
+make -C disk/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/disk'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/disk'
+make -C drivers/bios_emulator/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/bios_emulator'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/bios_emulator'
+make -C drivers/block/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/block'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/block'
+make -C drivers/dma/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/dma'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/dma'
+make -C drivers/fpga/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/fpga'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/fpga'
+make -C drivers/gpio/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/gpio'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/gpio'
+make -C drivers/hwmon/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/hwmon'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/hwmon'
+make -C drivers/i2c/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/i2c'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/i2c'
+make -C drivers/input/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/input'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/input'
+make -C drivers/misc/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/misc'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/misc'
+make -C drivers/mmc/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/mmc'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/mmc'
+make -C drivers/mtd/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/mtd'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/mtd'
+make -C drivers/mtd/nand/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/mtd/nand'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/mtd/nand'
+make -C drivers/mtd/onenand/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/mtd/onenand'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/mtd/onenand'
+make -C drivers/mtd/spi/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/mtd/spi'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/mtd/spi'
+make -C drivers/mtd/ubi/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/mtd/ubi'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/mtd/ubi'
+make -C drivers/net/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/net'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/net'
+make -C drivers/net/phy/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/net/phy'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/net/phy'
+make -C drivers/pci/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/pci'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/pci'
+make -C drivers/pcmcia/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/pcmcia'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/pcmcia'
+make -C drivers/power/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/power'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/power'
+make -C drivers/rtc/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/rtc'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/rtc'
+make -C drivers/serial/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/serial'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/serial'
+make -C drivers/spi/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/spi'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/spi'
+make -C drivers/twserial/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/twserial'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/twserial'
+make -C drivers/usb/eth/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/usb/eth'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/usb/eth'
+make -C drivers/usb/gadget/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/usb/gadget'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/usb/gadget'
+make -C drivers/usb/host/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/usb/host'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/usb/host'
+make -C drivers/usb/musb/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/usb/musb'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/usb/musb'
+make -C drivers/usb/phy/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/usb/phy'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/usb/phy'
+make -C drivers/usb/ulpi/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/usb/ulpi'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/usb/ulpi'
+make -C drivers/video/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/video'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/video'
+make -C drivers/watchdog/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/watchdog'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/drivers/watchdog'
+make -C fs/cramfs/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/fs/cramfs'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/fs/cramfs'
+make -C fs/ext2/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/fs/ext2'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/fs/ext2'
+make -C fs/fat/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/fs/fat'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/fs/fat'
+make -C fs/fdos/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/fs/fdos'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/fs/fdos'
+make -C fs/jffs2/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/fs/jffs2'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/fs/jffs2'
+make -C fs/reiserfs/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/fs/reiserfs'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/fs/reiserfs'
+make -C fs/ubifs/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/fs/ubifs'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/fs/ubifs'
+make -C fs/yaffs2/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/fs/yaffs2'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/fs/yaffs2'
+make -C lib/libfdt/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/lib/libfdt'
+make[1]: `libfdt.o' is up to date.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/lib/libfdt'
+make -C lib/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/lib'
+arm-xilinx-linux-gnueabi-gcc  -g  -Os    -fno-strict-aliasing  -fno-common -ffixed-r8 -mhard-float  -D__KERNEL__ -DCONFIG_SYS_TEXT_BASE=0x04000000 -I/home/alex/share/github/u-boot-star-zynq7000/include -I/home/alex/share/github/u-boot-star-zynq7000/zynq/include -fno-builtin -ffreestanding -nostdinc -isystem /home/alex/CodeSourcery/Sourcery_CodeBench_Lite_for_Xilinx_GNU_Linux/bin/../lib/gcc/arm-xilinx-linux-gnueabi/4.6.1/include -pipe  -DCONFIG_ARM -D__ARM__ -marm -mabi=aapcs-linux -mno-thumb-interwork -march=armv5 -march=armv7-a -I/home/alex/share/github/u-boot-star-zynq7000/board/xilinx/common -I/home/alex/share/github/u-boot-star-zynq7000/board/xilinx/zynq_common -Wall -Wstrict-prototypes -mno-unaligned-access -fno-stack-protector -Wno-format-nonliteral -Wno-format-security -fstack-usage     -o display_options.o display_options.c -c
+arm-xilinx-linux-gnueabi-ld  -r -o libgeneric.o  crc7.o crc16.o crc32.o display_options.o errno.o gunzip.o hashtable.o lmb.o ldiv.o md5.o net_utils.o qsort.o sha1.o strmhz.o ctype.o div64.o string.o time.o vsprintf.o
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/lib'
+make -C lib/lzma/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/lib/lzma'
+make[1]: `liblzma.o' is up to date.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/lib/lzma'
+make -C lib/lzo/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/lib/lzo'
+make[1]: `liblzo.o' is up to date.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/lib/lzo'
+make -C lib/zlib/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/lib/zlib'
+make[1]: `libz.o' is up to date.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/lib/zlib'
+make -C net/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/net'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/net'
+make -C post/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/post'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/post'
+make -C zynq/src/
+make[1]: Entering directory `/home/alex/share/github/u-boot-star-zynq7000/zynq/src'
+make[1]: Leaving directory `/home/alex/share/github/u-boot-star-zynq7000/zynq/src'
