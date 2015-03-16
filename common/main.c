@@ -58,7 +58,7 @@ int update_tftp (ulong addr);
 #endif /* CONFIG_UPDATE_TFTP */
 
 #define MAX_DELAY_STOP_STR 32
-/* add by star-star */
+/* add by starsoc */
 /*
 #undef DEBUG_PARSER
 #define DEBUG_PARSER 
@@ -211,7 +211,7 @@ int abortboot(int bootdelay)
 static int menukey = 0;
 #endif
 
-/* add by star-star */
+/* add by starsoc */
 int test_bootdelay = 0;
 
 

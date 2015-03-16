@@ -361,8 +361,7 @@ struct spi_flash *spi_flash_probe(unsigned int bus, unsigned int cs,
 	struct spi_flash *flash = NULL;
 	int ret, i, shift;
 	u8 idcode[IDCODE_LEN], *idp;
-	/* add by star-star */
-
+	/* add by starsoc */
 	init_qspi();
 	read_qspi_id(idcode);	
 #if 0

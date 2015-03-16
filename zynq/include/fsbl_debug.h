@@ -72,7 +72,7 @@
 extern "C" {
 #endif
 
-/* add by star-star */
+/* add by starsoc */
 #define FSBL_DEBUG_INFO
 
 #define DEBUG_GENERAL	0x00000001    /* general debug  messages */

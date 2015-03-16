@@ -657,8 +657,8 @@ void board_init_r(gd_t *id, ulong dest_addr)
 		setenv("mem", (char *)memsz);
 	}
 #endif
-
-        /* add by star-star */
+        
+        /* add by starsoc */
         usb_phy_init();
 #if 0   
         SiI9134_i2c_config();

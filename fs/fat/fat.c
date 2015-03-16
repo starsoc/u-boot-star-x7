@@ -196,7 +196,7 @@ static __u32 get_fatent (fsdata *mydata, __u32 entry)
 		return ret;
 	}
 	
-/*   add by star-star
+/*   add by starsoc
 	debug("FAT%d: entry: 0x%04x = %d, offset: 0x%04x = %d\n", mydata->fatsize, entry, entry, offset, offset);
 */
 	/* Read a new block of FAT entries into the cache. */
@@ -258,7 +258,7 @@ static __u32 get_fatent (fsdata *mydata, __u32 entry)
 		}
 		break;
 	}
-	/* add by star-star
+	/* add by starsoc
 	debug("FAT%d: ret: %08x, offset: %04x\n", mydata->fatsize, ret, offset);
 	*/
 	return ret;

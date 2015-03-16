@@ -64,7 +64,7 @@ int do_go (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		printf("Using machid 0x%lx from environment\n", machid);
 	}
 	
-	/* add by star-star */
+	/* add by starsoc */
 	r2 = DEVICE_TREE_ADDR;
 	
 	debug("## Transferring control to Linux (at address %08lx), device_tree addr: 0x%x" \

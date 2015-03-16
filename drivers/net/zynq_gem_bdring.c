@@ -400,10 +400,13 @@ int XEmacPss_BdRingAlloc(XEmacPss_BdRing * RingPtr, unsigned NumBd,
 			 XEmacPss_Bd ** BdSetPtr)
 {
 	/* Enough free BDs available for the request? */
-	if (RingPtr->FreeCnt < NumBd) {
+	if (RingPtr->FreeCnt < NumBd) 
+    {   
+        /* add by starsoc */
+        printf("there's no free cnt, %d\r\n", RingPtr->FreeCnt);
 		return (XST_FAILURE);
 	}
-
+    
 	/* Set the return argument and move FreeHead forward */
 	*BdSetPtr = RingPtr->FreeHead;
 	XEMACPSS_RING_SEEKAHEAD(RingPtr, RingPtr->FreeHead, NumBd);

@@ -34,7 +34,7 @@
 #define CONFIG_SERVERIP 192.168.1.6
 */
 
-/* add by star-star */
+/* add by starsoc */
 
 #define CONFIG_SYS_LONGHELP
 
@@ -118,7 +118,7 @@
 #define CONFIG_ZYNQ_IP_ENV
 
 /* HW to use */
-/* modify by star-star */
+/* modify by starsoc */
 #define CONFIG_UART1
 /* #define CONFIG_UART0 */
 #define CONFIG_CMD_I2C
@@ -149,7 +149,7 @@
 #define CONFIG_SPI_FLASH
 #define CONFIG_CMD_SF
 
-/* modify by star-star, using winbond QSPI instead of spansion */
+/* modify by starsoc, using winbond QSPI instead of spansion */
 /* #define CONFIG_SPI_FLASH_SPANSION */
 #define CONFIG_SPI_FLASH_WINBOND
 

@@ -412,7 +412,7 @@ void FlashRead(u32 Address, u32 ByteCount)
 	 * Setup the write command with the specified address and data for the
 	 * FLASH
 	 */
-	/* modify by star-star */
+	/* modify by starsoc */
 	WriteBuffer[COMMAND_OFFSET]   = DUAL_READ_CMD;/*QUAD_READ_CMD;*/
 	WriteBuffer[ADDRESS_1_OFFSET] = (u8)((Address & 0xFF0000) >> 16);
 	WriteBuffer[ADDRESS_2_OFFSET] = (u8)((Address & 0xFF00) >> 8);
@@ -721,7 +721,7 @@ u32 SendBankSelect(u8 BankSel)
 		fsbl_printf(DEBUG_INFO, "BankSel %d != Register Read %d\n\r", BankSel,
 				ReadBuffer[1]);
 		return XST_FAILURE;
-		/* modify by star-star */
+		/* modify by starsoc */
 		/* return XST_SUCCESS; */
 	}
 

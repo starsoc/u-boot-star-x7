@@ -1326,7 +1326,7 @@ int boot_relocate_fdt(struct lmb *lmb, char **of_flat_tree, ulong *of_size)
 						   + getenv_bootm_low());
 	}
     
-    /* add by star-star for debug */
+    /* add by starsoc for debug */
     printf("######boot_relocate_fdt(), fdt_high:0x%x, of_start:0x%x\r\n", fdt_high, of_start);
     
 	if (of_start == 0) {

@@ -231,7 +231,7 @@ static int net_check_prereq(enum proto_t protocol);
 
 static int NetTryCount;
 
-/* add by star-star for net debugging */
+/* add by starsoc for net debugging */
 #define net_debug(fmt, args...)			\
 	debug_cond(0, fmt, ##args)
 
@@ -1802,7 +1802,7 @@ NetReceive(volatile uchar *inpkt, int len)
 						ntohs(ip->udp_len) - 8);
 		break;
     default:
-        /* add by star-star */
+        /* add by starsoc */
         net_debug("######not expected packet,x:0x%x\r\n", x);
         break;
 	}

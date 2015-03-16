@@ -19,7 +19,7 @@
 
 #include <asm/io.h>
 
-/* modify by star-star, set the uart clock the same as fsbl */
+/* modify by starsoc, set the uart clock the same as fsbl */
 #undef XPAR_XUARTPSS_0_CLOCK_HZ
 #define XPAR_XUARTPSS_0_CLOCK_HZ 100000000
 

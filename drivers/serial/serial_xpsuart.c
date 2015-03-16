@@ -103,7 +103,7 @@ int serial_getc(void)
 /* Test character presence in Rx buffer */
 int serial_tstc(void)
 {
-	/* add by star-star */
+	/* add by starsoc */
 	if (test_bootdelay)
 		printf("***actual serial_tstc function \n");
 	/* UART_BASE + XZYNQUART_SR_OFFSET */

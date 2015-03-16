@@ -173,7 +173,7 @@ static __u32 get_fatent_value(fsdata *mydata, __u32 entry)
 		/* Unsupported FAT size */
 		return ret;
 	}
-	/* delete by star-star for debugging */
+	/* delete by starsoc for debugging */
 	/* 
 		debug("FAT%d: entry: 0x%04x = %d, offset: 0x%04x = %d\n",
 	       mydata->fatsize, entry, entry, offset, offset);
@@ -243,7 +243,7 @@ static __u32 get_fatent_value(fsdata *mydata, __u32 entry)
 		}
 		break;
 	}
-	/* delete by star-star for debugging */
+	/* delete by starsoc for debugging */
 	/* 
 		debug("FAT%d: ret: %08x, entry: %08x, offset: %04x\n",
 	       	mydata->fatsize, ret, entry, offset);

@@ -237,7 +237,7 @@ static int zynq_sdh_request(struct mmc *mmc, struct mmc_cmd *cmd,
 	u16 modereg;
 	int result = 0, i;
     
-    /*delete by star-star for debugging */
+    /*delete by starsoc for debugging */
     /*
 	debug("zynq_sdh_request: cmdidx: %d arg: 0x%x\n", cmd->cmdidx, cmd->cmdarg);
       */
@@ -260,7 +260,7 @@ static int zynq_sdh_request(struct mmc *mmc, struct mmc_cmd *cmd,
 	 * buffer because the controller can't DMA into the first 512K
 	 * of DDR.
 	 */
-	/*delete by star-star for debugging */
+	/*delete by starsoc for debugging */
 	#if 0
 	debug("data->dest = %p (%d) (%d * %d)\n", data->dest,
 		(cmdreg & SD_CMD_DATA) ? data->blocks : 0, data->blocks,
@@ -355,7 +355,7 @@ static int zynq_sdh_request(struct mmc *mmc, struct mmc_cmd *cmd,
 			for (i = 0; i < 4; i++) {
 				cmd->response[i] =
 					sd_in32(SD_RSP_R + (3-i) * 4) << 8;
-                /*delete by star-star for debugging */
+                /*delete by starsoc for debugging */
                 /*
 				debug("CMD%d cmd->response[%d] = %d\n",
 					cmd->cmdidx, i, cmd->response[i]); */
@@ -368,7 +368,7 @@ static int zynq_sdh_request(struct mmc *mmc, struct mmc_cmd *cmd,
 		} else {
 			/* response type 1, 1b, 3, 6 */
 			cmd->response[0] = sd_in32(SD_RSP_R);
-            /*delete by star-star for debugging */
+            /*delete by starsoc for debugging */
             /*
 			debug("CMD%d cmd->response[0] = %d\n",
 				cmd->cmdidx, cmd->response[0]); */

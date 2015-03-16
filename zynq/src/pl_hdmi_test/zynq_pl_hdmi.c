@@ -411,13 +411,14 @@ static void sii902x_setup(void)
     
 	/* Power up */    
     SiI9022_write(SII9022_I2C_ADDR, 0x1E, 0x10);      
+    
 	for (i = 0; i < 8; i++)        
         SiI9022_write(SII9022_I2C_ADDR, i, data[i]);      
     
     SiI9022_write(SII9022_I2C_ADDR, 0x08, 0x70);      
     SiI9022_write(SII9022_I2C_ADDR, 0x09, 0x00);      
     SiI9022_write(SII9022_I2C_ADDR, 0x0A, 0x00);      
-
+    
     SiI9022_write(SII9022_I2C_ADDR, 0x25, 0x00);      
     SiI9022_write(SII9022_I2C_ADDR, 0x26, 0x40);      
     SiI9022_write(SII9022_I2C_ADDR, 0x27, 0x00);      

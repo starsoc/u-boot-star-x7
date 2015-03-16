@@ -384,7 +384,7 @@ int eth_init(bd_t *bis)
 	do {
 		debug("Trying %s\n", eth_current->name);
 
-		if (eth_current->init(eth_current,bis) >= 0) {  /* add by star-star Xgmac_init*/
+		if (eth_current->init(eth_current,bis) >= 0) {  /* add by starsoc Xgmac_init*/
 			eth_current->state = ETH_STATE_ACTIVE;
             
 			return 0;
@@ -412,7 +412,7 @@ int eth_send(volatile void *packet, int length)
 	if (!eth_current)
 		return -1;
     
-	return eth_current->send(eth_current, packet, length);  /* add by star-star   Xgmac_send*/
+	return eth_current->send(eth_current, packet, length);  /* add by starsoc Xgmac_send*/
 }
 
 int eth_rx(void)
@@ -420,7 +420,7 @@ int eth_rx(void)
 	if (!eth_current)
 		return -1;
 
-	return eth_current->recv(eth_current);      /* add by star-star Xgmac_rx */
+	return eth_current->recv(eth_current);      /* add by starsoc Xgmac_rx */
 }
 
 #ifdef CONFIG_API
