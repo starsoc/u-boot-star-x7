@@ -29,6 +29,42 @@
 #define MII_M1011_PHY_SCR				0x10
 #define MII_M1011_PHY_SCR_AUTO_CROSS	0x0060
 
+#define PHY_CRTL_REG                  							0x00
+#define PHY_EXTNAL_CRTL_REG1          						0x1c
+#define PHY_AUX_CTRL_REG									0X18
+#define	PHY_EXTNAL_CRTL_REG16								0X10
+
+#define PHY_MII_SHADOW_WEN_MASK  				0x8000    		//shaow????????D??：o?┐?：1
+#define PHY_MII_SHADOW_ADDR		  					0x2c00   		//：：：a?t?????：????│：?????????|━???∴
+#define PHY_MII_RESET_MASK               				 	0x8000         //?????bit15?┷?3?D?2.0us
+#define PHY_MII_CLRRST_MASK               				0x0000         //???????：♂?
+#define PHY_EXTNAL_CRTL_WREN_MASK         		0xA500         //D??reg：o1?：1
+#define PHY_MII_RSTEN_MASK                				0x2540         //?????：o1?：1?┷oshadow value: bit[14:10] 01011; bit6 1
+#define PHY_MII_MODE_MASK                 				0x2510         //RGMII 1.8v: bit[4:3] 10
+
+#define PHY_SHADOW_MASK									0x83FF			//：????│：??????????????：2??
+#define PHY_SPEED_MASK										0xdfbF			//：????│：??????????????：2??
+
+#define PHY_AUTO_NIGOTIATION_MASK         		0x1000         //bit12,0   1??┐??│?：o：o：?|
+#define PHY_DUPLEX_MODE_MASK              			0x0100         //bit8, 1   ?a??：：???1?┬
+#define PHY_SPEED_100M               	 						0x2000         //bit[6,13], 01
+#define PHY_SPEED_1000M             	 						0x0040         //bit[6,13], 10
+
+#define PHY_Status_REG											0x01
+#define PHY_AutoNegDone_MASK							0x0020
+#define PHY_LinkUp_MASK										0x0004
+#define PHY_100M_FULL_MASK								0x4000			//reg
+#define PHY_10M_FULL_MASK									0x1000			//reg
+
+#define PHY_Status_EXREG										0x0f
+#define PHY_1000M_FULL_MASK								0x2000			//exreg
+
+#define XEMACPS_GMII2RGMII_SPEED1000_FD		0x140
+#define XEMACPS_GMII2RGMII_SPEED100_FD		0x2100
+#define XEMACPS_GMII2RGMII_SPEED10_FD		0x100
+#define XEMACPS_GMII2RGMII_REG_NUM			0x10
+
+
 u32 g_phyaddr = 0;
 
 
@@ -296,6 +332,99 @@ static int find_phy(XEmacPss *EmacPssInstancePtr)
 }
 
 
+#define EMAC0_BASE_ADDRESS				0xE000B000
+#define EMAC1_BASE_ADDRESS				0xE000C000
+
+/*
+ * SLCR setting
+ */
+
+#define XPS_SYS_CTRL_BASEADDR		0xF8000000	/* AKA SLCR */
+#define SLCR_LOCK_ADDR			(XPS_SYS_CTRL_BASEADDR + 0x4)
+#define SLCR_UNLOCK_ADDR		(XPS_SYS_CTRL_BASEADDR + 0x8)
+#define SLCR_GEM0_CLK_CTRL_ADDR		(XPS_SYS_CTRL_BASEADDR + 0x140)
+#define SLCR_GEM1_CLK_CTRL_ADDR		(XPS_SYS_CTRL_BASEADDR + 0x144)
+#define SLCR_LOCK_KEY_VALUE 			0x767B
+#define SLCR_UNLOCK_KEY_VALUE			0xDF0D
+#define EMACPS_SLCR_DIV_MASK			0xFC0FC0FF
+
+
+static void SetUpSLCRDivisors(int mac_baseaddr, int speed)
+{
+	volatile u32 slcrBaseAddress;
+#ifndef PEEP
+	u32 SlcrDiv0;
+	u32 SlcrDiv1;
+	u32 SlcrTxClkCntrl;
+#endif
+
+	*(volatile unsigned int *)(SLCR_UNLOCK_ADDR) = SLCR_UNLOCK_KEY_VALUE;
+        
+	if (mac_baseaddr == EMAC0_BASE_ADDRESS) {
+		slcrBaseAddress = SLCR_GEM0_CLK_CTRL_ADDR;
+	} else {
+		slcrBaseAddress = SLCR_GEM1_CLK_CTRL_ADDR;
+	}
+#ifdef PEEP
+	if (speed == 1000) {
+		*(volatile unsigned int *)(slcrBaseAddress) =
+											SLCR_GEM_1G_CLK_CTRL_VALUE;
+	} else if (speed == 100) {
+		*(volatile unsigned int *)(slcrBaseAddress) =
+											SLCR_GEM_100M_CLK_CTRL_VALUE;
+	} else {
+		*(volatile unsigned int *)(slcrBaseAddress) =
+											SLCR_GEM_10M_CLK_CTRL_VALUE;
+	}
+#else
+	if (speed == 1000) {
+		if (mac_baseaddr == EMAC0_BASE_ADDRESS) {
+#ifdef XPAR_PS7_ETHERNET_0_ENET_SLCR_1000MBPS_DIV0
+			SlcrDiv0 = XPAR_PS7_ETHERNET_0_ENET_SLCR_1000MBPS_DIV0;
+			SlcrDiv1 = XPAR_PS7_ETHERNET_0_ENET_SLCR_1000MBPS_DIV1;
+#endif
+		} else {
+#ifdef XPAR_PS7_ETHERNET_1_ENET_SLCR_1000MBPS_DIV0
+			SlcrDiv0 = XPAR_PS7_ETHERNET_1_ENET_SLCR_1000MBPS_DIV0;
+			SlcrDiv1 = XPAR_PS7_ETHERNET_1_ENET_SLCR_1000MBPS_DIV1;
+#endif
+		}
+	} else if (speed == 100) {
+		if (mac_baseaddr == EMAC0_BASE_ADDRESS) {
+#ifdef XPAR_PS7_ETHERNET_0_ENET_SLCR_100MBPS_DIV0
+			SlcrDiv0 = XPAR_PS7_ETHERNET_0_ENET_SLCR_100MBPS_DIV0;
+			SlcrDiv1 = XPAR_PS7_ETHERNET_0_ENET_SLCR_100MBPS_DIV1;
+#endif
+		} else {
+#ifdef XPAR_PS7_ETHERNET_1_ENET_SLCR_100MBPS_DIV0
+			SlcrDiv0 = XPAR_PS7_ETHERNET_1_ENET_SLCR_100MBPS_DIV0;
+			SlcrDiv1 = XPAR_PS7_ETHERNET_1_ENET_SLCR_100MBPS_DIV1;
+#endif
+		}
+	} else {
+		if (mac_baseaddr == EMAC0_BASE_ADDRESS) {
+#ifdef XPAR_PS7_ETHERNET_0_ENET_SLCR_10MBPS_DIV0
+			SlcrDiv0 = XPAR_PS7_ETHERNET_0_ENET_SLCR_10MBPS_DIV0;
+			SlcrDiv1 = XPAR_PS7_ETHERNET_0_ENET_SLCR_10MBPS_DIV1;
+#endif
+		} else {
+#ifdef XPAR_PS7_ETHERNET_1_ENET_SLCR_10MBPS_DIV0
+			SlcrDiv0 = XPAR_PS7_ETHERNET_1_ENET_SLCR_10MBPS_DIV0;
+			SlcrDiv1 = XPAR_PS7_ETHERNET_1_ENET_SLCR_10MBPS_DIV1;
+#endif
+		}
+	}
+	SlcrTxClkCntrl = *(volatile unsigned int *)(slcrBaseAddress);
+	SlcrTxClkCntrl &= EMACPS_SLCR_DIV_MASK;
+	SlcrTxClkCntrl |= (SlcrDiv1 << 20);
+	SlcrTxClkCntrl |= (SlcrDiv0 << 8);
+	*(volatile unsigned int *)(slcrBaseAddress) = SlcrTxClkCntrl;
+#endif
+	*(volatile unsigned int *)(SLCR_LOCK_ADDR) = SLCR_LOCK_KEY_VALUE;
+	return;
+}
+
+
 int Xgmac_init(struct eth_device *dev, bd_t * bis)
 {
 	int tmp;
@@ -325,16 +454,118 @@ int Xgmac_init(struct eth_device *dev, bd_t * bis)
 	tmp |= XEMACPSS_NWCTRL_RXEN_MASK | XEMACPSS_NWCTRL_TXEN_MASK;
 	XEmacPss_WriteReg(EmacPssInstancePtr->Config.BaseAddress,
 			  XEMACPSS_NWCTRL_OFFSET, tmp);
+
+    
 	{
 		/*************************** PHY Setup ***************************/
 		/* ---------------------------------------------------------------------*/
-#ifndef MARVELL_88E1116R
 		/* add by starsoc  */
 		/* --------------------------------------------- */
 		int phy_addr;
+        u16 phyCtrlRegVal        = 0;
+        u16 phyExtnalCtrlRegVal  = 0;
 		phy_addr = find_phy(EmacPssInstancePtr);
 		g_phyaddr = phy_addr;
-		
+        u32 tmp_status = 0;
+	    unsigned long convspeeddupsetting = 0;
+                
+		printf("Reset PHY \r\n");
+		tmp = phy_rd(EmacPssInstancePtr, PHY_EXTNAL_CRTL_REG1);
+		tmp =	tmp & PHY_SHADOW_MASK;
+		tmp =	tmp | PHY_MII_SHADOW_WEN_MASK;
+		tmp =	tmp | PHY_MII_SHADOW_ADDR;
+		phy_wr(EmacPssInstancePtr, PHY_EXTNAL_CRTL_REG1, tmp);
+            
+            
+        
+        phyCtrlRegVal =  phyCtrlRegVal | PHY_MII_RSTEN_MASK ;
+        phy_wr(EmacPssInstancePtr, PHY_EXTNAL_CRTL_REG1, phyCtrlRegVal);
+        phyCtrlRegVal =  phyCtrlRegVal & (~PHY_MII_SHADOW_WEN_MASK) ;
+        phy_wr(EmacPssInstancePtr, PHY_EXTNAL_CRTL_REG1, phyCtrlRegVal);
+		tmp = phy_rd(EmacPssInstancePtr, PHY_EXTNAL_CRTL_REG1);
+
+
+		//PHY
+		phyCtrlRegVal = phy_rd(EmacPssInstancePtr, PHY_CRTL_REG);
+		phyCtrlRegVal = phyCtrlRegVal | PHY_MII_RESET_MASK;
+        phy_wr(EmacPssInstancePtr, PHY_CRTL_REG, phyCtrlRegVal);
+		phyCtrlRegVal = phy_rd(EmacPssInstancePtr, PHY_CRTL_REG);
+
+        
+        
+		sleep(1);
+
+		phyCtrlRegVal =  phyCtrlRegVal & (~PHY_MII_RESET_MASK);        
+        phy_wr(EmacPssInstancePtr, PHY_CRTL_REG, phyCtrlRegVal);
+		printf("Reset PHY Successful \r\n");
+        
+		/*
+		 * Config MII MODE
+		 */
+		printf("Config RGMII 1.8V HSTL MODE \r\n");
+        
+		phyExtnalCtrlRegVal = phy_rd(EmacPssInstancePtr, PHY_EXTNAL_CRTL_REG1);
+		phyExtnalCtrlRegVal =	phyExtnalCtrlRegVal & PHY_SHADOW_MASK;
+		phyExtnalCtrlRegVal =	phyExtnalCtrlRegVal | PHY_MII_SHADOW_WEN_MASK;
+		phyExtnalCtrlRegVal =	phyExtnalCtrlRegVal | PHY_MII_SHADOW_ADDR;
+        phy_wr(EmacPssInstancePtr, PHY_EXTNAL_CRTL_REG1, phyExtnalCtrlRegVal);
+        
+        
+		//	RGMII 1.8V HSTL??┷：o?：o1?：1
+		phyCtrlRegVal =  phyCtrlRegVal | PHY_MII_MODE_MASK ;
+        phy_wr(EmacPssInstancePtr, PHY_EXTNAL_CRTL_REG1, phyCtrlRegVal);        
+		phyCtrlRegVal =  phyCtrlRegVal & (~PHY_MII_SHADOW_WEN_MASK) ;
+        phy_wr(EmacPssInstancePtr, PHY_EXTNAL_CRTL_REG1, phyCtrlRegVal);                
+		phyExtnalCtrlRegVal = phy_rd(EmacPssInstancePtr, PHY_EXTNAL_CRTL_REG1);
+		printf("Config RGMII 1.8V HSTL MODE Successful \r\n");
+
+		printf("Start PHY auto negotiation \r\n");
+		do{
+
+            tmp_status = phy_rd(EmacPssInstancePtr, PHY_Status_REG);
+		}while(tmp_status&PHY_AutoNegDone_MASK);
+        
+	    printf("PHY auto negotiation Done \r\n");
+
+        
+		printf("Waiting for LinkUp \r\n");
+		do{            
+            tmp_status = phy_rd(EmacPssInstancePtr, PHY_Status_REG);
+		}while(tmp_status&PHY_LinkUp_MASK);
+		printf("LinkUp Successful \r\n");
+
+        tmp_status = phy_rd(EmacPssInstancePtr, PHY_Status_EXREG);
+		if(tmp_status&PHY_1000M_FULL_MASK)
+		{
+			printf("XEmacPsDetectPHY():  Speed = 1000Mbps\r\n");
+            SetUpSLCRDivisors(EmacPssInstancePtr->Config.BaseAddress, 1000);
+            convspeeddupsetting = XEMACPS_GMII2RGMII_SPEED1000_FD;
+            link_speed = 1000;
+		}
+        else
+		{
+            tmp_status = phy_rd(EmacPssInstancePtr, PHY_Status_REG);
+			if(tmp_status&PHY_100M_FULL_MASK)
+			{
+				printf("XEmacPsDetectPHY():  Speed = 100Mbps \r\n");                
+                SetUpSLCRDivisors(EmacPssInstancePtr->Config.BaseAddress, 100);
+                convspeeddupsetting = XEMACPS_GMII2RGMII_SPEED100_FD;
+                link_speed = 100;
+			}
+			else if(tmp_status&PHY_10M_FULL_MASK)
+			{
+                SetUpSLCRDivisors(EmacPssInstancePtr->Config.BaseAddress, 10);
+				printf("XEmacPsDetectPHY():  Speed = 10Mbps \r\n");
+                convspeeddupsetting = XEMACPS_GMII2RGMII_SPEED10_FD;
+                link_speed = 10;
+			}			
+		}	
+        
+        phy_wr(EmacPssInstancePtr, XEMACPS_GMII2RGMII_REG_NUM, convspeeddupsetting);  
+        
+        printf("link speed: %d\r\n", link_speed);
+        
+        #if 0
 		/* --------------------------------------------- */
 		
 		phy_wr(EmacPssInstancePtr, MII_MARVELL_PHY_PAGE, 0);	/* page 0 */
@@ -351,15 +582,6 @@ int Xgmac_init(struct eth_device *dev, bd_t * bis)
 		tmp |= (1 << 10);	/* MAC pause implemented */
 		phy_wr(EmacPssInstancePtr, MII_ADVERTISE, tmp);
 		
-#ifdef CONFIG_EP107
-		/* Extended PHY specific control register */
-		tmp = phy_rd(EmacPssInstancePtr, 20);
-		tmp |= (7 << 9);	/* max number of gigabit attempts */
-		tmp |= (1 << 8);	/* enable downshift */
-		tmp |= (1 << 7);	/* RGMII receive timing internally delayed */
-		tmp |= (1 << 1);	/* RGMII transmit clock internally delayed */
-		phy_wr(EmacPssInstancePtr, 20, tmp);
-#else	
 		/* Copper specific control register 1 */
 		tmp = phy_rd(EmacPssInstancePtr, MII_M1011_PHY_SCR);
 		tmp |= (7 << 12);	/* max number of gigabit attempts */
@@ -374,65 +596,18 @@ int Xgmac_init(struct eth_device *dev, bd_t * bis)
 		tmp |= (1 << 4);	/* RGMII transmit clock internally delayed */
 		phy_wr(EmacPssInstancePtr, MII_M1116R_CONTROL_REG_MAC, tmp);
 		phy_wr(EmacPssInstancePtr, MII_MARVELL_PHY_PAGE, 0);	/* page 0 */
-#endif
 		
 		/* Control register */
 		tmp = phy_rd(EmacPssInstancePtr, MII_BMCR);
 		tmp |= (1 << 12);	/* auto-negotiation enable */
 		tmp |= (1 << 8);	/* enable full duplex */
 		phy_wr(EmacPssInstancePtr, MII_BMCR, tmp);
+        #endif
 	}
 	/* ---------------------------------------------------------------------*/
-#else
-	/* add by starsoc MARVELL_88E1116R init should be as following */
-	/* drivers/net/phy 88e1116r_config_init */
-	{
-		int temp;
-		int err;
-		int phy_addr;
-		/* reset phy fisrt */
-		phy_addr = find_phy(EmacPssInstancePtr);
-		g_phyaddr = phy_addr;
-		temp = phy_rd(EmacPssInstancePtr, MII_BMCR);
-		temp |= BMCR_RESET;
-		phy_wr(EmacPssInstancePtr, MII_BMCR, temp);
-		
-		mdelay(500);
-		
-		phy_wr(EmacPssInstancePtr, MII_MARVELL_PHY_PAGE, 0);
-
-		tmp = phy_rd(EmacPssInstancePtr, MII_PHYSID1);
-		printf("Phy ID: %04X", tmp);
-		tmp = phy_rd(EmacPssInstancePtr, MII_PHYSID2);
-		printf("%04X\n", tmp);
-		
-		
-		temp = phy_rd(EmacPssInstancePtr, MII_M1011_PHY_SCR);
-		temp |= (7 << 12);	/* max number of gigabit attempts */
-		temp |= (1 << 11);	/* enable downshift */
-		temp |= MII_M1011_PHY_SCR_AUTO_CROSS;
-		phy_wr(EmacPssInstancePtr, MII_M1011_PHY_SCR, temp);
-		
-	
-		phy_wr(EmacPssInstancePtr, MII_MARVELL_PHY_PAGE, 2);
-		temp = phy_rd(EmacPssInstancePtr, MII_M1116R_CONTROL_REG_MAC);
-		temp |= (1 << 5);
-		temp |= (1 << 4);
-		phy_wr(EmacPssInstancePtr, MII_M1116R_CONTROL_REG_MAC, temp);
-		
-		phy_wr(EmacPssInstancePtr, MII_MARVELL_PHY_PAGE, 0);
-
-		/* Control register */
-		tmp = phy_rd(EmacPssInstancePtr, MII_BMCR);
-		tmp |= (1 << 12);	/* auto-negotiation enable */
-		tmp |= (1 << 8);	/* enable full duplex */
-		phy_wr(EmacPssInstancePtr, MII_BMCR, tmp);
-		
-		
-	}
-#endif
 	
 	
+#if 1
 
 	/***** Try to establish a link at the highest speed possible  *****/
 #ifdef CONFIG_EP107
@@ -445,6 +620,7 @@ int Xgmac_init(struct eth_device *dev, bd_t * bis)
 	/* Could be 1000 if an unknown bug is fixed */
 	Xgmac_set_eth_advertise(EmacPssInstancePtr, 1000);
 #endif
+    
 	phy_rst(EmacPssInstancePtr);
 	
 	/* Attempt auto-negotiation */
@@ -481,7 +657,9 @@ int Xgmac_init(struct eth_device *dev, bd_t * bis)
 		link_speed = 100;
 	else					/* 10Mbps */
 		link_speed = 10;
-
+ #endif
+    
+ 
 	/*************************** MAC Setup ***************************/
 	tmp = XEmacPss_ReadReg(EmacPssInstancePtr->Config.BaseAddress,
 			  XEMACPSS_NWCFG_OFFSET);

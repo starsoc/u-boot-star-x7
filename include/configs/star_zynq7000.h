@@ -119,8 +119,9 @@
 
 /* HW to use */
 /* modify by starsoc */
-#define CONFIG_UART1
-/* #define CONFIG_UART0 */
+//#define CONFIG_UART1
+#define CONFIG_UART0
+
 #define CONFIG_CMD_I2C
 #define CONFIG_HARD_I2C
 #define CONFIG_SYS_I2C_SPEED 100000  //didn't use speed and slave_addr MACRO
