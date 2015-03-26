@@ -13,6 +13,7 @@
 //#define CONFIG_SYS_SDRAM_SIZE		(1024 * 1024 * 1024)
 #define	PHYS_SDRAM_1_SIZE	(1024 * 1024 * 1024)
 
+// UART
 #define CONFIG_ZYNQ_SERIAL_UART1
 #define CONFIG_ZYNQ_GEM0
 #define CONFIG_ZYNQ_GEM_PHY_ADDR0	0
@@ -28,6 +29,11 @@
 
 #define CONFIG_IPADDR	192.168.1.55
 #define CONFIG_SERVERIP	192.168.1.13
+
+// add by starsoc
+// #define CONFIG_ZYNQ_I2C
+#define CONFIG_ZYNQ_I2C_CTLR_1
+
 
 #define CONFIG_EXTRA_ENV_SETTINGS	\
 	"ethaddr=00:0a:35:00:01:22\0"	\

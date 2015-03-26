@@ -395,13 +395,15 @@ struct nand_ecc_ctrl {
  * Do not change the order of buffers. databuf and oobrbuf must be in
  * consecutive order.
  */
+// delete by starsoc 
+#if 0
 struct nand_buffers {
 	uint8_t	ecccalc[ALIGN(NAND_MAX_OOBSIZE, ARCH_DMA_MINALIGN)];
 	uint8_t	ecccode[ALIGN(NAND_MAX_OOBSIZE, ARCH_DMA_MINALIGN)];
 	uint8_t databuf[ALIGN(NAND_MAX_PAGESIZE + NAND_MAX_OOBSIZE,
 			      ARCH_DMA_MINALIGN)];
 };
-
+#endif
 /**
  * struct nand_chip - NAND Private Flash Chip Data
  * @IO_ADDR_R:		[BOARDSPECIFIC] address to read the 8 I/O lines of the
@@ -551,7 +553,7 @@ struct nand_chip {
 	struct nand_ecclayout *ecclayout;
 
 	struct nand_ecc_ctrl ecc;
-	struct nand_buffers *buffers;
+	// struct nand_buffers *buffers;   delete by starsoc
 	struct nand_hw_control hwcontrol;
 
 	uint8_t *bbt;
