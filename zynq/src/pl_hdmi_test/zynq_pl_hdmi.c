@@ -344,22 +344,25 @@ int SiI9134_i2c_config(void)
     SiI9022_write(0x39, 0x05, 0x01);        //soft reset
     SiI9022_write(0x39, 0x05, 0x00);        //soft reset
     SiI9022_write(0x39, 0x08, 0xfd);        //PD#=1,power on mode
-
+    
     SiI9022_write(0x3d, 0x2f, 0x21);        //HDMI mode enable, 24bit per pixel(8 bits per channel; no packing)
     SiI9022_write(0x3d, 0x3e, 0x03);        //Enable AVI infoFrame transmission, Enable(send in every VBLANK period)
+    
     SiI9022_write(0x3d, 0x40, 0x82);
     SiI9022_write(0x3d, 0x41, 0x02);
     SiI9022_write(0x3d, 0x42, 0x0d);
     SiI9022_write(0x3d, 0x43, 0xf7);
+    
     SiI9022_write(0x3d, 0x44, 0x10);
     SiI9022_write(0x3d, 0x45, 0x68);
     SiI9022_write(0x3d, 0x46, 0x00);
     SiI9022_write(0x3d, 0x47, 0x00);
+    
     SiI9022_write(0x3d, 0x3d, 0x07);
       
     
     
-	//display Device ID information
+    //display Device ID information
     Status = SiI9022_read(0x39, 0x02, ReadBuffer);
 
 	if (Status != XST_SUCCESS)	
@@ -438,7 +441,6 @@ int SiI9022_i2c_config(void)
     /* Set 902x in hardware TPI mode on and jump out of D3 state */    
     SiI9022_write(SII9022_I2C_ADDR, 0xc7, 0x00);        
 
-    
 
 	/* read device ID */
 	for (i = 10; i > 0; i--) 
