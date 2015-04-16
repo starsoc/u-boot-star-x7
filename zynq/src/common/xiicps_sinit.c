@@ -102,6 +102,9 @@ XIicPs_Config *XIicPs_LookupConfig(u16 DeviceId)
 			break;
 		}
 	}
-
+	
+	printf("######baseaddr:0x%x, Index:%d\r\n", 
+		XIicPs_ConfigTable[Index].BaseAddress, Index);
+	
 	return CfgPtr;
 }

@@ -145,7 +145,6 @@ int IicPsMasterPolled_Init(u16 DeviceId)
 	 * Set the IIC serial clock rate.
 	 */
 	XIicPs_SetSClk(&IICInstance, IIC_SCLK_RATE);
-
     
 	return XST_SUCCESS;
 }

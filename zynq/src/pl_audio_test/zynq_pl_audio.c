@@ -7,6 +7,10 @@
 #include "xgpio.h"
 #include "ff.h"
 
+/* Definitions for peripheral AXI_CLKGEN_0 */
+#define XPAR_AUDIO_I2S_0_BASEADDR 0x79000000
+
+
 /************************** Constant Definitions *****************************/
 #define IIC_DEVICE_ID	XPAR_IIC_0_DEVICE_ID
 #define IIC_BASE_ADDRESS	XPAR_IIC_0_BASEADDR

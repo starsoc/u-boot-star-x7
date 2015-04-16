@@ -39,7 +39,8 @@
 #include "xscugic.h"
 
 
-
+/* Definitions for peripheral PS7_AFI_1 */
+#define XPAR_AXI_VGA_0_BASEADDR 0xF8009000
 #define VGA_BASEADDR       XPAR_AXI_VGA_0_BASEADDR
 
 

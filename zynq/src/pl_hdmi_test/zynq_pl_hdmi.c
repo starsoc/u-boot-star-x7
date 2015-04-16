@@ -42,9 +42,9 @@
 #include "i2c.h"
 #include "ff.h"
 
-#define IIC_DEVICE_ID	XPAR_XIICPS_1_DEVICE_ID
+#define IIC_DEVICE_ID	XPAR_XIICPS_0_DEVICE_ID
 #define INTC_DEVICE_ID	XPAR_SCUGIC_SINGLE_DEVICE_ID
-#define IIC_INTR_ID	    XPAR_XIICPS_1_INTR
+#define IIC_INTR_ID	    XPAR_XIICPS_0_INTR
 
 /*
  * The following constant defines the address of the IIC Slave device on the
@@ -84,21 +84,22 @@
 #define AUDIO_BASEADDR DDR_BASEADDR + 0x01000000
 #define DATA_READ_ADDR DDR_BASEADDR + 0x03000000;
 
-#define SII9022_I2C_ADDR        0x3B
-
-
+// #define SII9022_I2C_ADDR        0x3B				// zturn address
+#define SII9022_I2C_ADDR        0x39				// CI2CA = LOW
+//#define SII9022_I2C_ADDR        0x3D
+//#define SII9022_I2C_ADDR        0x60
 
 XIicPs Iic1Instance;		/* The instance of the IIC device. */
 int g_image_len = 0;
 
-int sii9022_i2c_init(int i2c_id)
+int sii9XXX_i2c_init(int i2c_id)
 {
 	int Status;
 	XIicPs_Config *ConfigPtr;	/* Pointer to configuration data */
     
 	/*
 	 * Initialize the IIC driver so that it is ready to use.
-	 */
+	 */	
 	ConfigPtr = XIicPs_LookupConfig(i2c_id);
 	if (ConfigPtr == NULL) {
 		return XST_FAILURE;
@@ -119,7 +120,6 @@ int sii9022_i2c_init(int i2c_id)
 		return XST_FAILURE;
 	}
     
-
 	/*
 	 * Set the IIC serial clock rate.
 	 */
@@ -164,7 +164,7 @@ int sii9022_i2c_init(int i2c_id)
 /*****************************************************************************/
 /*This function writes a data to the SiI9134 register.
 ******************************************************************************/
-int SiI9022_write(u8 dev_id, u8 waddr, u8 wdata)
+int SiI9XXX_write(u8 dev_id, u8 waddr, u8 wdata)
 {
 	int Status;
 
@@ -199,7 +199,7 @@ int SiI9022_write(u8 dev_id, u8 waddr, u8 wdata)
 /*****************************************************************************/
 /*This function read a data from the SiI9134 register.
 ******************************************************************************/
-int SiI9022_read(u8 dev_id, u8 raddr, u8 ReadBuffer[])
+int SiI9XXX_read(u8 dev_id, u8 raddr, u8 ReadBuffer[])
 {
 
 	int Status;
@@ -338,33 +338,28 @@ int SiI9134_i2c_config(void)
     
     printf("######SiI9134_i2c_config()\r\n"); 
     
-    sii9022_i2c_init(IIC_DEVICE_ID);
+    Status = sii9XXX_i2c_init(XPAR_XIICPS_1_DEVICE_ID);    
     
+    SiI9XXX_write(0x39, 0x05, 0x01);        //soft reset
+    SiI9XXX_write(0x39, 0x05, 0x00);        //soft reset
+    SiI9XXX_write(0x39, 0x08, 0xfd);        //PD#=1,power on mode
+	
+    SiI9XXX_write(0x3d, 0x2f, 0x21);        //HDMI mode enable, 24bit per pixel(8 bits per channel; no packing)
+    SiI9XXX_write(0x3d, 0x3e, 0x03);        //Enable AVI infoFrame transmission, Enable(send in every VBLANK period)
+    SiI9XXX_write(0x3d, 0x40, 0x82);
+    SiI9XXX_write(0x3d, 0x41, 0x02);
+    SiI9XXX_write(0x3d, 0x42, 0x0d);
+    SiI9XXX_write(0x3d, 0x43, 0xf7);
+    SiI9XXX_write(0x3d, 0x44, 0x10);
+    SiI9XXX_write(0x3d, 0x45, 0x68);
+    SiI9XXX_write(0x3d, 0x46, 0x00);
+    SiI9XXX_write(0x3d, 0x47, 0x00);
+    SiI9XXX_write(0x3d, 0x3d, 0x07);
     
-    SiI9022_write(0x39, 0x05, 0x01);        //soft reset
-    SiI9022_write(0x39, 0x05, 0x00);        //soft reset
-    SiI9022_write(0x39, 0x08, 0xfd);        //PD#=1,power on mode
-    
-    SiI9022_write(0x3d, 0x2f, 0x21);        //HDMI mode enable, 24bit per pixel(8 bits per channel; no packing)
-    SiI9022_write(0x3d, 0x3e, 0x03);        //Enable AVI infoFrame transmission, Enable(send in every VBLANK period)
-    
-    SiI9022_write(0x3d, 0x40, 0x82);
-    SiI9022_write(0x3d, 0x41, 0x02);
-    SiI9022_write(0x3d, 0x42, 0x0d);
-    SiI9022_write(0x3d, 0x43, 0xf7);
-    
-    SiI9022_write(0x3d, 0x44, 0x10);
-    SiI9022_write(0x3d, 0x45, 0x68);
-    SiI9022_write(0x3d, 0x46, 0x00);
-    SiI9022_write(0x3d, 0x47, 0x00);
-    
-    SiI9022_write(0x3d, 0x3d, 0x07);
-      
-    
-    
-    //display Device ID information
-    Status = SiI9022_read(0x39, 0x02, ReadBuffer);
-
+    printf("######SiI9XXX_write over()\r\n"); 
+	
+	//display Device ID information
+    Status = SiI9XXX_read(0x39, 0x02, ReadBuffer);
 	if (Status != XST_SUCCESS)	
     {
 		return XST_FAILURE;
@@ -373,8 +368,8 @@ int SiI9134_i2c_config(void)
     {
 	    printf("Read Device ID of (%d)\n\r", ReadBuffer[0]);
 	}
-
-    Status=SiI9022_read(0x39, 0x03, ReadBuffer);
+	
+    Status=SiI9XXX_read(0x39, 0x03, ReadBuffer);
 	if (Status != XST_SUCCESS)	
     {
 		return XST_FAILURE;
@@ -384,7 +379,7 @@ int SiI9134_i2c_config(void)
 	    printf("Read Device ID of (%d)\n\r", ReadBuffer[0]);
 	}
     printf("done.\n\r");
-
+	
     return 0;
 }
 
@@ -394,7 +389,7 @@ static void sii902x_poweron(void)
 {
 	printf("%s\n", __func__);    
 	/* Turn on DVI or HDMI */    
-    SiI9022_write(SII9022_I2C_ADDR, 0x1A, 0x00);      
+    SiI9XXX_write(SII9022_I2C_ADDR, 0x1A, 0x01);      
 	return;
 }
 
@@ -403,7 +398,7 @@ static void sii902x_poweroff(void)
 {
 	printf("%s\n", __func__);       
 	/* disable tmds before changing resolution */
-    SiI9022_write(SII9022_I2C_ADDR, 0x1A, 0x10);      
+    SiI9XXX_write(SII9022_I2C_ADDR, 0x1A, 0x11);      
 	return;
 }
 
@@ -412,19 +407,20 @@ static void sii902x_setup(void)
     u8 data[8] = {0,1,2,3,4,5,6,7};
     int i = 0;
     
+    printf("\r\n######sii902x_setup\r\n");
 	/* Power up */    
-    SiI9022_write(SII9022_I2C_ADDR, 0x1E, 0x10);      
-    
+    SiI9XXX_write(SII9022_I2C_ADDR, 0x1E, 0x10);      
 	for (i = 0; i < 8; i++)        
-        SiI9022_write(SII9022_I2C_ADDR, i, data[i]);      
+        SiI9XXX_write(SII9022_I2C_ADDR, i, data[i]);      
     
-    SiI9022_write(SII9022_I2C_ADDR, 0x08, 0x70);      
-    SiI9022_write(SII9022_I2C_ADDR, 0x09, 0x00);      
-    SiI9022_write(SII9022_I2C_ADDR, 0x0A, 0x00);      
-    
-    SiI9022_write(SII9022_I2C_ADDR, 0x25, 0x00);      
-    SiI9022_write(SII9022_I2C_ADDR, 0x26, 0x40);      
-    SiI9022_write(SII9022_I2C_ADDR, 0x27, 0x00);      
+    SiI9XXX_write(SII9022_I2C_ADDR, 0x08, 0x70);      
+    SiI9XXX_write(SII9022_I2C_ADDR, 0x09, 0x00);      
+    SiI9XXX_write(SII9022_I2C_ADDR, 0x0A, 0x00);      
+	
+    SiI9XXX_write(SII9022_I2C_ADDR, 0x25, 0x00);      
+    SiI9XXX_write(SII9022_I2C_ADDR, 0x26, 0x40);      
+    SiI9XXX_write(SII9022_I2C_ADDR, 0x27, 0x00);      
+
     return;
 }
 
@@ -433,42 +429,64 @@ int SiI9022_i2c_config(void)
     int Status;
     u8 dat;    
     int i  = 0;
+    int i2c_addr  = SII9022_I2C_ADDR;
+    printf("######SiI9022_i2c_config() begin\r\n"); 
+#if 0	
+    Status = IicPsMasterPolled_Init(XPAR_XIICPS_0_DEVICE_ID);
+    if (Status != XST_SUCCESS)
+        printf("I2c init sii9022 error\r\n");
     
-    printf("######SiI9134_i2c_config()\r\n"); 
-    
-    sii9022_i2c_init(IIC_DEVICE_ID);
-
+    printf("######sii9XXX_i2c_init() ok\r\n"); 
+	
+    Status = IicPsRtcPolled_Write(SII9022_I2C_ADDR, 0xc7, 0x00);
+	
+    printf("######begin read sii9022 id\r\n");
+#endif
+	
+#if 1	
+    sii9XXX_i2c_init(XPAR_XIICPS_0_DEVICE_ID);
+	
+    printf("######i2c initial over¡ê? i2c_addr:0x%x\r\n", i2c_addr);
+	
     /* Set 902x in hardware TPI mode on and jump out of D3 state */    
-    SiI9022_write(SII9022_I2C_ADDR, 0xc7, 0x00);        
-
-
+    SiI9XXX_write(SII9022_I2C_ADDR, 0xc7, 0x00);       
+	
+	printf("######Set 902x in hardware TPI mode over\r\n");
+#endif
+	
 	/* read device ID */
 	for (i = 10; i > 0; i--) 
     {
-        Status = SiI9022_read(SII9022_I2C_ADDR, 0x1B, &dat);
+    
+		printf("begin read Sii9022\r\n");
+        Status = SiI9XXX_read(SII9022_I2C_ADDR, 0x1B, &dat);
         
-		printf("Sii902x: read id = 0x%02X", dat);
+		printf("Sii9022: read id = 0x%02X", dat);
         
 		if (dat == 0xb0) 
         {
-            Status = SiI9022_read(SII9022_I2C_ADDR, 0x1C, &dat);
+            Status = SiI9XXX_read(SII9022_I2C_ADDR, 0x1C, &dat);
 			printf("-0x%02X", dat);
             
-            Status = SiI9022_read(SII9022_I2C_ADDR, 0x1D, &dat);
+            Status = SiI9XXX_read(SII9022_I2C_ADDR, 0x1D, &dat);
 			printf("-0x%02X", dat);
             
-            Status = SiI9022_read(SII9022_I2C_ADDR, 0x30, &dat);
+            Status = SiI9XXX_read(SII9022_I2C_ADDR, 0x30, &dat);
 			printf("-0x%02X", dat);
 			break;
 		}
 	}
     
-    
+    printf("\r\n######enable cable hot plug irq\r\n");
     /*enable cable hot plug irq*/
-    SiI9022_write(SII9022_I2C_ADDR, 0x3C, 0x01);      
-
-	Status = SiI9022_read(SII9022_I2C_ADDR, 0x3D, &dat);
-    printf("-0x%02X", dat);
+    SiI9XXX_write(SII9022_I2C_ADDR, 0x3C, 0x01);      
+	
+    sii902x_setup();
+	
+	usleep(500000);
+	
+	Status = SiI9XXX_read(SII9022_I2C_ADDR, 0x3D, &dat);
+    printf("-0x%02X\r\n", dat);
     if (dat > 0)
     {
 		if (dat & 0x4) 
@@ -482,8 +500,6 @@ int SiI9022_i2c_config(void)
 			sii902x_poweroff();
         }
     }
-    // TBD:
-    sii902x_setup();
     return 0;
 }
 
@@ -492,10 +508,10 @@ int HDMI_init( void )
 {
     u32 data;
     
-    
+    // SiI9022_i2c_config();	
     /*for logicvc,*/
     ddr_video_wr();
-        
+    
     data = Xil_In32(CF_CLKGEN_BASEADDR + (0x1f*4));
 
     if ((data & 0x1) == 0x0) 
@@ -504,7 +520,7 @@ int HDMI_init( void )
         return(0);
     }
     
-        
+    
     //**********configure VDMA**************//
     Xil_Out32((VDMA_BASEADDR + 0x000), 0x00000003); // enable circular mode
     Xil_Out32((VDMA_BASEADDR + 0x05c), VIDEO_BASEADDR); // start address
@@ -513,7 +529,7 @@ int HDMI_init( void )
     Xil_Out32((VDMA_BASEADDR + 0x058), (H_STRIDE*4)); // h offset (2048 * 4) bytes
     Xil_Out32((VDMA_BASEADDR + 0x054), (H_ACTIVE*4)); // h size (1920 * 4) bytes
     Xil_Out32((VDMA_BASEADDR + 0x050), V_ACTIVE); // v size (1080)
-
+	
     //**********configure axi_hdmi_tx_24b**************//
     Xil_Out32((CFV_BASEADDR + 0x08), ((H_WIDTH << 16) | H_COUNT));      //HSYNC Width
     Xil_Out32((CFV_BASEADDR + 0x0c), ((H_DE_MIN << 16) | H_DE_MAX));    //HSYNC DE MAX
@@ -521,10 +537,10 @@ int HDMI_init( void )
     Xil_Out32((CFV_BASEADDR + 0x14), ((V_DE_MIN << 16) | V_DE_MAX));    //VSYC DE MAX
     Xil_Out32((CFV_BASEADDR + 0x04), 0x00000002);                       //bit2=0: disable test pattern,Bypass the CSC, Video output disable
     Xil_Out32((CFV_BASEADDR + 0x04), 0x00000003);                       //Video output enable
-
-    // SiI9134_i2c_config();
+	
+    SiI9134_i2c_config();
     
-    SiI9022_i2c_config();
+    //SiI9022_i2c_config();
 
     return 0;
 }
