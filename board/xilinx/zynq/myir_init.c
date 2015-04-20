@@ -219,24 +219,24 @@ static void gpio_init(void)
 
 
 /*
- * Z-turn (MYS-XC7Z010) board init function.
+ * STAR-X7 (STARSOC) board init function.
  */
-int myir_board_init(void)
+int starsoc_board_init(void)
 {
 	printf("%s\n", __func__);
-
+    
 	gpio_init();
 
 //	printf(">> get gpio %d: %d\n", MYIR_RESET_PIN, gpio_get_value(MYIR_RESET_PIN));
-
+#if 0
 	/* Reset Ethernet PHY and USB PHY here */
 	gpio_set_value(MYIR_RESET_PIN, 0);
 	mdelay(50);
 	gpio_set_value(MYIR_RESET_PIN, 1);
 	mdelay(50);
-
+#endif
 //    printf("<< get gpio %d: %d\n", MYIR_RESET_PIN, gpio_get_value(MYIR_RESET_PIN));
-
+    
 	return 0;
 }
 

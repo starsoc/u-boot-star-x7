@@ -35,7 +35,7 @@ static int spi_flash_read_write(struct spi_slave *spi,
 			debug("SF: Failed to transfer %zu bytes of data: %d\n",
 			      data_len, ret);
 	}
-
+    
 	return ret;
 }
 

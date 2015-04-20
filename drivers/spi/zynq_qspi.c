@@ -16,6 +16,11 @@
 #include <asm/arch/sys_proto.h>
 #include <asm/arch/clk.h>
 
+/* add by starsoc */
+#undef debug
+#define debug(fmt,args...)	printf (fmt ,##args)
+
+
 /* QSPI Transmit Data Register */
 #define ZYNQ_QSPI_TXD_00_00_OFFSET	0x1C /* Transmit 4-byte inst, WO */
 #define ZYNQ_QSPI_TXD_00_01_OFFSET	0x80 /* Transmit 1-byte inst, WO */
@@ -882,13 +887,15 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 		return NULL;
 
 	is_dual = zynq_qspi_check_is_dual_flash();
-
+    
+	debug("%s: is_dual: %d\n", __func__, is_dual);
+    
 	if (is_dual == MODE_UNKNOWN) {
 		printf("%s: No QSPI device detected based on MIO settings\n",
 		       __func__);
 		return NULL;
 	}
-
+    
 	zynq_qspi_init_hw(is_dual, cs);
 
 	qspi = spi_alloc_slave(struct zynq_qspi_slave, bus, cs);
@@ -896,7 +903,7 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 		printf("%s: Fail to allocate zynq_qspi_slave\n", __func__);
 		return NULL;
 	}
-
+    
 	lqspi_frequency = zynq_clk_get_rate(lqspi_clk);
 	if (!lqspi_frequency) {
 		debug("Defaulting to 200000000 Hz qspi clk");

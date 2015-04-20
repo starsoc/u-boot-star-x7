@@ -365,7 +365,7 @@ struct spi_flash *spi_flash_probe(unsigned int bus, unsigned int cs,
 		printf("SF: Failed to set up slave\n");
 		return NULL;
 	}
-
+    
 	/* Claim spi bus */
 	ret = spi_claim_bus(spi);
 	if (ret) {
