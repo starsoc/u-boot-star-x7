@@ -84,7 +84,7 @@
 #define AUDIO_BASEADDR DDR_BASEADDR + 0x01000000
 #define DATA_READ_ADDR DDR_BASEADDR + 0x03000000;
 
-#define SII9022_I2C_ADDR        0x3B
+#define SII9022_I2C_ADDR        0x39
 
 
 
@@ -437,7 +437,7 @@ int SiI9022_i2c_config(void)
 
     /* Set 902x in hardware TPI mode on and jump out of D3 state */    
     SiI9022_write(SII9022_I2C_ADDR, 0xc7, 0x00);        
-
+    
     
 
 	/* read device ID */
