@@ -458,7 +458,7 @@ static int zynq_qspi_setup_transfer(struct spi_device *qspi,
 	bits_per_word = (transfer) ?
 			transfer->bits_per_word : qspi->bits_per_word;
 	req_hz = (transfer) ? transfer->speed_hz : qspi->max_speed_hz;
-
+    
 	if (qspi->mode & ~MODEBITS) {
 		printf("%s: Unsupported mode bits %x\n",
 		       __func__, qspi->mode & ~MODEBITS);
@@ -489,7 +489,7 @@ static int zynq_qspi_setup_transfer(struct spi_device *qspi,
 		config_reg |= (baud_rate_val << 3);
 		zqspi->speed_hz = req_hz;
 	}
-
+    
 	writel(config_reg, &zynq_qspi_base->confr);
 
 	debug("%s: mode %d, %u bits/w, %u clock speed\n", __func__,
@@ -770,7 +770,7 @@ static int zynq_qspi_transfer(struct spi_device *qspi,
 	int status = 0;
 
 	debug("%s\n", __func__);
-
+    
 	while (1) {
 		if (transfer->bits_per_word || transfer->speed_hz) {
 			status = zynq_qspi_setup_transfer(qspi, transfer);
@@ -912,9 +912,11 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 		qspi->qspi.master.input_clk_hz = lqspi_frequency;
 		debug("Qspi clk frequency set to %ld Hz\n", lqspi_frequency);
 	}
-
+    
 	qspi->slave.is_dual = is_dual;
-	qspi->slave.rd_cmd = READ_CMD_FULL;
+    u8 read_cmd = READ_CMD_FULL;
+	debug("%s: read cmd: 0x%x\n", __func__, read_cmd);
+	qspi->slave.rd_cmd = READ_CMD_FULL;                             // TBD by starsoc
 	qspi->slave.wr_cmd = PAGE_PROGRAM | QUAD_PAGE_PROGRAM;
 	qspi->qspi.master.speed_hz = qspi->qspi.master.input_clk_hz / 2;
 	qspi->qspi.max_speed_hz = qspi->qspi.master.speed_hz;
@@ -923,7 +925,7 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 	qspi->qspi.chip_select = 0;
 	qspi->qspi.bits_per_word = 32;
 	zynq_qspi_setup_transfer(&qspi->qspi, NULL);
-
+    
 	return &qspi->slave;
 }
 
@@ -962,7 +964,7 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 	transfer.tx_buf = dout;
 	transfer.rx_buf = din;
 	transfer.len = bitlen / 8;
-
+    
 	/*
 	 * Festering sore.
 	 * Assume that the beginning of a transfer with bits to
