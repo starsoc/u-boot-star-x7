@@ -666,7 +666,9 @@ static int zynq_qspi_start_transfer(struct spi_device *qspi,
 
 	if (zqspi->txbuf)
 		instruction = *(u8 *)zqspi->txbuf;
-
+        
+	debug("%s: instruction: 0x%08x is_inst: %d\n", __func__, instruction, zqspi->is_inst);
+    
 	if (instruction && zqspi->is_inst) {
 		for (index = 0; index < ARRAY_SIZE(flash_inst); index++)
 			if (instruction == flash_inst[index].opcode)
@@ -681,7 +683,7 @@ static int zynq_qspi_start_transfer(struct spi_device *qspi,
 
 		zqspi->curr_inst = &flash_inst[index];
 		zqspi->inst_response = 1;
-
+        
 		if ((zqspi->is_dual == MODE_DUAL_STACKED) &&
 				(current_u_page != zqspi->u_page)) {
 			if (zqspi->u_page) {
