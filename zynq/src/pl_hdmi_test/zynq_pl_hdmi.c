@@ -412,11 +412,27 @@ static void sii902x_setup(void)
 	/* Power up */    
     SiI9022_write(SII9022_I2C_ADDR, 0x1E, 0x10);      
     
-	for (i = 0; i < 8; i++)        
-        SiI9022_write(SII9022_I2C_ADDR, i, data[i]);      
+	/* set TPI video mode */
+#if 0
+	data[0] = PICOS2KHZ(fbi->var.pixclock) / 10;
+	data[2] = fbi->var.hsync_len + fbi->var.left_margin +
+		  fbi->var.xres + fbi->var.right_margin;
+	data[3] = fbi->var.vsync_len + fbi->var.upper_margin +
+		  fbi->var.yres + fbi->var.lower_margin;
+	refresh = data[2] * data[3];
+	refresh = (PICOS2KHZ(fbi->var.pixclock) * 1000) / refresh;
+	data[1] = refresh * 100;
+	tmp = (u8 *)data;
+#endif
     
-    SiI9022_write(SII9022_I2C_ADDR, 0x08, 0x70);      
+	for (i = 0; i < 8; i++)        
+        SiI9022_write(SII9022_I2C_ADDR, i, data[i]);        // data TBD
+    
+	/* input bus/pixel: full pixel wide (24bit), rising edge */
+    SiI9022_write(SII9022_I2C_ADDR, 0x08, 0x70);        
+	/* Set input format to RGB */
     SiI9022_write(SII9022_I2C_ADDR, 0x09, 0x00);      
+	/* set output format to RGB */
     SiI9022_write(SII9022_I2C_ADDR, 0x0A, 0x00);      
     
     SiI9022_write(SII9022_I2C_ADDR, 0x25, 0x00);      
@@ -460,28 +476,35 @@ int SiI9022_i2c_config(void)
 			break;
 		}
 	}
-    
+
     
     /*enable cable hot plug irq*/
     SiI9022_write(SII9022_I2C_ADDR, 0x3C, 0x01);      
 
+    // TBD:
+    sii902x_setup();
+    
+    
 	Status = SiI9022_read(SII9022_I2C_ADDR, 0x3D, &dat);
     printf("-0x%02X", dat);
-    if (dat > 0)
+    if (dat >= 0)
     {
 		if (dat & 0x4) 
         {
+            printf("######cable plug in\r\n");
             /* Power on sii902x */
             sii902x_poweron();
         }
         else
         {
+            printf("######cable plug out\r\n");
 			/* Power off sii902x */
 			sii902x_poweroff();
         }
     }
-    // TBD:
-    sii902x_setup();
+
+	Status = SiI9022_write(SII9022_I2C_ADDR, 0x3D, dat);
+    
     return 0;
 }
 
