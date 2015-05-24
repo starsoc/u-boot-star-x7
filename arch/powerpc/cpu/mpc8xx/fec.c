@@ -2,23 +2,7 @@
  * (C) Copyright 2000
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -139,7 +123,7 @@ typedef volatile struct CommonBufferDescriptor {
 
 static RTXBD *rtx = NULL;
 
-static int fec_send(struct eth_device* dev, volatile void *packet, int length);
+static int fec_send(struct eth_device *dev, void *packet, int length);
 static int fec_recv(struct eth_device* dev);
 static int fec_init(struct eth_device* dev, bd_t * bd);
 static void fec_halt(struct eth_device* dev);
@@ -193,7 +177,7 @@ int fec_initialize(bd_t *bis)
 	return 1;
 }
 
-static int fec_send(struct eth_device* dev, volatile void *packet, int length)
+static int fec_send(struct eth_device *dev, void *packet, int length)
 {
 	int j, rc;
 	struct ether_fcc_info_s *efis = dev->priv;
@@ -267,14 +251,14 @@ static int fec_recv (struct eth_device *dev)
 				rtx->rxbd[rxIdx].cbd_sc);
 #endif
 		} else {
-			volatile uchar *rx = NetRxPackets[rxIdx];
+			uchar *rx = NetRxPackets[rxIdx];
 
 			length -= 4;
 
 #if defined(CONFIG_CMD_CDP)
 			if ((rx[0] & 1) != 0
 			    && memcmp ((uchar *) rx, NetBcastAddr, 6) != 0
-			    && memcmp ((uchar *) rx, NetCDPAddr, 6) != 0)
+			    && !is_cdp_packet((uchar *)rx))
 				rx = NULL;
 #endif
 			/*
@@ -460,7 +444,7 @@ static void fec_pin_init(int fecidx)
 
 #endif /* !CONFIG_RMII */
 
-#elif !defined(CONFIG_ICU862) && !defined(CONFIG_IAD210)
+#elif !defined(CONFIG_ICU862)
 		/*
 		 * Configure all of port D for MII.
 		 */

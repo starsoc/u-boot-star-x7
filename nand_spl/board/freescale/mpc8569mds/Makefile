@@ -4,23 +4,7 @@
 #
 # Copyright 2009-2011 Freescale Semiconductor, Inc.
 #
-# See file CREDITS for list of people who contributed to this
-# project.
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License as
-# published by the Free Software Foundation; either version 2 of
-# the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-# MA 02111-1307 USA
+# SPDX-License-Identifier:	GPL-2.0+
 #
 
 NAND_SPL := y
@@ -38,7 +22,7 @@ AFLAGS	+= -DCONFIG_NAND_SPL
 CFLAGS	+= -DCONFIG_NAND_SPL
 
 SOBJS	= start.o resetvec.o
-COBJS	= cache.o cpu_init_early.o cpu_init_nand.o fsl_law.o law.o \
+COBJS	= cache.o cpu_init_early.o spl_minimal.o fsl_law.o law.o \
 	  nand_boot.o nand_boot_fsl_elbc.o ns16550.o tlb.o tlb_table.o
 
 SRCS	:= $(addprefix $(obj),$(SOBJS:.o=.S) $(COBJS:.o=.c))
@@ -62,7 +46,8 @@ $(nandobj)u-boot-spl:	$(OBJS) $(nandobj)u-boot-nand_spl.lds
 		-o $(nandobj)u-boot-spl
 
 $(nandobj)u-boot-nand_spl.lds: $(LDSCRIPT)
-	$(CPP) $(CPPFLAGS) $(LDPPFLAGS) -ansi -D__ASSEMBLY__ -P - <$^ >$@
+	$(CPP) $(CPPFLAGS) $(LDPPFLAGS) -I$(nandobj)/board/$(BOARDDIR) \
+		-ansi -D__ASSEMBLY__ -P - <$< >$@
 
 # create symbolic links for common files
 
@@ -74,13 +59,13 @@ $(obj)cpu_init_early.c:
 	@rm -f $(obj)cpu_init_early.c
 	ln -sf $(SRCTREE)/arch/powerpc/cpu/mpc85xx/cpu_init_early.c $(obj)cpu_init_early.c
 
-$(obj)cpu_init_nand.c:
-	@rm -f $(obj)cpu_init_nand.c
-	ln -sf $(SRCTREE)/arch/powerpc/cpu/mpc85xx/cpu_init_nand.c $(obj)cpu_init_nand.c
+$(obj)spl_minimal.c:
+	@rm -f $(obj)spl_minimal.c
+	ln -sf $(SRCTREE)/arch/powerpc/cpu/mpc85xx/spl_minimal.c $(obj)spl_minimal.c
 
 $(obj)fsl_law.c:
 	@rm -f $(obj)fsl_law.c
-	ln -sf $(SRCTREE)/drivers/misc/fsl_law.c $(obj)fsl_law.c
+	ln -sf $(SRCTREE)/arch/powerpc/cpu/mpc8xxx/law.c $(obj)fsl_law.c
 
 $(obj)law.c:
 	@rm -f $(obj)law.c

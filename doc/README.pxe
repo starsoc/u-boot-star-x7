@@ -1,18 +1,7 @@
 /*
  * Copyright 2010-2011 Calxeda, Inc.
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program.  If not, see <http://www.gnu.org/licenses/>.
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 The 'pxe' commands provide a near subset of the functionality provided by
@@ -93,8 +82,13 @@ pxe boot
      be passed to the bootm command to boot the kernel. These environment
      variables are required to be set.
 
-     fdt_addr - the location of a fdt blob. If this is set, it will be passed
-     to bootm when booting a kernel.
+     fdt_addr_r - location in RAM at which 'pxe boot' will store the fdt blob it
+     retrieves from tftp. The retrieval is possible if 'fdt' label is defined in
+     pxe file and 'fdt_addr_r' is set. If retrieval is possible, 'fdt_addr_r'
+     will be passed to bootm command to boot the kernel.
+
+     fdt_addr - the location of a fdt blob. 'fdt_addr' will be passed to bootm
+     command if it is set and 'fdt_addr_r' is not passed to bootm command.
 
 pxe file format
 ===============
@@ -155,6 +149,11 @@ initrd <path>	    - if this label is chosen, use tftp to retrieve the initrd
 		      at <path>. it will be stored at the address indicated in
 		      the initrd_addr_r environment variable, and that address
 		      will be passed to bootm.
+
+fdt <path>	    - if this label is chosen, use tftp to retrieve the fdt blob
+		      at <path>. it will be stored at the address indicated in
+		      the fdt_addr_r environment variable, and that address will
+		      be passed to bootm.
 
 localboot <flag>    - Run the command defined by "localcmd" in the environment.
 		      <flag> is ignored and is only here to match the syntax of
@@ -223,9 +222,6 @@ PXELINUX and U-boot's pxe support.
 
 - U-boot's pxe expects U-boot uimg's as kernels.  Anything that would work
   with the 'bootm' command in U-boot could work with the 'pxe boot' command.
-
-- U-boot's pxe doesn't recognize initrd options in the append command - you
-  must specify initrd files using the initrd command.
 
 - U-boot's pxe only recognizes a single file on the initrd command line.  It
   could be extended to support multiple.

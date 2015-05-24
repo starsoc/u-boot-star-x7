@@ -4,23 +4,7 @@
  *
  * Configuration settings for the CPUAT91 board.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _CONFIG_CPUAT91_H
@@ -46,7 +30,6 @@
 #define CONFIG_ARM920T
 #define CONFIG_AT91RM9200
 #define CONFIG_CPUAT91
-#undef CONFIG_USE_IRQ
 #define USE_920T_MMU
 
 #include <asm/hardware.h>	/* needed for port definitions */
@@ -93,7 +76,6 @@
 #define CONFIG_USART_ID		0/* ignored in arm */
 
 #undef CONFIG_HARD_I2C
-#undef CONFIG_SOFT_I2C
 #define AT91_PIN_SDA			(1<<25)
 #define AT91_PIN_SCL			(1<<26)
 
@@ -140,7 +122,7 @@
 #undef CONFIG_CMD_NFS
 #undef CONFIG_CMD_DHCP
 
-#ifdef CONFIG_SOFT_I2C
+#ifdef CONFIG_SYS_I2C_SOFT
 #define CONFIG_CMD_EEPROM
 #define CONFIG_CMD_I2C
 #endif
@@ -197,7 +179,6 @@
 #define CONFIG_SYS_LOAD_ADDR		0x21000000
 
 #define CONFIG_BAUDRATE			115200
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 115200, 57600, 38400, 19200, 9600 }
 
 #define CONFIG_SYS_PROMPT		"CPUAT91=> "
 #define CONFIG_SYS_CBSIZE		256
@@ -211,15 +192,6 @@
 
 #define CONFIG_SYS_INIT_SP_ADDR	(CONFIG_SYS_SDRAM_BASE + 4 * 1024 - \
 				GENERATED_GBL_DATA_SIZE)
-
-#define CONFIG_STACKSIZE		(32 * 1024)
-#define CONFIG_STACKSIZE_IRQ		(4 * 1024)
-#define CONFIG_STACKSIZE_FIQ		(4 * 1024)
-
-
-#if defined(CONFIG_USE_IRQ)
-#error CONFIG_USE_IRQ not supported
-#endif
 
 #define CONFIG_DEVICE_NULLDEV
 #define CONFIG_SILENT_CONSOLE

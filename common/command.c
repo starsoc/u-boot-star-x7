@@ -2,23 +2,7 @@
  * (C) Copyright 2000-2009
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -137,8 +121,9 @@ cmd_tbl_t *find_cmd_tbl (const char *cmd, cmd_tbl_t *table, int table_len)
 
 cmd_tbl_t *find_cmd (const char *cmd)
 {
-	int len = &__u_boot_cmd_end - &__u_boot_cmd_start;
-	return find_cmd_tbl(cmd, &__u_boot_cmd_start, len);
+	cmd_tbl_t *start = ll_entry_start(cmd_tbl_t, cmd);
+	const int len = ll_entry_count(cmd_tbl_t, cmd);
+	return find_cmd_tbl(cmd, start, len);
 }
 
 int cmd_usage(const cmd_tbl_t *cmdtp)
@@ -181,7 +166,9 @@ int var_complete(int argc, char * const argv[], char last_char, int maxv, char *
 
 static int complete_cmdv(int argc, char * const argv[], char last_char, int maxv, char *cmdv[])
 {
-	cmd_tbl_t *cmdtp;
+	cmd_tbl_t *cmdtp = ll_entry_start(cmd_tbl_t, cmd);
+	const int count = ll_entry_count(cmd_tbl_t, cmd);
+	const cmd_tbl_t *cmdend = cmdtp + count;
 	const char *p;
 	int len, clen;
 	int n_found = 0;
@@ -195,12 +182,12 @@ static int complete_cmdv(int argc, char * const argv[], char last_char, int maxv
 
 	if (argc == 0) {
 		/* output full list of commands */
-		for (cmdtp = &__u_boot_cmd_start; cmdtp != &__u_boot_cmd_end; cmdtp++) {
+		for (; cmdtp != cmdend; cmdtp++) {
 			if (n_found >= maxv - 2) {
-				cmdv[n_found++] = "...";
+				cmdv[n_found] = "...";
 				break;
 			}
-			cmdv[n_found++] = cmdtp->name;
+			cmdv[n_found] = cmdtp->name;
 		}
 		cmdv[n_found] = NULL;
 		return n_found;
@@ -228,7 +215,7 @@ static int complete_cmdv(int argc, char * const argv[], char last_char, int maxv
 		len = p - cmd;
 
 	/* return the partial matches */
-	for (cmdtp = &__u_boot_cmd_start; cmdtp != &__u_boot_cmd_end; cmdtp++) {
+	for (; cmdtp != cmdend; cmdtp++) {
 
 		clen = strlen(cmdtp->name);
 		if (clen < len)
@@ -510,7 +497,7 @@ static int cmd_call(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 }
 
 enum command_ret_t cmd_process(int flag, int argc, char * const argv[],
-			       int *repeatable)
+			       int *repeatable, ulong *ticks)
 {
 	enum command_ret_t rc = CMD_RET_SUCCESS;
 	cmd_tbl_t *cmdtp;
@@ -540,7 +527,11 @@ enum command_ret_t cmd_process(int flag, int argc, char * const argv[],
 
 	/* If OK so far, then do the command */
 	if (!rc) {
+		if (ticks)
+			*ticks = get_timer(0);
 		rc = cmd_call(cmdtp, flag, argc, argv);
+		if (ticks)
+			*ticks = get_timer(*ticks);
 		*repeatable &= cmdtp->repeatable;
 	}
 	if (rc == CMD_RET_USAGE)

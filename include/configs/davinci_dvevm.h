@@ -1,20 +1,7 @@
 /*
  * Copyright (C) 2007 Sergey Kubushyn <ksi@koi8.net>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -74,7 +61,6 @@
 #define CONFIG_SYS_MEMTEST_START	0x80000000	/* memtest start address */
 #define CONFIG_SYS_MEMTEST_END		0x81000000	/* 16MB RAM test */
 #define CONFIG_NR_DRAM_BANKS	1		/* we have 1 bank of DRAM */
-#define CONFIG_STACKSIZE	(256*1024)	/* regular stack */
 #define PHYS_SDRAM_1		0x80000000	/* DDR Start */
 #define PHYS_SDRAM_1_SIZE	0x10000000	/* DDR size 256MB */
 
@@ -89,7 +75,6 @@
 #define CONFIG_SYS_NS16550_CLK	CONFIG_SYS_HZ_CLOCK	/* Input clock to NS16550 */
 #define CONFIG_CONS_INDEX	1		/* use UART0 for console */
 #define CONFIG_BAUDRATE		115200		/* Default baud rate */
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 /*===================*/
 /* I2C Configuration */
 /*===================*/
@@ -102,7 +87,6 @@
 /*==================================*/
 #define CONFIG_DRIVER_TI_EMAC
 #define CONFIG_MII
-#define CONFIG_BOOTP_DEFAULT
 #define CONFIG_BOOTP_DNS
 #define CONFIG_BOOTP_DNS2
 #define CONFIG_BOOTP_SEND_HOSTNAME
@@ -158,7 +142,6 @@
 /*==============================*/
 /* U-Boot general configuration */
 /*==============================*/
-#undef	CONFIG_USE_IRQ			/* No IRQ/FIQ in U-Boot */
 #define CONFIG_MISC_INIT_R
 #undef CONFIG_BOOTDELAY
 #define CONFIG_BOOTFILE		"uImage"	/* Boot file name */
@@ -171,7 +154,6 @@
 #define CONFIG_VERSION_VARIABLE
 #define CONFIG_AUTO_COMPLETE		/* Won't work with hush so far, may be later */
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_CMDLINE_EDITING
 #define CONFIG_SYS_LONGHELP
 #define CONFIG_CRC32_VERIFY

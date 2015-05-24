@@ -1,23 +1,7 @@
 /*
  * Copyright 2009-2011 Freescale Semiconductor, Inc.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -42,9 +26,12 @@ DECLARE_GLOBAL_DATA_PTR;
 int checkboard (void)
 {
 	u8 sw;
-	struct cpu_type *cpu = gd->cpu;
-	ccsr_gur_t *gur = (void *)CONFIG_SYS_MPC85xx_GUTS_ADDR;
+	struct cpu_type *cpu = gd->arch.cpu;
+#if defined(CONFIG_P3041DS) || defined(CONFIG_P5020DS) || \
+	defined(CONFIG_P5040DS)
 	unsigned int i;
+#endif
+	static const char * const freq[] = {"100", "125", "156.25", "212.5" };
 
 	printf("Board: %sDS, ", cpu->name);
 	printf("Sys ID: 0x%02x, Sys Ver: 0x%02x, FPGA Ver: 0x%02x, ",
@@ -62,23 +49,6 @@ int checkboard (void)
 	else
 		printf("invalid setting of SW%u\n", PIXIS_LBMAP_SWITCH);
 
-#ifdef CONFIG_PHYS_64BIT
-	puts("36-bit Addressing\n");
-#endif
-
-	/* Display the RCW, so that no one gets confused as to what RCW
-	 * we're actually using for this boot.
-	 */
-	puts("Reset Configuration Word (RCW):");
-	for (i = 0; i < ARRAY_SIZE(gur->rcwsr); i++) {
-		u32 rcw = in_be32(&gur->rcwsr[i]);
-
-		if ((i % 4) == 0)
-			printf("\n       %08x:", i * 4);
-		printf(" %08x", rcw);
-	}
-	puts("\n");
-
 	/* Display the actual SERDES reference clocks as configured by the
 	 * dip switches on the board.  Note that the SWx registers could
 	 * technically be set to force the reference clocks to match the
@@ -87,20 +57,28 @@ int checkboard (void)
 	 * don't match.
 	 */
 	puts("SERDES Reference Clocks: ");
-#if defined(CONFIG_P3041DS) || defined(CONFIG_P5020DS)
+#if defined(CONFIG_P3041DS) || defined(CONFIG_P5020DS) \
+	|| defined(CONFIG_P5040DS)
 	sw = in_8(&PIXIS_SW(5));
 	for (i = 0; i < 3; i++) {
-		static const char *freq[] = {"100", "125", "156.25", "212.5" };
 		unsigned int clock = (sw >> (6 - (2 * i))) & 3;
 
 		printf("Bank%u=%sMhz ", i+1, freq[clock]);
 	}
+#ifdef CONFIG_P5040DS
+	/* On P5040DS, SW11[7:8] determines the Bank 4 frequency */
+	sw = in_8(&PIXIS_SW(9));
+	printf("Bank4=%sMhz ", freq[sw & 3]);
+#endif
 	puts("\n");
 #else
 	sw = in_8(&PIXIS_SW(3));
-	printf("Bank1=%uMHz ", (sw & 0x40) ? 125 : 100);
-	printf("Bank2=%sMHz ", (sw & 0x20) ? "156.25" : "125");
-	printf("Bank3=%sMHz\n", (sw & 0x10) ? "156.25" : "125");
+	/* SW3[2]: 0 = 100 Mhz, 1 = 125 MHz */
+	/* SW3[3]: 0 = 125 Mhz, 1 = 156.25 MHz */
+	/* SW3[4]: 0 = 125 Mhz, 1 = 156.25 MHz */
+	printf("Bank1=%sMHz ", freq[!!(sw & 0x40)]);
+	printf("Bank2=%sMHz ", freq[1 + !!(sw & 0x20)]);
+	printf("Bank3=%sMHz\n", freq[1 + !!(sw & 0x10)]);
 #endif
 
 	return 0;
@@ -172,7 +150,8 @@ int misc_init_r(void)
 	unsigned int i;
 	u8 sw;
 
-#if defined(CONFIG_P3041DS) || defined(CONFIG_P5020DS)
+#if defined(CONFIG_P3041DS) || defined(CONFIG_P5020DS) \
+	|| defined(CONFIG_P5040DS)
 	sw = in_8(&PIXIS_SW(5));
 	for (i = 0; i < 3; i++) {
 		unsigned int clock = (sw >> (6 - (2 * i))) & 3;

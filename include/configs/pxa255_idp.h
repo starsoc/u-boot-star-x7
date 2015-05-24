@@ -13,23 +13,7 @@
  * Cliff Brake <cliff.brake@gmail.com>
  * Configuation settings for the Accelent/Vibren PXA255 IDP
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -59,14 +43,13 @@
 
 #undef CONFIG_LCD
 #ifdef CONFIG_LCD
+#define CONFIG_PXA_LCD
 #define CONFIG_SHARP_LM8V31
 #endif
 
 #define CONFIG_MMC		1
 #define CONFIG_DOS_PARTITION	1
 #define CONFIG_BOARD_LATE_INIT
-
-#undef CONFIG_USE_IRQ			/* we don't need IRQ/FIQ stuff */
 
 /* we will never enable dcache, because we have to setup MMU first */
 #define CONFIG_SYS_DCACHE_OFF
@@ -101,6 +84,7 @@
  */
 #define CONFIG_PXA_SERIAL
 #define CONFIG_FFUART	       1       /* we use FFUART on LUBBOCK */
+#define CONFIG_CONS_INDEX	3
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
@@ -222,7 +206,6 @@
  * Miscellaneous configurable options
  */
 #define CONFIG_SYS_HUSH_PARSER		1
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 #define CONFIG_SYS_LONGHELP				/* undef to save memory		*/
 #ifdef CONFIG_SYS_HUSH_PARSER
@@ -246,24 +229,11 @@
 
 #define RTC	1				/* enable 32KHz osc */
 
-						/* valid baudrates */
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
-
 #ifdef CONFIG_MMC
-#define CONFIG_PXA_MMC
+#define	CONFIG_GENERIC_MMC
+#define	CONFIG_PXA_MMC_GENERIC
 #define CONFIG_CMD_MMC
 #define CONFIG_SYS_MMC_BASE		0xF0000000
-#endif
-
-/*
- * Stack sizes
- *
- * The stack sizes are set up in start.S using the settings below
- */
-#define CONFIG_STACKSIZE	(128*1024)	/* regular stack */
-#ifdef CONFIG_USE_IRQ
-#define CONFIG_STACKSIZE_IRQ	(4*1024)	/* IRQ stack */
-#define CONFIG_STACKSIZE_FIQ	(4*1024)	/* FIQ stack */
 #endif
 
 /*

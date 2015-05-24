@@ -5,23 +5,7 @@
  *	Balaji Krishnamoorthy	<balajitk@ti.com>
  *	Aneesh V		<aneesh@ti.com>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 #ifndef _SDP4430_MUX_DATA_H
 #define _SDP4430_MUX_DATA_H
@@ -53,8 +37,18 @@ const struct pad_conf_entry core_padconf_array_essential[] = {
 {UART3_CTS_RCTX, (PTU | IEN | M0)},			/* uart3_tx */
 {UART3_RTS_SD, (M0)},					/* uart3_rts_sd */
 {UART3_RX_IRRX, (IEN | M0)},				/* uart3_rx */
-{UART3_TX_IRTX, (M0)}					/* uart3_tx */
-
+{UART3_TX_IRTX, (M0)},					/* uart3_tx */
+{USBB1_ULPITLL_DAT4, (IEN | OFF_EN | OFF_PD | OFF_IN | M4)},	/* usbb1_ulpiphy_dat4 */
+{USBB1_ULPITLL_DAT5, (IEN | OFF_EN | OFF_PD | OFF_IN | M4)},	/* usbb1_ulpiphy_dat5 */
+{USBB1_ULPITLL_DAT6, (IEN | OFF_EN | OFF_PD | OFF_IN | M4)},	/* usbb1_ulpiphy_dat6 */
+{USBB1_ULPITLL_DAT7, (IEN | OFF_EN | OFF_PD | OFF_IN | M4)},	/* usbb1_ulpiphy_dat7 */
+{USBB1_HSIC_DATA, (IEN | OFF_EN | OFF_PD | OFF_IN | M0)},	/* usbb1_hsic_data */
+{USBB1_HSIC_STROBE, (IEN | OFF_EN | OFF_PD | OFF_IN | M0)},	/* usbb1_hsic_strobe */
+{USBC1_ICUSB_DP, (IEN | M0)},					/* usbc1_icusb_dp */
+{USBC1_ICUSB_DM, (IEN | M0)},					/* usbc1_icusb_dm */
+{USBA0_OTG_CE, (PTD | OFF_EN | OFF_PD | OFF_OUT_PTD | M0)},	/* usba0_otg_ce */
+{USBA0_OTG_DP, (IEN | OFF_EN | OFF_PD | OFF_IN | M0)},		/* usba0_otg_dp */
+{USBA0_OTG_DM, (IEN | OFF_EN | OFF_PD | OFF_IN | M0)},		/* usba0_otg_dm */
 };
 
 const struct pad_conf_entry wkup_padconf_array_essential[] = {
@@ -67,7 +61,7 @@ const struct pad_conf_entry wkup_padconf_array_essential[] = {
 
 const struct pad_conf_entry wkup_padconf_array_essential_4460[] = {
 
-{PAD1_FREF_CLK4_REQ, (PTU | M7)}, /* gpio_wk7 for TPS: safe mode + pull up */
+{PAD1_FREF_CLK4_REQ, (M3)}, /* gpio_wk7 for TPS: Mode 3 */
 
 };
 
@@ -135,14 +129,6 @@ const struct pad_conf_entry core_padconf_array_non_essential[] = {
 	{USBB1_ULPITLL_DAT1, (OFF_EN | M1)},				/* hsi1_acdata */
 	{USBB1_ULPITLL_DAT2, (OFF_EN | M1)},				/* hsi1_acflag */
 	{USBB1_ULPITLL_DAT3, (IEN | OFF_EN | OFF_IN | M1)},		/* hsi1_caready */
-	{USBB1_ULPITLL_DAT4, (IEN | OFF_EN | OFF_PD | OFF_IN | M4)},	/* usbb1_ulpiphy_dat4 */
-	{USBB1_ULPITLL_DAT5, (IEN | OFF_EN | OFF_PD | OFF_IN | M4)},	/* usbb1_ulpiphy_dat5 */
-	{USBB1_ULPITLL_DAT6, (IEN | OFF_EN | OFF_PD | OFF_IN | M4)},	/* usbb1_ulpiphy_dat6 */
-	{USBB1_ULPITLL_DAT7, (IEN | OFF_EN | OFF_PD | OFF_IN | M4)},	/* usbb1_ulpiphy_dat7 */
-	{USBB1_HSIC_DATA, (IEN | OFF_EN | OFF_PD | OFF_IN | M0)},	/* usbb1_hsic_data */
-	{USBB1_HSIC_STROBE, (IEN | OFF_EN | OFF_PD | OFF_IN | M0)},	/* usbb1_hsic_strobe */
-	{USBC1_ICUSB_DP, (IEN | M0)},					/* usbc1_icusb_dp */
-	{USBC1_ICUSB_DM, (IEN | M0)},					/* usbc1_icusb_dm */
 	{ABE_MCBSP2_CLKX, (IEN | OFF_EN | OFF_PD | OFF_IN | M0)},	/* abe_mcbsp2_clkx */
 	{ABE_MCBSP2_DR, (IEN | OFF_EN | OFF_OUT_PTD | M0)},		/* abe_mcbsp2_dr */
 	{ABE_MCBSP2_DX, (OFF_EN | OFF_OUT_PTD | M0)},			/* abe_mcbsp2_dx */
@@ -210,9 +196,6 @@ const struct pad_conf_entry core_padconf_array_non_essential[] = {
 	{UNIPRO_RY1, (PTU | IEN | OFF_EN | OFF_PD | OFF_IN | M1)},	/* kpd_row3 */
 	{UNIPRO_RX2, (PTU | IEN | OFF_EN | OFF_PD | OFF_IN | M1)},	/* kpd_row4 */
 	{UNIPRO_RY2, (PTU | IEN | OFF_EN | OFF_PD | OFF_IN | M1)},	/* kpd_row5 */
-	{USBA0_OTG_CE, (PTD | OFF_EN | OFF_PD | OFF_OUT_PTD | M0)},	/* usba0_otg_ce */
-	{USBA0_OTG_DP, (IEN | OFF_EN | OFF_PD | OFF_IN | M0)},		/* usba0_otg_dp */
-	{USBA0_OTG_DM, (IEN | OFF_EN | OFF_PD | OFF_IN | M0)},		/* usba0_otg_dm */
 	{FREF_CLK1_OUT, (M0)},						/* fref_clk1_out */
 	{FREF_CLK2_OUT, (M0)},						/* fref_clk2_out */
 	{SYS_NIRQ1, (PTU | IEN | M0)},					/* sys_nirq1 */

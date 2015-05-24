@@ -8,23 +8,7 @@
  *
  * Configuration settings for the AT91RM9200EK board.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __AT91RM9200EK_CONFIG_H__
@@ -74,6 +58,9 @@
 #define CONFIG_INITRD_TAG
 
 #define CONFIG_BOARD_EARLY_INIT_F
+
+#define CONFIG_CMD_BOOTZ
+#define CONFIG_OF_LIBFDT
 
 /*
  * Memory Configuration
@@ -129,7 +116,6 @@
 #define CONFIG_USART_BASE	ATMEL_BASE_DBGU
 #define CONFIG_USART_ID		0/* ignored in arm */
 
-#define CONFIG_SYS_BAUDRATE_TABLE	{115200 , 19200, 38400, 57600, 9600 }
 #define CONFIG_BAUDRATE			115200
 
 /*
@@ -210,7 +196,6 @@
 #define CONFIG_AUTO_COMPLETE
 #define CONFIG_SYS_HUSH_PARSER
 #define CONFIG_SYS_PROMPT		"U-Boot> "
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_SYS_CBSIZE		256	/* Console I/O Buffer Size */
 #define CONFIG_SYS_MAXARGS		16	/* max number of command args */
 /* Print Buffer Size */
@@ -226,7 +211,4 @@
 #define CONFIG_SYS_INIT_SP_ADDR		(CONFIG_SYS_SDRAM_BASE + SZ_4K \
 					- GENERATED_GBL_DATA_SIZE)
 
-#define CONFIG_STACKSIZE		SZ_32K	/* regular stack */
-#define CONFIG_STACKSIZE_IRQ		SZ_4K	/* Unsure if to big or to small*/
-#define CONFIG_STACKSIZE_FIQ		SZ_4K	/* Unsure if to big or to small*/
 #endif /* __AT91RM9200EK_CONFIG_H__ */

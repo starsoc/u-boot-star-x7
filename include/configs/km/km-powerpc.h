@@ -2,27 +2,15 @@
  * (C) Copyright 2011
  * Heiko Schocher, DENX Software Engineering, hs@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_KEYMILE_POWERPC_H
 #define __CONFIG_KEYMILE_POWERPC_H
+
+/* Do boardspecific init for all boards */
+#define CONFIG_BOARD_EARLY_INIT_R
+#define CONFIG_LAST_STAGE_INIT
 
 #define CONFIG_BOOTCOUNT_LIMIT
 
@@ -80,14 +68,14 @@
 	"cramfsloadfdt="						\
 		"cramfsload ${fdt_addr_r} "				\
 		"fdt_0x${IVM_BoardId}_0x${IVM_HWKey}.dtb\0"		\
-	"fdt_addr_r=" xstr(CONFIG_KM_FDT_ADDR) "\0"			\
-	"u-boot="xstr(CONFIG_HOSTNAME) "/u-boot.bin\0"			\
+	"fdt_addr_r=" __stringify(CONFIG_KM_FDT_ADDR) "\0"		\
+	"u-boot="__stringify(CONFIG_HOSTNAME) "/u-boot.bin\0"		\
 	"update="							\
-		"protect off " xstr(BOOTFLASH_START) " +${filesize} && "\
-		"erase " xstr(BOOTFLASH_START) "  +${filesize} && "	\
-		"cp.b ${load_addr_r} " xstr(BOOTFLASH_START)		\
+		"protect off " __stringify(BOOTFLASH_START) " +${filesize} && "\
+		"erase " __stringify(BOOTFLASH_START) "  +${filesize} && "\
+		"cp.b ${load_addr_r} " __stringify(BOOTFLASH_START)	\
 		"  ${filesize} && "					\
-		"protect on " xstr(BOOTFLASH_START) "  +${filesize}\0"  \
+		"protect on " __stringify(BOOTFLASH_START) "  +${filesize}\0"\
 	""
 
 #endif /* __CONFIG_KEYMILE_POWERPC_H */

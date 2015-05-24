@@ -2,23 +2,7 @@
  * (C) Copyright 2000-2008
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -39,6 +23,7 @@
 #define	CONFIG_SYS_TEXT_BASE	0x40000000
 
 #ifdef	CONFIG_LCD			/* with LCD controller ?	*/
+#define CONFIG_MPC8XX_LCD
 /* #define CONFIG_NEC_NL6448BC20 1 / * use NEC NL6448BC20 display	*/
 #endif
 
@@ -141,9 +126,6 @@
 
 #define CONFIG_CMDLINE_EDITING	1	/* add command line history	*/
 #define CONFIG_SYS_HUSH_PARSER		1	/* Use the HUSH parser		*/
-#ifdef	CONFIG_SYS_HUSH_PARSER
-#define	CONFIG_SYS_PROMPT_HUSH_PS2	"> "
-#endif
 
 #if defined(CONFIG_CMD_KGDB)
 #define	CONFIG_SYS_CBSIZE		1024	/* Console I/O Buffer Size	*/
@@ -160,8 +142,6 @@
 #define	CONFIG_SYS_LOAD_ADDR		0x100000	/* default load address	*/
 
 #define	CONFIG_SYS_HZ			1000	/* decrementer freq: 1 ms ticks	*/
-
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 /*
  * Low Level Configuration Settings
@@ -336,6 +316,7 @@
  *-----------------------------------------------------------------------
  */
 
+#define CONFIG_IDE_PREINIT	1	/* Use preinit IDE hook */
 #define	CONFIG_IDE_8xx_PCCARD	1	/* Use IDE with PC Card	Adapter	*/
 
 #undef	CONFIG_IDE_8xx_DIRECT		/* Direct IDE    not supported	*/

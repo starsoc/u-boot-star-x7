@@ -5,173 +5,235 @@
  *
  * Copyright (C) 2011, Texas Instruments, Incorporated - http://www.ti.com/
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR /PURPOSE.  See the
- * GNU General Public License for more details.
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _DDR_DEFS_H
 #define _DDR_DEFS_H
 
 #include <asm/arch/hardware.h>
+#include <asm/emif.h>
 
 /* AM335X EMIF Register values */
-#define EMIF_SDMGT		0x80000000
-#define EMIF_SDRAM		0x00004650
-#define EMIF_PHYCFG		0x2
-#define DDR_PHY_RESET		(0x1 << 10)
-#define DDR_FUNCTIONAL_MODE_EN	0x1
-#define DDR_PHY_READY		(0x1 << 2)
 #define VTP_CTRL_READY		(0x1 << 5)
 #define VTP_CTRL_ENABLE		(0x1 << 6)
-#define VTP_CTRL_LOCK_EN	(0x1 << 4)
 #define VTP_CTRL_START_EN	(0x1)
-#define DDR2_RATIO		0x80
-#define CMD_FORCE		0x00
-#define CMD_DELAY		0x00
-
-#define EMIF_READ_LATENCY	0x05
-#define EMIF_TIM1		0x0666B3D6
-#define EMIF_TIM2		0x143731DA
-#define EMIF_TIM3		0x00000347
-#define EMIF_SDCFG		0x43805332
-#define EMIF_SDREF		0x0000081a
-#define DDR2_DLL_LOCK_DIFF	0x0
-#define DDR2_RD_DQS		0x12
-#define DDR2_PHY_FIFO_WE	0x80
-
-#define DDR2_INVERT_CLKOUT	0x00
-#define DDR2_WR_DQS		0x00
-#define DDR2_PHY_WRLVL		0x00
-#define DDR2_PHY_GATELVL	0x00
-#define DDR2_PHY_WR_DATA	0x40
-#define PHY_RANK0_DELAY		0x01
 #define PHY_DLL_LOCK_DIFF	0x0
-#define DDR_IOCTRL_VALUE	0x18B
+#define DDR_CKE_CTRL_NORMAL	0x1
+#define PHY_EN_DYN_PWRDN	(0x1 << 20)
+
+/* Micron MT47H128M16RT-25E */
+#define MT47H128M16RT25E_EMIF_READ_LATENCY	0x100005
+#define MT47H128M16RT25E_EMIF_TIM1		0x0666B3C9
+#define MT47H128M16RT25E_EMIF_TIM2		0x243631CA
+#define MT47H128M16RT25E_EMIF_TIM3		0x0000033F
+#define MT47H128M16RT25E_EMIF_SDCFG		0x41805332
+#define MT47H128M16RT25E_EMIF_SDREF		0x0000081a
+#define MT47H128M16RT25E_DLL_LOCK_DIFF		0x0
+#define MT47H128M16RT25E_RATIO			0x80
+#define MT47H128M16RT25E_INVERT_CLKOUT		0x00
+#define MT47H128M16RT25E_RD_DQS			0x12
+#define MT47H128M16RT25E_WR_DQS			0x00
+#define MT47H128M16RT25E_PHY_WRLVL		0x00
+#define MT47H128M16RT25E_PHY_GATELVL		0x00
+#define MT47H128M16RT25E_PHY_WR_DATA		0x40
+#define MT47H128M16RT25E_PHY_FIFO_WE		0x80
+#define MT47H128M16RT25E_PHY_RANK0_DELAY		0x1
+#define MT47H128M16RT25E_IOCTRL_VALUE		0x18B
+
+/* Micron MT41J128M16JT-125 */
+#define MT41J128MJT125_EMIF_READ_LATENCY	0x06
+#define MT41J128MJT125_EMIF_TIM1		0x0888A39B
+#define MT41J128MJT125_EMIF_TIM2		0x26337FDA
+#define MT41J128MJT125_EMIF_TIM3		0x501F830F
+#define MT41J128MJT125_EMIF_SDCFG		0x61C04AB2
+#define MT41J128MJT125_EMIF_SDREF		0x0000093B
+#define MT41J128MJT125_ZQ_CFG			0x50074BE4
+#define MT41J128MJT125_DLL_LOCK_DIFF		0x1
+#define MT41J128MJT125_RATIO			0x40
+#define MT41J128MJT125_INVERT_CLKOUT		0x1
+#define MT41J128MJT125_RD_DQS			0x3B
+#define MT41J128MJT125_WR_DQS			0x85
+#define MT41J128MJT125_PHY_WR_DATA		0xC1
+#define MT41J128MJT125_PHY_FIFO_WE		0x100
+#define MT41J128MJT125_IOCTRL_VALUE		0x18B
+
+/* Micron MT41J256M8HX-15E */
+#define MT41J256M8HX15E_EMIF_READ_LATENCY	0x06
+#define MT41J256M8HX15E_EMIF_TIM1		0x0888A39B
+#define MT41J256M8HX15E_EMIF_TIM2		0x26337FDA
+#define MT41J256M8HX15E_EMIF_TIM3		0x501F830F
+#define MT41J256M8HX15E_EMIF_SDCFG		0x61C04B32
+#define MT41J256M8HX15E_EMIF_SDREF		0x0000093B
+#define MT41J256M8HX15E_ZQ_CFG			0x50074BE4
+#define MT41J256M8HX15E_DLL_LOCK_DIFF		0x1
+#define MT41J256M8HX15E_RATIO			0x40
+#define MT41J256M8HX15E_INVERT_CLKOUT		0x1
+#define MT41J256M8HX15E_RD_DQS			0x3B
+#define MT41J256M8HX15E_WR_DQS			0x85
+#define MT41J256M8HX15E_PHY_WR_DATA		0xC1
+#define MT41J256M8HX15E_PHY_FIFO_WE		0x100
+#define MT41J256M8HX15E_IOCTRL_VALUE		0x18B
+
+/* Micron MT41K256M16HA-125E */
+#define MT41K256M16HA125E_EMIF_READ_LATENCY	0x100007
+#define MT41K256M16HA125E_EMIF_TIM1		0x0AAAD4DB
+#define MT41K256M16HA125E_EMIF_TIM2		0x266B7FDA
+#define MT41K256M16HA125E_EMIF_TIM3		0x501F867F
+#define MT41K256M16HA125E_EMIF_SDCFG		0x61C05332
+#define MT41K256M16HA125E_EMIF_SDREF		0xC30
+#define MT41K256M16HA125E_ZQ_CFG		0x50074BE4
+#define MT41K256M16HA125E_DLL_LOCK_DIFF		0x1
+#define MT41K256M16HA125E_RATIO			0x80
+#define MT41K256M16HA125E_INVERT_CLKOUT		0x0
+#define MT41K256M16HA125E_RD_DQS		0x38
+#define MT41K256M16HA125E_WR_DQS		0x44
+#define MT41K256M16HA125E_PHY_WR_DATA		0x7D
+#define MT41K256M16HA125E_PHY_FIFO_WE		0x94
+#define MT41K256M16HA125E_IOCTRL_VALUE		0x18B
+
+/* Micron MT41J512M8RH-125 on EVM v1.5 */
+#define MT41J512M8RH125_EMIF_READ_LATENCY	0x06
+#define MT41J512M8RH125_EMIF_TIM1		0x0888A39B
+#define MT41J512M8RH125_EMIF_TIM2		0x26517FDA
+#define MT41J512M8RH125_EMIF_TIM3		0x501F84EF
+#define MT41J512M8RH125_EMIF_SDCFG		0x61C04BB2
+#define MT41J512M8RH125_EMIF_SDREF		0x0000093B
+#define MT41J512M8RH125_ZQ_CFG			0x50074BE4
+#define MT41J512M8RH125_DLL_LOCK_DIFF		0x1
+#define MT41J512M8RH125_RATIO			0x80
+#define MT41J512M8RH125_INVERT_CLKOUT		0x0
+#define MT41J512M8RH125_RD_DQS			0x3B
+#define MT41J512M8RH125_WR_DQS			0x3C
+#define MT41J512M8RH125_PHY_FIFO_WE		0xA5
+#define MT41J512M8RH125_PHY_WR_DATA		0x74
+#define MT41J512M8RH125_IOCTRL_VALUE		0x18B
+
+/* Samsung K4B2G1646E-BIH9 */
+#define K4B2G1646EBIH9_EMIF_READ_LATENCY	0x07
+#define K4B2G1646EBIH9_EMIF_TIM1		0x0AAAE51B
+#define K4B2G1646EBIH9_EMIF_TIM2		0x2A1D7FDA
+#define K4B2G1646EBIH9_EMIF_TIM3		0x501F83FF
+#define K4B2G1646EBIH9_EMIF_SDCFG		0x61C052B2
+#define K4B2G1646EBIH9_EMIF_SDREF		0x00000C30
+#define K4B2G1646EBIH9_ZQ_CFG			0x50074BE4
+#define K4B2G1646EBIH9_DLL_LOCK_DIFF		0x1
+#define K4B2G1646EBIH9_RATIO			0x80
+#define K4B2G1646EBIH9_INVERT_CLKOUT		0x0
+#define K4B2G1646EBIH9_RD_DQS			0x35
+#define K4B2G1646EBIH9_WR_DQS			0x3A
+#define K4B2G1646EBIH9_PHY_FIFO_WE		0x97
+#define K4B2G1646EBIH9_PHY_WR_DATA		0x76
+#define K4B2G1646EBIH9_IOCTRL_VALUE		0x18B
 
 /**
- * This structure represents the EMIF registers on AM33XX devices.
+ * Configure DMM
  */
-struct emif_regs {
-	unsigned int sdrrev;		/* offset 0x00 */
-	unsigned int sdrstat;		/* offset 0x04 */
-	unsigned int sdrcr;		/* offset 0x08 */
-	unsigned int sdrcr2;		/* offset 0x0C */
-	unsigned int sdrrcr;		/* offset 0x10 */
-	unsigned int sdrrcsr;		/* offset 0x14 */
-	unsigned int sdrtim1;		/* offset 0x18 */
-	unsigned int sdrtim1sr;		/* offset 0x1C */
-	unsigned int sdrtim2;		/* offset 0x20 */
-	unsigned int sdrtim2sr;		/* offset 0x24 */
-	unsigned int sdrtim3;		/* offset 0x28 */
-	unsigned int sdrtim3sr;		/* offset 0x2C */
-	unsigned int res1[2];
-	unsigned int sdrmcr;		/* offset 0x38 */
-	unsigned int sdrmcsr;		/* offset 0x3C */
-	unsigned int res2[8];
-	unsigned int sdritr;		/* offset 0x60 */
-	unsigned int res3[32];
-	unsigned int ddrphycr;		/* offset 0xE4 */
-	unsigned int ddrphycsr;		/* offset 0xE8 */
-	unsigned int ddrphycr2;		/* offset 0xEC */
-};
-
-/**
- * Encapsulates DDR PHY control and corresponding shadow registers.
- */
-struct ddr_phy_control {
-	unsigned long	reg;
-	unsigned long	reg_sh;
-	unsigned long	reg2;
-};
-
-/**
- * Encapsulates SDRAM timing and corresponding shadow registers.
- */
-struct sdram_timing {
-	unsigned long	time1;
-	unsigned long	time1_sh;
-	unsigned long	time2;
-	unsigned long	time2_sh;
-	unsigned long	time3;
-	unsigned long	time3_sh;
-};
-
-/**
- * Encapsulates SDRAM configuration.
- * (Includes refresh control registers)  */
-struct sdram_config {
-	unsigned long	sdrcr;
-	unsigned long	sdrcr2;
-	unsigned long	refresh;
-	unsigned long	refresh_sh;
-};
+void config_dmm(const struct dmm_lisa_map_regs *regs);
 
 /**
  * Configure SDRAM
  */
-int config_sdram(struct sdram_config *cfg);
+void config_sdram(const struct emif_regs *regs, int nr);
 
 /**
  * Set SDRAM timings
  */
-int set_sdram_timings(struct sdram_timing *val);
+void set_sdram_timings(const struct emif_regs *regs, int nr);
 
 /**
  * Configure DDR PHY
  */
-int config_ddr_phy(struct ddr_phy_control *cfg);
+void config_ddr_phy(const struct emif_regs *regs, int nr);
+
+struct ddr_cmd_regs {
+	unsigned int resv0[7];
+	unsigned int cm0csratio;	/* offset 0x01C */
+	unsigned int resv1[2];
+	unsigned int cm0dldiff;		/* offset 0x028 */
+	unsigned int cm0iclkout;	/* offset 0x02C */
+	unsigned int resv2[8];
+	unsigned int cm1csratio;	/* offset 0x050 */
+	unsigned int resv3[2];
+	unsigned int cm1dldiff;		/* offset 0x05C */
+	unsigned int cm1iclkout;	/* offset 0x060 */
+	unsigned int resv4[8];
+	unsigned int cm2csratio;	/* offset 0x084 */
+	unsigned int resv5[2];
+	unsigned int cm2dldiff;		/* offset 0x090 */
+	unsigned int cm2iclkout;	/* offset 0x094 */
+	unsigned int resv6[3];
+};
+
+struct ddr_data_regs {
+	unsigned int dt0rdsratio0;	/* offset 0x0C8 */
+	unsigned int resv1[4];
+	unsigned int dt0wdsratio0;	/* offset 0x0DC */
+	unsigned int resv2[4];
+	unsigned int dt0wiratio0;	/* offset 0x0F0 */
+	unsigned int resv3;
+	unsigned int dt0wimode0;	/* offset 0x0F8 */
+	unsigned int dt0giratio0;	/* offset 0x0FC */
+	unsigned int resv4;
+	unsigned int dt0gimode0;	/* offset 0x104 */
+	unsigned int dt0fwsratio0;	/* offset 0x108 */
+	unsigned int resv5[4];
+	unsigned int dt0dqoffset;	/* offset 0x11C */
+	unsigned int dt0wrsratio0;	/* offset 0x120 */
+	unsigned int resv6[4];
+	unsigned int dt0rdelays0;	/* offset 0x134 */
+	unsigned int dt0dldiff0;	/* offset 0x138 */
+	unsigned int resv7[12];
+};
 
 /**
  * This structure represents the DDR registers on AM33XX devices.
+ * We make use of DDR_PHY_BASE_ADDR2 to address the DATA1 registers that
+ * correspond to DATA1 registers defined here.
  */
 struct ddr_regs {
-	unsigned int resv0[7];
+	unsigned int resv0[3];
+	unsigned int cm0config;		/* offset 0x00C */
+	unsigned int cm0configclk;	/* offset 0x010 */
+	unsigned int resv1[2];
 	unsigned int cm0csratio;	/* offset 0x01C */
-	unsigned int cm0csforce;	/* offset 0x020 */
-	unsigned int cm0csdelay;	/* offset 0x024 */
+	unsigned int resv2[2];
 	unsigned int cm0dldiff;		/* offset 0x028 */
 	unsigned int cm0iclkout;	/* offset 0x02C */
-	unsigned int resv1[8];
+	unsigned int resv3[4];
+	unsigned int cm1config;		/* offset 0x040 */
+	unsigned int cm1configclk;	/* offset 0x044 */
+	unsigned int resv4[2];
 	unsigned int cm1csratio;	/* offset 0x050 */
-	unsigned int cm1csforce;	/* offset 0x054 */
-	unsigned int cm1csdelay;	/* offset 0x058 */
+	unsigned int resv5[2];
 	unsigned int cm1dldiff;		/* offset 0x05C */
 	unsigned int cm1iclkout;	/* offset 0x060 */
-	unsigned int resv2[8];
+	unsigned int resv6[4];
+	unsigned int cm2config;		/* offset 0x074 */
+	unsigned int cm2configclk;	/* offset 0x078 */
+	unsigned int resv7[2];
 	unsigned int cm2csratio;	/* offset 0x084 */
-	unsigned int cm2csforce;	/* offset 0x088 */
-	unsigned int cm2csdelay;	/* offset 0x08C */
+	unsigned int resv8[2];
 	unsigned int cm2dldiff;		/* offset 0x090 */
 	unsigned int cm2iclkout;	/* offset 0x094 */
-	unsigned int resv3[12];
+	unsigned int resv9[12];
 	unsigned int dt0rdsratio0;	/* offset 0x0C8 */
-	unsigned int dt0rdsratio1;	/* offset 0x0CC */
-	unsigned int resv4[3];
+	unsigned int resv10[4];
 	unsigned int dt0wdsratio0;	/* offset 0x0DC */
-	unsigned int dt0wdsratio1;	/* offset 0x0E0 */
-	unsigned int resv5[3];
+	unsigned int resv11[4];
 	unsigned int dt0wiratio0;	/* offset 0x0F0 */
-	unsigned int dt0wiratio1;	/* offset 0x0F4 */
+	unsigned int resv12;
+	unsigned int dt0wimode0;	/* offset 0x0F8 */
 	unsigned int dt0giratio0;	/* offset 0x0FC */
-	unsigned int dt0giratio1;	/* offset 0x100 */
-	unsigned int resv6[1];
+	unsigned int resv13;
+	unsigned int dt0gimode0;	/* offset 0x104 */
 	unsigned int dt0fwsratio0;	/* offset 0x108 */
-	unsigned int dt0fwsratio1;	/* offset 0x10C */
-	unsigned int resv7[4];
+	unsigned int resv14[4];
+	unsigned int dt0dqoffset;	/* offset 0x11C */
 	unsigned int dt0wrsratio0;	/* offset 0x120 */
-	unsigned int dt0wrsratio1;	/* offset 0x124 */
-	unsigned int resv8[3];
+	unsigned int resv15[4];
 	unsigned int dt0rdelays0;	/* offset 0x134 */
 	unsigned int dt0dldiff0;	/* offset 0x138 */
-	unsigned int resv9[39];
-	unsigned int dt1rdelays0;	/* offset 0x1D8 */
 };
 
 /**
@@ -200,35 +262,29 @@ struct cmd_control {
  */
 struct ddr_data {
 	unsigned long datardsratio0;
-	unsigned long datardsratio1;
 	unsigned long datawdsratio0;
-	unsigned long datawdsratio1;
 	unsigned long datawiratio0;
-	unsigned long datawiratio1;
 	unsigned long datagiratio0;
-	unsigned long datagiratio1;
 	unsigned long datafwsratio0;
-	unsigned long datafwsratio1;
 	unsigned long datawrsratio0;
-	unsigned long datawrsratio1;
+	unsigned long datauserank0delay;
 	unsigned long datadldiff0;
 };
 
 /**
  * Configure DDR CMD control registers
  */
-int config_cmd_ctrl(struct cmd_control *cmd);
+void config_cmd_ctrl(const struct cmd_control *cmd, int nr);
 
 /**
  * Configure DDR DATA registers
  */
-int config_ddr_data(int data_macrono, struct ddr_data *data);
+void config_ddr_data(const struct ddr_data *data, int nr);
 
 /**
  * This structure represents the DDR io control on AM33XX devices.
  */
 struct ddr_cmdtctrl {
-	unsigned int resv1[1];
 	unsigned int cm0ioctl;
 	unsigned int cm1ioctl;
 	unsigned int cm2ioctl;
@@ -238,20 +294,9 @@ struct ddr_cmdtctrl {
 };
 
 /**
- * Encapsulates DDR CMD & DATA io control registers.
- */
-struct ddr_ioctrl {
-	unsigned long cmd1ctl;
-	unsigned long cmd2ctl;
-	unsigned long cmd3ctl;
-	unsigned long data1ctl;
-	unsigned long data2ctl;
-};
-
-/**
  * Configure DDR io control registers
  */
-int config_io_ctrl(struct ddr_ioctrl *ioctrl);
+void config_io_ctrl(unsigned long val);
 
 struct ddr_ctrl {
 	unsigned int ddrioctrl;
@@ -259,6 +304,8 @@ struct ddr_ctrl {
 	unsigned int ddrckectrl;
 };
 
-void config_ddr(void);
+void config_ddr(unsigned int pll, unsigned int ioctrl,
+		const struct ddr_data *data, const struct cmd_control *ctrl,
+		const struct emif_regs *regs, int nr);
 
 #endif  /* _DDR_DEFS_H */

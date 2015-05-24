@@ -2,10 +2,7 @@
  * (C) Copyright 2008
  * Heiko Schocher, DENX Software Engineering, hs@denx.de.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __KEYMILE_COMMON_H
@@ -15,6 +12,8 @@
 #define H_OPORTS_14	0x40
 #define WRG_LED		0x02
 #define WRL_BOOT	0x01
+
+#define OPRTL_XBUFENA	0x20
 
 #define H_OPORTS_SCC4_ENA	0x10
 #define H_OPORTS_SCC4_FD_ENA	0x04
@@ -30,7 +29,11 @@ struct km_bec_fpga {
 	unsigned char	res1[3];
 	unsigned char	bprth;
 	unsigned char	bprtl;
-	unsigned char	res2[6];
+	unsigned char	gprt3;
+	unsigned char	gprt2;
+	unsigned char	gprt1;
+	unsigned char	gprt0;
+	unsigned char	res2[2];
 	unsigned char	prst;
 	unsigned char	res3[0xfff0];
 	unsigned char	pgy_id;
@@ -124,6 +127,11 @@ struct bfticu_iomap {
 
 int ethernet_present(void);
 int ivm_read_eeprom(void);
+
+int trigger_fpga_config(void);
+int wait_for_fpga_config(void);
+int fpga_reset(void);
+int toggle_eeprom_spi_bus(void);
 
 int set_km_env(void);
 int fdt_set_node_and_value(void *blob,

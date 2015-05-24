@@ -3,23 +3,7 @@
  * Marvell Semiconductor <www.marvell.com>
  * Written-by: Prafulla Wadaskar <prafulla@marvell.com>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _KWCPU_H
@@ -33,7 +17,7 @@
 			| (attr << 8) | (kw_winctrl_calcsize(size) << 16))
 
 #define KWGBE_PORT_SERIAL_CONTROL1_REG(_x)	\
-		((_x ? KW_EGIGA0_BASE : KW_EGIGA1_BASE) + 0x44c)
+		((_x ? KW_EGIGA1_BASE : KW_EGIGA0_BASE) + 0x44c)
 
 #define KW_REG_PCIE_DEVID		(KW_REG_PCIE_BASE + 0x00)
 #define KW_REG_PCIE_REVID		(KW_REG_PCIE_BASE + 0x08)
@@ -155,10 +139,10 @@ struct kwgpio_registers {
 /*
  * functions
  */
-void reset_cpu(unsigned long ignored);
 unsigned char get_random_hex(void);
 unsigned int kw_sdram_bar(enum memory_bank bank);
 unsigned int kw_sdram_bs(enum memory_bank bank);
+void kw_sdram_size_adjust(enum memory_bank bank);
 int kw_config_adr_windows(void);
 void kw_config_gpio(unsigned int gpp0_oe_val, unsigned int gpp1_oe_val,
 		unsigned int gpp0_oe, unsigned int gpp1_oe);

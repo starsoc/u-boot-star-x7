@@ -5,23 +5,7 @@
  *
  * (C) Copyright 2002 Scott McNutt <smcnutt@artesyncp.com>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 
@@ -84,13 +68,13 @@ local_bus_init(void)
 
 	get_sys_info(&sysinfo);
 	clkdiv = lbc->lcrr & LCRR_CLKDIV;
-	lbc_hz = sysinfo.freqSystemBus / 1000000 / clkdiv;
+	lbc_hz = sysinfo.freq_systembus / 1000000 / clkdiv;
 
 	if (lbc_hz < 66) {
-		lbc->lcrr = CONFIG_SYS_LBC_LCRR | 0x80000000;	/* DLL Bypass */
+		lbc->lcrr = CONFIG_SYS_LBC_LCRR | LCRR_DBYP;	/* DLL Bypass */
 
 	} else if (lbc_hz >= 133) {
-		lbc->lcrr = CONFIG_SYS_LBC_LCRR & (~0x80000000); /* DLL Enabled */
+		lbc->lcrr = CONFIG_SYS_LBC_LCRR & (~LCRR_DBYP); /* DLL Enabled */
 
 	} else {
 		/*
@@ -105,7 +89,7 @@ local_bus_init(void)
 			lbc->lcrr = 0x10000004;
 		}
 
-		lbc->lcrr = CONFIG_SYS_LBC_LCRR & (~0x80000000); /* DLL Enabled */
+		lbc->lcrr = CONFIG_SYS_LBC_LCRR & (~LCRR_DBYP); /* DLL Enabled */
 		udelay(200);
 
 		/*
@@ -184,7 +168,7 @@ void lbc_sdram_init(void)
 phys_size_t fixed_sdram(void)
 {
   #ifndef CONFIG_SYS_RAMBOOT
-	volatile ccsr_ddr_t *ddr= (void *)(CONFIG_SYS_MPC85xx_DDR_ADDR);
+	volatile ccsr_ddr_t *ddr= (void *)(CONFIG_SYS_MPC8xxx_DDR_ADDR);
 
 	ddr->cs0_bnds = CONFIG_SYS_DDR_CS0_BNDS;
 	ddr->cs0_config = CONFIG_SYS_DDR_CS0_CONFIG;

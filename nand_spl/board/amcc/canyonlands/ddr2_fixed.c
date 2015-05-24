@@ -2,23 +2,7 @@
  * (C) Copyright 2008-2009
  * Stefan Roese, DENX Software Engineering, sr@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -92,14 +76,11 @@ static void ddr_init_common(void)
 	mtsdram(SDRAM_INITPLR11, 0x80000432);
 	mtsdram(SDRAM_INITPLR12, 0x808103C0);
 	mtsdram(SDRAM_INITPLR13, 0x80810040);
-	mtsdram(SDRAM_INITPLR14, 0x00000000);
-	mtsdram(SDRAM_INITPLR15, 0x00000000);
 	mtsdram(SDRAM_RDCC, 0x40000000);
 	mtsdram(SDRAM_RQDC, 0x80000038);
 	mtsdram(SDRAM_RFDC, 0x00000257);
 
 	mtdcr(SDRAM_R0BAS, 0x0000F800);		/* MQ0_B0BAS */
-	mtdcr(SDRAM_R1BAS, 0x0400F800);		/* MQ0_B1BAS */
 }
 
 phys_size_t initdram(int board_type)

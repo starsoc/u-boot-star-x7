@@ -4,23 +4,7 @@
  *
  * Copyright 2007-2008,2010-2011 Freescale Semiconductor, Inc
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
- *
- *-------------------------------------------------------------------
- *
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef  __FSL_ESDHC_H__
@@ -34,12 +18,13 @@
 #define SYSCTL_INITA		0x08000000
 #define SYSCTL_TIMEOUT_MASK	0x000f0000
 #define SYSCTL_CLOCK_MASK	0x0000fff0
-#define SYSCTL_RSTA		0x01000000
 #define SYSCTL_CKEN		0x00000008
 #define SYSCTL_PEREN		0x00000004
 #define SYSCTL_HCKEN		0x00000002
 #define SYSCTL_IPGEN		0x00000001
 #define SYSCTL_RSTA		0x01000000
+#define SYSCTL_RSTC		0x02000000
+#define SYSCTL_RSTD		0x04000000
 
 #define IRQSTAT			0x0002e030
 #define IRQSTAT_DMAE		(0x10000000)
@@ -62,7 +47,9 @@
 #define IRQSTAT_CC		(0x00000001)
 
 #define CMD_ERR		(IRQSTAT_CIE | IRQSTAT_CEBE | IRQSTAT_CCE)
-#define DATA_ERR	(IRQSTAT_DEBE | IRQSTAT_DCE | IRQSTAT_DTOE)
+#define DATA_ERR	(IRQSTAT_DEBE | IRQSTAT_DCE | IRQSTAT_DTOE | \
+				IRQSTAT_DMAE)
+#define DATA_COMPLETE	(IRQSTAT_TC | IRQSTAT_DINT)
 
 #define IRQSTATEN		0x0002e034
 #define IRQSTATEN_DMAE		(0x10000000)
@@ -85,6 +72,7 @@
 #define IRQSTATEN_CC		(0x00000001)
 
 #define PRSSTAT			0x0002e024
+#define PRSSTAT_DAT0		(0x01000000)
 #define PRSSTAT_CLSL		(0x00800000)
 #define PRSSTAT_WPSPL		(0x00080000)
 #define PRSSTAT_CDPL		(0x00040000)
@@ -165,7 +153,8 @@
 
 struct fsl_esdhc_cfg {
 	u32	esdhc_base;
-	u32	no_snoop;
+	u32	sdhc_clk;
+	u8	max_bus_width;
 };
 
 /* Select the correct accessors depending on endianess */
@@ -193,5 +182,6 @@ void fdt_fixup_esdhc(void *blob, bd_t *bd);
 static inline int fsl_esdhc_mmc_init(bd_t *bis) { return -ENOSYS; }
 static inline void fdt_fixup_esdhc(void *blob, bd_t *bd) {}
 #endif /* CONFIG_FSL_ESDHC */
+void __noreturn mmc_boot(void);
 
 #endif  /* __FSL_ESDHC_H__ */

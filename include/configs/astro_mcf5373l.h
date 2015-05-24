@@ -3,23 +3,7 @@
  *
  * (C) Copyright 2003 Josef Baumgartner <josef.baumgartner@telex.de>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -32,6 +16,8 @@
 
 #ifndef _CONFIG_ASTRO_MCF5373L_H
 #define _CONFIG_ASTRO_MCF5373L_H
+
+#include <linux/stringify.h>
 
 /*
  * set the card type to actually compile for; either of
@@ -105,7 +91,6 @@
 #define CONFIG_CMDLINE_EDITING
 
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2 "> "
 
 #define CONFIG_MCFRTC
 #undef RTC_DEBUG
@@ -115,12 +100,11 @@
 #undef CONFIG_MCFPIT
 
 /* I2C */
-#define CONFIG_FSL_I2C
-#define CONFIG_HARD_I2C			/* I2C with hw support */
-#undef CONFIG_SOFT_I2C			/* I2C bit-banged */
-#define CONFIG_SYS_I2C_SPEED		80000
-#define CONFIG_SYS_I2C_SLAVE		0x7F
-#define CONFIG_SYS_I2C_OFFSET		0x58000
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_I2C_FSL
+#define CONFIG_SYS_FSL_I2C_SPEED	80000
+#define CONFIG_SYS_FSL_I2C_SLAVE	0x7F
+#define CONFIG_SYS_FSL_I2C_OFFSET	0x58000
 #define CONFIG_SYS_IMMR			CONFIG_SYS_MBAR
 
 /*
@@ -147,7 +131,6 @@
  */
 
 #define CONFIG_BAUDRATE		115200
-#define CONFIG_SYS_BAUDRATE_TABLE { 9600 , 19200 , 38400 , 57600, 115200 }
 
 #define CONFIG_MCFUART
 #define CONFIG_SYS_UART_PORT		(2)
@@ -211,12 +194,9 @@
  * u-boot: 'set' command
  */
 
-#define _QUOTEME(x)	#x
-#define QUOTEME(x)	_QUOTEME(x)
-
 #define CONFIG_EXTRA_ENV_SETTINGS			\
 	"loaderversion=11\0"				\
-	"card_id="QUOTEME(ASTRO_ID)"\0"			\
+	"card_id="__stringify(ASTRO_ID)"\0"			\
 	"alterafile=0\0"				\
 	"xilinxfile=0\0"				\
 	"xilinxload=imxtract 0x540000 $xilinxfile 0x41000000&&"\

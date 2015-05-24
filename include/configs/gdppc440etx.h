@@ -6,23 +6,7 @@
  * (C) Copyright 2005-2007
  * Stefan Roese, DENX Software Engineering, sr@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -49,6 +33,10 @@
 
 #define CONFIG_BOARD_EARLY_INIT_F	1	/* call board_early_init_f*/
 #define CONFIG_MISC_INIT_R		1	/* call misc_init_r()     */
+
+#undef CONFIG_ZERO_BOOTDELAY_CHECK     /* ignore keypress on bootdelay==0 */
+#define CONFIG_AUTOBOOT_KEYED          /* use key strings to stop autoboot */
+#define CONFIG_AUTOBOOT_STOP_STR " "
 
 /*
  * Base addresses -- Note these are effective addresses where the
@@ -141,7 +129,7 @@
 /*
  * I2C
  */
-#define CONFIG_SYS_I2C_SPEED		400000	/* I2C speed+slave address*/
+#define CONFIG_SYS_I2C_PPC4XX_SPEED_0		400000
 
 /*
  * Default environment variables
@@ -174,6 +162,7 @@
 
 /* General PCI */
 #define CONFIG_PCI				/* include pci support        */
+#define CONFIG_PCI_INDIRECT_BRIDGE	/* indirect PCI bridge support */
 #undef  CONFIG_PCI_PNP				/* do (not) pci plug-and-play */
 #define CONFIG_PCI_SCAN_SHOW			/* show pci devices on startup*/
 #define CONFIG_SYS_PCI_TARGBASE		0x80000000	/* PCIaddr mapped to \

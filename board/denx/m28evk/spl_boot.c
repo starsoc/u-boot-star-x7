@@ -4,23 +4,7 @@
  * Copyright (C) 2011 Marek Vasut <marek.vasut@gmail.com>
  * on behalf of DENX Software Engineering GmbH
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -109,8 +93,9 @@ const iomux_cfg_t iomux_setup[] = {
 		(MXS_PAD_3V3 | MXS_PAD_12MA | MXS_PAD_NOPULL),
 	MX28_PAD_SSP0_SCK__SSP0_SCK |
 		(MXS_PAD_3V3 | MXS_PAD_12MA | MXS_PAD_NOPULL),
-	MX28_PAD_PWM3__GPIO_3_28 | MUX_CONFIG_SSP0,	/* Power .. FIXME */
-	MX28_PAD_AUART2_CTS__GPIO_3_10,	/* WP ... FIXME */
+	MX28_PAD_PWM3__GPIO_3_28 | MUX_CONFIG_SSP0 |
+		(MXS_PAD_3V3 | MXS_PAD_12MA | MXS_PAD_NOPULL),	/* Power */
+	MX28_PAD_AUART2_CTS__GPIO_3_10,	/* WP */
 
 	/* GPMI NAND */
 	MX28_PAD_GPMI_D00__GPMI_D0 | MUX_CONFIG_GPMI,
@@ -147,6 +132,9 @@ const iomux_cfg_t iomux_setup[] = {
 	MX28_PAD_ENET0_RXD3__ENET1_RXD1 | MUX_CONFIG_ENET,
 	MX28_PAD_ENET0_TXD2__ENET1_TXD0 | MUX_CONFIG_ENET,
 	MX28_PAD_ENET0_TXD3__ENET1_TXD1 | MUX_CONFIG_ENET,
+#if !defined(CONFIG_DENX_M28_V11) && !defined(CONFIG_DENX_M28_V10)
+	MX28_PAD_AUART2_RTS__GPIO_3_11,	/* PHY reset */
+#endif
 
 	/* I2C */
 	MX28_PAD_I2C0_SCL__I2C0_SCL,
@@ -212,7 +200,7 @@ const iomux_cfg_t iomux_setup[] = {
 		(MXS_PAD_3V3 | MXS_PAD_8MA | MXS_PAD_PULLUP),
 };
 
-void board_init_ll(void)
+void board_init_ll(const uint32_t arg, const uint32_t *resptr)
 {
-	mx28_common_spl_init(iomux_setup, ARRAY_SIZE(iomux_setup));
+	mxs_common_spl_init(arg, resptr, iomux_setup, ARRAY_SIZE(iomux_setup));
 }

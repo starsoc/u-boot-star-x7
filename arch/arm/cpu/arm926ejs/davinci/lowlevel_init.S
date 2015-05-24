@@ -16,31 +16,12 @@
  * Modified for OMAP 1610 H2 board by Nishant Kamat, Jan 2004
  *
  * Modified for OMAP 5912 OSK board by Rishi Bhattacharya, Apr 2004
- * See file CREDITS for list of people who contributed to this
- * project.
  *
  * Modified for DV-EVM board by Rishi Bhattacharya, Apr 2005
- * See file CREDITS for list of people who contributed to this
- * project.
  *
  * Modified for DV-EVM board by Swaminathan S, Nov 2005
- * See file CREDITS for list of people who contributed to this
- * project.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <config.h>
@@ -523,9 +504,8 @@ VTPLock:
 
 	ldr	r6, DDRVTPR
 	ldr	r7, [r6]
-	and	r7, r7, $0x1f
-	and	r8, r7, $0x3e0
-	orr	r8, r7, r8
+	mov	r8, r7, LSL #32-10
+	mov	r8, r8, LSR #32-10        /* grab low 10 bits  */
 	ldr	r7, VTP_RECAL
 	orr	r8, r7, r8
 	ldr	r7, VTP_EN
@@ -644,7 +624,7 @@ VTP_LOCK_COUNT:
 VTP_MASK:
 	.word	0xffffdfff
 VTP_RECAL:
-	.word	0x40000
+	.word	0x08000
 VTP_EN:
 	.word	0x02000
 CFGTEST:

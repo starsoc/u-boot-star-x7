@@ -3,23 +3,7 @@
  *
  * Copyright (c) 2005-2007 Analog Devices Inc.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
- * MA 02110-1301 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _LINUX_LINKAGE_H
@@ -44,8 +28,13 @@
 #define SYMBOL_NAME_LABEL(X)	X:
 #endif
 
+#ifndef __ALIGN
 #define __ALIGN .align		4
+#endif
+
+#ifndef __ALIGN_STR
 #define __ALIGN_STR		".align 4"
+#endif
 
 #ifdef __ASSEMBLY__
 
@@ -67,7 +56,7 @@
 
 #ifndef ENDPROC
 #define ENDPROC(name) \
-	.type name, @function; \
+	.type name STT_FUNC; \
 	END(name)
 #endif
 

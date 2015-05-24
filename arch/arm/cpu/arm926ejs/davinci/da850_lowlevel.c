@@ -4,22 +4,7 @@
  * Copyright (C) 2011
  * Heiko Schocher, DENX Software Engineering, hs@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 #include <common.h>
 #include <nand.h>
@@ -31,6 +16,14 @@
 #include <asm/arch/ddr2_defs.h>
 #include <asm/arch/emif_defs.h>
 #include <asm/arch/pll_defs.h>
+
+void davinci_enable_uart0(void)
+{
+	lpsc_on(DAVINCI_LPSC_UART0);
+
+	/* Bringup UART0 out of reset */
+	REG(UART0_PWREMU_MGMT) = 0x00006001;
+}
 
 #if defined(CONFIG_SYS_DA850_PLL_INIT)
 void da850_waitloop(unsigned long loopcnt)
@@ -190,13 +183,21 @@ int da850_ddr_setup(void)
 
 		setbits_le32(&davinci_syscfg1_regs->vtpio_ctl, VTP_LOCK);
 		setbits_le32(&davinci_syscfg1_regs->vtpio_ctl, VTP_POWERDWN);
-
-		setbits_le32(&davinci_syscfg1_regs->vtpio_ctl, VTP_IOPWRDWN);
 	}
-
+	setbits_le32(&davinci_syscfg1_regs->vtpio_ctl, VTP_IOPWRDWN);
 	writel(CONFIG_SYS_DA850_DDR2_DDRPHYCR, &dv_ddr2_regs_ctrl->ddrphycr);
-	clrbits_le32(&davinci_syscfg1_regs->ddr_slew,
-		(1 << DDR_SLEW_CMOSEN_BIT));
+
+	if (CONFIG_SYS_DA850_DDR2_SDBCR & (1 << DV_DDR_SDCR_DDR2EN_SHIFT)) {
+		/* DDR2 */
+		clrbits_le32(&davinci_syscfg1_regs->ddr_slew,
+			(1 << DDR_SLEW_DDR_PDENA_BIT) |
+			(1 << DDR_SLEW_CMOSEN_BIT));
+	} else {
+		/* MOBILE DDR */
+		setbits_le32(&davinci_syscfg1_regs->ddr_slew,
+			(1 << DDR_SLEW_DDR_PDENA_BIT) |
+			(1 << DDR_SLEW_CMOSEN_BIT));
+	}
 
 	/*
 	 * SDRAM Configuration Register (SDCR):
@@ -216,7 +217,11 @@ int da850_ddr_setup(void)
 	writel(tmp, &dv_ddr2_regs_ctrl->sdbcr);
 
 	/* write memory configuration and timing */
-	writel(CONFIG_SYS_DA850_DDR2_SDBCR2, &dv_ddr2_regs_ctrl->sdbcr2);
+	if (!(CONFIG_SYS_DA850_DDR2_SDBCR & (1 << DV_DDR_SDCR_DDR2EN_SHIFT))) {
+		/* MOBILE DDR only*/
+		writel(CONFIG_SYS_DA850_DDR2_SDBCR2,
+			&dv_ddr2_regs_ctrl->sdbcr2);
+	}
 	writel(CONFIG_SYS_DA850_DDR2_SDTIMR, &dv_ddr2_regs_ctrl->sdtimr);
 	writel(CONFIG_SYS_DA850_DDR2_SDTIMR2, &dv_ddr2_regs_ctrl->sdtimr2);
 
@@ -240,7 +245,7 @@ int da850_ddr_setup(void)
 
 	/* disable self refresh */
 	clrbits_le32(&dv_ddr2_regs_ctrl->sdrcr,
-		DV_DDR_SDRCR_LPMODEN | DV_DDR_SDRCR_LPMODEN);
+		DV_DDR_SDRCR_LPMODEN | DV_DDR_SDRCR_MCLKSTOPEN);
 	writel(CONFIG_SYS_DA850_DDR2_PBBPR, &dv_ddr2_regs_ctrl->pbbpr);
 
 	return 0;
@@ -294,7 +299,11 @@ int arch_cpu_init(void)
 	 */
 	writel((DAVINCI_UART_PWREMU_MGMT_FREE | DAVINCI_UART_PWREMU_MGMT_URRST |
 		DAVINCI_UART_PWREMU_MGMT_UTRST),
+#if (CONFIG_SYS_NS16550_COM1 == DAVINCI_UART0_BASE)
+	       &davinci_uart0_ctrl_regs->pwremu_mgmt);
+#else
 	       &davinci_uart2_ctrl_regs->pwremu_mgmt);
+#endif
 
 #if defined(CONFIG_SYS_DA850_DDR_INIT)
 	da850_ddr_setup();

@@ -2,26 +2,11 @@
  * (C) Copyright 2007
  * Sascha Hauer, Pengutronix
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
+#include <div64.h>
 #include <asm/arch/imx-regs.h>
 #include <asm/arch/clock.h>
 #include <asm/io.h>
@@ -30,16 +15,17 @@
 static u32 mx31_decode_pll(u32 reg, u32 infreq)
 {
 	u32 mfi = GET_PLL_MFI(reg);
-	u32 mfn = GET_PLL_MFN(reg);
+	s32 mfn = GET_PLL_MFN(reg);
 	u32 mfd = GET_PLL_MFD(reg);
 	u32 pd =  GET_PLL_PD(reg);
 
 	mfi = mfi <= 5 ? 5 : mfi;
+	mfn = mfn >= 512 ? mfn - 1024 : mfn;
 	mfd += 1;
 	pd += 1;
 
-	return ((2 * (infreq >> 10) * (mfi * mfd + mfn)) /
-		(mfd * pd)) << 10;
+	return lldiv(2 * (u64)infreq * (mfi * mfd + mfn),
+		mfd * pd);
 }
 
 static u32 mx31_get_mpl_dpdgck_clk(void)
@@ -47,9 +33,9 @@ static u32 mx31_get_mpl_dpdgck_clk(void)
 	u32 infreq;
 
 	if ((readl(CCM_CCMR) & CCMR_PRCS_MASK) == CCMR_FPM)
-		infreq = CONFIG_MX31_CLK32 * 1024;
+		infreq = MXC_CLK32 * 1024;
 	else
-		infreq = CONFIG_MX31_HCLK_FREQ;
+		infreq = MXC_HCLK;
 
 	return mx31_decode_pll(readl(CCM_MPCTL), infreq);
 }
@@ -102,6 +88,7 @@ unsigned int mxc_get_clock(enum mxc_clock clk)
 	case MXC_CSPI_CLK:
 	case MXC_UART_CLK:
 	case MXC_ESDHC_CLK:
+	case MXC_I2C_CLK:
 		return mx31_get_ipg_clk();
 	case MXC_IPU_CLK:
 		return mx31_get_hsp_clk();

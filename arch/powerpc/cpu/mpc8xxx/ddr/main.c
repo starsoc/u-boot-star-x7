@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 Freescale Semiconductor, Inc.
+ * Copyright 2008-2012 Freescale Semiconductor, Inc.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,17 +15,15 @@
 #include <common.h>
 #include <i2c.h>
 #include <asm/fsl_ddr_sdram.h>
+#include <asm/fsl_law.h>
 
 #include "ddr.h"
 
-extern void fsl_ddr_set_lawbar(
+void fsl_ddr_set_lawbar(
 		const common_timing_params_t *memctl_common_params,
 		unsigned int memctl_interleaved,
 		unsigned int ctrl_num);
-
-/* processor specific function */
-extern void fsl_ddr_set_memctl_regs(const fsl_ddr_cfg_regs_t *regs,
-				   unsigned int ctrl_num);
+void fsl_ddr_set_intl3r(const unsigned int granule_size);
 
 #if defined(SPD_EEPROM_ADDRESS) || \
     defined(SPD_EEPROM_ADDRESS1) || defined(SPD_EEPROM_ADDRESS2) || \
@@ -51,6 +49,22 @@ u8 spd_i2c_addr[CONFIG_NUM_DDR_CONTROLLERS][CONFIG_DIMM_SLOTS_PER_CTLR] = {
 	[1][0] = SPD_EEPROM_ADDRESS3,	/* controller 2 */
 	[1][1] = SPD_EEPROM_ADDRESS4,	/* controller 2 */
 };
+#elif (CONFIG_NUM_DDR_CONTROLLERS == 3) && (CONFIG_DIMM_SLOTS_PER_CTLR == 1)
+u8 spd_i2c_addr[CONFIG_NUM_DDR_CONTROLLERS][CONFIG_DIMM_SLOTS_PER_CTLR] = {
+	[0][0] = SPD_EEPROM_ADDRESS1,	/* controller 1 */
+	[1][0] = SPD_EEPROM_ADDRESS2,	/* controller 2 */
+	[2][0] = SPD_EEPROM_ADDRESS3,	/* controller 3 */
+};
+#elif (CONFIG_NUM_DDR_CONTROLLERS == 3) && (CONFIG_DIMM_SLOTS_PER_CTLR == 2)
+u8 spd_i2c_addr[CONFIG_NUM_DDR_CONTROLLERS][CONFIG_DIMM_SLOTS_PER_CTLR] = {
+	[0][0] = SPD_EEPROM_ADDRESS1,	/* controller 1 */
+	[0][1] = SPD_EEPROM_ADDRESS2,	/* controller 1 */
+	[1][0] = SPD_EEPROM_ADDRESS3,	/* controller 2 */
+	[1][1] = SPD_EEPROM_ADDRESS4,	/* controller 2 */
+	[2][0] = SPD_EEPROM_ADDRESS5,	/* controller 3 */
+	[2][1] = SPD_EEPROM_ADDRESS6,	/* controller 3 */
+};
+
 #endif
 
 static void __get_spd(generic_spd_eeprom_t *spd, u8 i2c_address)
@@ -59,7 +73,19 @@ static void __get_spd(generic_spd_eeprom_t *spd, u8 i2c_address)
 				sizeof(generic_spd_eeprom_t));
 
 	if (ret) {
-		printf("DDR: failed to read SPD from address %u\n", i2c_address);
+		if (i2c_address ==
+#ifdef SPD_EEPROM_ADDRESS
+				SPD_EEPROM_ADDRESS
+#elif defined(SPD_EEPROM_ADDRESS1)
+				SPD_EEPROM_ADDRESS1
+#endif
+				) {
+			printf("DDR: failed to read SPD from address %u\n",
+				i2c_address);
+		} else {
+			debug("DDR: failed to read SPD from address %u\n",
+				i2c_address);
+		}
 		memset(spd, 0, sizeof(generic_spd_eeprom_t));
 	}
 }
@@ -156,12 +182,12 @@ const char * step_to_string(unsigned int step) {
 	return step_string_tbl[s];
 }
 
-int step_assign_addresses(fsl_ddr_info_t *pinfo,
-			  unsigned int dbw_cap_adj[],
-			  unsigned int *all_memctl_interleaving,
-			  unsigned int *all_ctlr_rank_interleaving)
+static unsigned long long __step_assign_addresses(fsl_ddr_info_t *pinfo,
+			  unsigned int dbw_cap_adj[])
 {
 	int i, j;
+	unsigned long long total_mem, current_mem_base, total_ctlr_mem;
+	unsigned long long rank_density, ctlr_density = 0;
 
 	/*
 	 * If a reduced data width is requested, but the SPD
@@ -220,99 +246,126 @@ int step_assign_addresses(fsl_ddr_info_t *pinfo,
 				"specified controller %u\n", i);
 			return 1;
 		}
+		debug("dbw_cap_adj[%d]=%d\n", i, dbw_cap_adj[i]);
 	}
 
-	j = 0;
-	for (i = 0; i < CONFIG_NUM_DDR_CONTROLLERS; i++)
-		if (pinfo->memctl_opts[i].memctl_interleaving)
-			j++;
-	/*
-	 * Not support less than all memory controllers interleaving
-	 * if more than two controllers
-	 */
-	if (j == CONFIG_NUM_DDR_CONTROLLERS)
-		*all_memctl_interleaving = 1;
-
-	/* Check that all controllers are rank interleaving. */
-	j = 0;
-	for (i = 0; i < CONFIG_NUM_DDR_CONTROLLERS; i++)
-		if (pinfo->memctl_opts[i].ba_intlv_ctl)
-			j++;
-	/*
-	 * All memory controllers must be populated to qualify for
-	 * all controller rank interleaving
-	 */
-	 if (j == CONFIG_NUM_DDR_CONTROLLERS)
-		*all_ctlr_rank_interleaving = 1;
-
-	if (*all_memctl_interleaving) {
-		unsigned long long addr, total_mem_per_ctlr = 0;
-		/*
-		 * If interleaving between memory controllers,
-		 * make each controller start at a base address
-		 * of 0.
-		 *
-		 * Also, if bank interleaving (chip select
-		 * interleaving) is enabled on each memory
-		 * controller, CS0 needs to be programmed to
-		 * cover the entire memory range on that memory
-		 * controller
-		 *
-		 * Bank interleaving also implies that each
-		 * addressed chip select is identical in size.
-		 */
-
+	current_mem_base = 0ull;
+	total_mem = 0;
+	if (pinfo->memctl_opts[0].memctl_interleaving) {
+		rank_density = pinfo->dimm_params[0][0].rank_density >>
+					dbw_cap_adj[0];
+		switch (pinfo->memctl_opts[0].ba_intlv_ctl &
+					FSL_DDR_CS0_CS1_CS2_CS3) {
+		case FSL_DDR_CS0_CS1_CS2_CS3:
+			ctlr_density = 4 * rank_density;
+			break;
+		case FSL_DDR_CS0_CS1:
+		case FSL_DDR_CS0_CS1_AND_CS2_CS3:
+			ctlr_density = 2 * rank_density;
+			break;
+		case FSL_DDR_CS2_CS3:
+		default:
+			ctlr_density = rank_density;
+			break;
+		}
+		debug("rank density is 0x%llx, ctlr density is 0x%llx\n",
+			rank_density, ctlr_density);
 		for (i = 0; i < CONFIG_NUM_DDR_CONTROLLERS; i++) {
-			addr = 0;
-			pinfo->common_timing_params[i].base_address = 0ull;
-			for (j = 0; j < CONFIG_DIMM_SLOTS_PER_CTLR; j++) {
-				unsigned long long cap
-					= pinfo->dimm_params[i][j].capacity;
-
-				pinfo->dimm_params[i][j].base_address = addr;
-				addr += cap >> dbw_cap_adj[i];
-				total_mem_per_ctlr += cap >> dbw_cap_adj[i];
+			if (pinfo->memctl_opts[i].memctl_interleaving) {
+				switch (pinfo->memctl_opts[i].memctl_interleaving_mode) {
+				case FSL_DDR_CACHE_LINE_INTERLEAVING:
+				case FSL_DDR_PAGE_INTERLEAVING:
+				case FSL_DDR_BANK_INTERLEAVING:
+				case FSL_DDR_SUPERBANK_INTERLEAVING:
+					total_ctlr_mem = 2 * ctlr_density;
+					break;
+				case FSL_DDR_3WAY_1KB_INTERLEAVING:
+				case FSL_DDR_3WAY_4KB_INTERLEAVING:
+				case FSL_DDR_3WAY_8KB_INTERLEAVING:
+					total_ctlr_mem = 3 * ctlr_density;
+					break;
+				case FSL_DDR_4WAY_1KB_INTERLEAVING:
+				case FSL_DDR_4WAY_4KB_INTERLEAVING:
+				case FSL_DDR_4WAY_8KB_INTERLEAVING:
+					total_ctlr_mem = 4 * ctlr_density;
+					break;
+				default:
+					panic("Unknown interleaving mode");
+				}
+				pinfo->common_timing_params[i].base_address =
+							current_mem_base;
+				pinfo->common_timing_params[i].total_mem =
+							total_ctlr_mem;
+				total_mem = current_mem_base + total_ctlr_mem;
+				debug("ctrl %d base 0x%llx\n", i, current_mem_base);
+				debug("ctrl %d total 0x%llx\n", i, total_ctlr_mem);
+			} else {
+				/* when 3rd controller not interleaved */
+				current_mem_base = total_mem;
+				total_ctlr_mem = 0;
+				pinfo->common_timing_params[i].base_address =
+							current_mem_base;
+				for (j = 0; j < CONFIG_DIMM_SLOTS_PER_CTLR; j++) {
+					unsigned long long cap =
+						pinfo->dimm_params[i][j].capacity >> dbw_cap_adj[i];
+					pinfo->dimm_params[i][j].base_address =
+						current_mem_base;
+					debug("ctrl %d dimm %d base 0x%llx\n", i, j, current_mem_base);
+					current_mem_base += cap;
+					total_ctlr_mem += cap;
+				}
+				debug("ctrl %d total 0x%llx\n", i, total_ctlr_mem);
+				pinfo->common_timing_params[i].total_mem =
+							total_ctlr_mem;
+				total_mem += total_ctlr_mem;
 			}
 		}
-		pinfo->common_timing_params[0].total_mem = total_mem_per_ctlr;
 	} else {
 		/*
 		 * Simple linear assignment if memory
 		 * controllers are not interleaved.
 		 */
-		unsigned long long cur_memsize = 0;
 		for (i = 0; i < CONFIG_NUM_DDR_CONTROLLERS; i++) {
-			u64 total_mem_per_ctlr = 0;
+			total_ctlr_mem = 0;
 			pinfo->common_timing_params[i].base_address =
-						cur_memsize;
+						current_mem_base;
 			for (j = 0; j < CONFIG_DIMM_SLOTS_PER_CTLR; j++) {
 				/* Compute DIMM base addresses. */
 				unsigned long long cap =
-					pinfo->dimm_params[i][j].capacity;
+					pinfo->dimm_params[i][j].capacity >> dbw_cap_adj[i];
 				pinfo->dimm_params[i][j].base_address =
-					cur_memsize;
-				cur_memsize += cap >> dbw_cap_adj[i];
-				total_mem_per_ctlr += cap >> dbw_cap_adj[i];
+					current_mem_base;
+				debug("ctrl %d dimm %d base 0x%llx\n", i, j, current_mem_base);
+				current_mem_base += cap;
+				total_ctlr_mem += cap;
 			}
+			debug("ctrl %d total 0x%llx\n", i, total_ctlr_mem);
 			pinfo->common_timing_params[i].total_mem =
-							total_mem_per_ctlr;
+							total_ctlr_mem;
+			total_mem += total_ctlr_mem;
 		}
 	}
+	debug("Total mem by %s is 0x%llx\n", __func__, total_mem);
 
-	return 0;
+	return total_mem;
 }
+
+/* Use weak function to allow board file to override the address assignment */
+__attribute__((weak, alias("__step_assign_addresses")))
+unsigned long long step_assign_addresses(fsl_ddr_info_t *pinfo,
+			  unsigned int dbw_cap_adj[]);
 
 unsigned long long
 fsl_ddr_compute(fsl_ddr_info_t *pinfo, unsigned int start_step,
 				       unsigned int size_only)
 {
 	unsigned int i, j;
-	unsigned int all_controllers_memctl_interleaving = 0;
-	unsigned int all_controllers_rank_interleaving = 0;
 	unsigned long long total_mem = 0;
+	int assert_reset;
 
 	fsl_ddr_cfg_regs_t *ddr_reg = pinfo->fsl_ddr_config_reg;
 	common_timing_params_t *timing_params = pinfo->common_timing_params;
+	assert_reset = board_need_mem_reset();
 
 	/* data bus width capacity adjust shift amount */
 	unsigned int dbw_capacity_adjust[CONFIG_NUM_DDR_CONTROLLERS];
@@ -345,9 +398,10 @@ fsl_ddr_compute(fsl_ddr_info_t *pinfo, unsigned int start_step,
 
 				retval = compute_dimm_parameters(spd, pdimm, i);
 #ifdef CONFIG_SYS_DDR_RAW_TIMING
-				if (retval != 0) {
-					printf("SPD error! Trying fallback to "
-					"raw timing calculation\n");
+				if (!i && !j && retval) {
+					printf("SPD error on controller %d! "
+					"Trying fallback to raw timing "
+					"calculation\n", i);
 					fsl_ddr_get_dimm_params(pdimm, i, j);
 				}
 #else
@@ -366,7 +420,7 @@ fsl_ddr_compute(fsl_ddr_info_t *pinfo, unsigned int start_step,
 			}
 		}
 
-#else
+#elif defined(CONFIG_SYS_DDR_RAW_TIMING)
 	case STEP_COMPUTE_DIMM_PARMS:
 		for (i = 0; i < CONFIG_NUM_DDR_CONTROLLERS; i++) {
 			for (j = 0; j < CONFIG_DIMM_SLOTS_PER_CTLR; j++) {
@@ -406,18 +460,28 @@ fsl_ddr_compute(fsl_ddr_info_t *pinfo, unsigned int start_step,
 					timing_params[i].all_DIMMs_registered,
 					&pinfo->memctl_opts[i],
 					pinfo->dimm_params[i], i);
+			/*
+			 * For RDIMMs, JEDEC spec requires clocks to be stable
+			 * before reset signal is deasserted. For the boards
+			 * using fixed parameters, this function should be
+			 * be called from board init file.
+			 */
+			if (timing_params[i].all_DIMMs_registered)
+				assert_reset = 1;
 		}
-		check_interleaving_options(pinfo);
+		if (assert_reset) {
+			debug("Asserting mem reset\n");
+			board_assert_mem_reset();
+		}
+
 	case STEP_ASSIGN_ADDRESSES:
 		/* STEP 5:  Assign addresses to chip selects */
-		step_assign_addresses(pinfo,
-				dbw_capacity_adjust,
-				&all_controllers_memctl_interleaving,
-				&all_controllers_rank_interleaving);
+		check_interleaving_options(pinfo);
+		total_mem = step_assign_addresses(pinfo, dbw_capacity_adjust);
 
 	case STEP_COMPUTE_REGS:
 		/* STEP 6:  compute controller register values */
-		debug("FSL Memory ctrl cg register computation\n");
+		debug("FSL Memory ctrl register computation\n");
 		for (i = 0; i < CONFIG_NUM_DDR_CONTROLLERS; i++) {
 			if (timing_params[i].ndimms_present == 0) {
 				memset(&ddr_reg[i], 0,
@@ -437,21 +501,7 @@ fsl_ddr_compute(fsl_ddr_info_t *pinfo, unsigned int start_step,
 		break;
 	}
 
-	/* Compute the total amount of memory. */
-
-	/*
-	 * If bank interleaving but NOT memory controller interleaving
-	 * CS_BNDS describe the quantity of memory on each memory
-	 * controller, so the total is the sum across.
-	 */
-	if (!all_controllers_memctl_interleaving
-	    && all_controllers_rank_interleaving) {
-		total_mem = 0;
-		for (i = 0; i < CONFIG_NUM_DDR_CONTROLLERS; i++) {
-			total_mem += timing_params[i].total_mem;
-		}
-
-	} else {
+	{
 		/*
 		 * Compute the amount of memory available just by
 		 * looking for the highest valid CSn_BNDS value.
@@ -465,7 +515,13 @@ fsl_ddr_compute(fsl_ddr_info_t *pinfo, unsigned int start_step,
 				fsl_ddr_cfg_regs_t *reg = &ddr_reg[i];
 				if (reg->cs[j].config & 0x80000000) {
 					unsigned int end;
-					end = reg->cs[j].bnds & 0xFFF;
+					/*
+					 * 0xfffffff is a special value we put
+					 * for unused bnds
+					 */
+					if (reg->cs[j].bnds == 0xffffffff)
+						continue;
+					end = reg->cs[j].bnds & 0xffff;
 					if (end > max_end) {
 						max_end = end;
 					}
@@ -489,50 +545,53 @@ fsl_ddr_compute(fsl_ddr_info_t *pinfo, unsigned int start_step,
 phys_size_t fsl_ddr_sdram(void)
 {
 	unsigned int i;
-	unsigned int memctl_interleaved;
+	unsigned int law_memctl = LAW_TRGT_IF_DDR_1;
 	unsigned long long total_memory;
 	fsl_ddr_info_t info;
+	int deassert_reset;
 
 	/* Reset info structure. */
 	memset(&info, 0, sizeof(fsl_ddr_info_t));
 
 	/* Compute it once normally. */
 #ifdef CONFIG_FSL_DDR_INTERACTIVE
-	if (getenv("ddr_interactive"))
-		total_memory = fsl_ddr_interactive(&info);
-	else
+	if (tstc() && (getc() == 'd')) {	/* we got a key press of 'd' */
+		total_memory = fsl_ddr_interactive(&info, 0);
+	} else if (fsl_ddr_interactive_env_var_exists()) {
+		total_memory = fsl_ddr_interactive(&info, 1);
+	} else
 #endif
 		total_memory = fsl_ddr_compute(&info, STEP_GET_SPD, 0);
 
-	/* Check for memory controller interleaving. */
-	memctl_interleaved = 0;
-	for (i = 0; i < CONFIG_NUM_DDR_CONTROLLERS; i++) {
-		memctl_interleaved +=
-			info.memctl_opts[i].memctl_interleaving;
-	}
-
-	if (memctl_interleaved) {
-		if (memctl_interleaved == CONFIG_NUM_DDR_CONTROLLERS) {
-			debug("memctl interleaving\n");
-			/*
-			 * Change the meaning of memctl_interleaved
-			 * to be "boolean".
-			 */
-			memctl_interleaved = 1;
-		} else {
-			printf("Warning: memctl interleaving not "
-				"properly configured on all controllers\n");
-			memctl_interleaved = 0;
-			for (i = 0; i < CONFIG_NUM_DDR_CONTROLLERS; i++)
-				info.memctl_opts[i].memctl_interleaving = 0;
-			debug("Recomputing with memctl_interleaving off.\n");
-			total_memory = fsl_ddr_compute(&info,
-						       STEP_ASSIGN_ADDRESSES,
-						       0);
+	/* setup 3-way interleaving before enabling DDRC */
+	if (info.memctl_opts[0].memctl_interleaving) {
+		switch (info.memctl_opts[0].memctl_interleaving_mode) {
+		case FSL_DDR_3WAY_1KB_INTERLEAVING:
+		case FSL_DDR_3WAY_4KB_INTERLEAVING:
+		case FSL_DDR_3WAY_8KB_INTERLEAVING:
+			fsl_ddr_set_intl3r(
+				info.memctl_opts[0].memctl_interleaving_mode);
+			break;
+		default:
+			break;
 		}
 	}
 
-	/* Program configuration registers. */
+	/*
+	 * Program configuration registers.
+	 * JEDEC specs requires clocks to be stable before deasserting reset
+	 * for RDIMMs. Clocks start after chip select is enabled and clock
+	 * control register is set. During step 1, all controllers have their
+	 * registers set but not enabled. Step 2 proceeds after deasserting
+	 * reset through board FPGA or GPIO.
+	 * For non-registered DIMMs, initialization can go through but it is
+	 * also OK to follow the same flow.
+	 */
+	deassert_reset = board_need_mem_reset();
+	for (i = 0; i < CONFIG_NUM_DDR_CONTROLLERS; i++) {
+		if (info.common_timing_params[i].all_DIMMs_registered)
+			deassert_reset = 1;
+	}
 	for (i = 0; i < CONFIG_NUM_DDR_CONTROLLERS; i++) {
 		debug("Programming controller %u\n", i);
 		if (info.common_timing_params[i].ndimms_present == 0) {
@@ -540,33 +599,92 @@ phys_size_t fsl_ddr_sdram(void)
 					"skipping programming\n", i);
 			continue;
 		}
-
-		fsl_ddr_set_memctl_regs(&(info.fsl_ddr_config_reg[i]), i);
-	}
-
-	if (memctl_interleaved) {
-		const unsigned int ctrl_num = 0;
-
-		/* Only set LAWBAR1 if memory controller interleaving is on. */
-		fsl_ddr_set_lawbar(&info.common_timing_params[0],
-					 memctl_interleaved, ctrl_num);
-	} else {
 		/*
-		 * Memory controller interleaving is NOT on;
-		 * set each lawbar individually.
+		 * The following call with step = 1 returns before enabling
+		 * the controller. It has to finish with step = 2 later.
 		 */
+		fsl_ddr_set_memctl_regs(&(info.fsl_ddr_config_reg[i]), i,
+					deassert_reset ? 1 : 0);
+	}
+	if (deassert_reset) {
+		/* Use board FPGA or GPIO to deassert reset signal */
+		debug("Deasserting mem reset\n");
+		board_deassert_mem_reset();
 		for (i = 0; i < CONFIG_NUM_DDR_CONTROLLERS; i++) {
-			fsl_ddr_set_lawbar(&info.common_timing_params[i],
-						 0, i);
+			/* Call with step = 2 to continue initialization */
+			fsl_ddr_set_memctl_regs(&(info.fsl_ddr_config_reg[i]),
+						i, 2);
 		}
 	}
 
-	debug("total_memory = %llu\n", total_memory);
+	/* program LAWs */
+	for (i = 0; i < CONFIG_NUM_DDR_CONTROLLERS; i++) {
+		if (info.memctl_opts[i].memctl_interleaving) {
+			switch (info.memctl_opts[i].memctl_interleaving_mode) {
+			case FSL_DDR_CACHE_LINE_INTERLEAVING:
+			case FSL_DDR_PAGE_INTERLEAVING:
+			case FSL_DDR_BANK_INTERLEAVING:
+			case FSL_DDR_SUPERBANK_INTERLEAVING:
+				if (i == 0) {
+					law_memctl = LAW_TRGT_IF_DDR_INTRLV;
+					fsl_ddr_set_lawbar(&info.common_timing_params[i],
+						law_memctl, i);
+				} else if (i == 2) {
+					law_memctl = LAW_TRGT_IF_DDR_INTLV_34;
+					fsl_ddr_set_lawbar(&info.common_timing_params[i],
+						law_memctl, i);
+				}
+				break;
+			case FSL_DDR_3WAY_1KB_INTERLEAVING:
+			case FSL_DDR_3WAY_4KB_INTERLEAVING:
+			case FSL_DDR_3WAY_8KB_INTERLEAVING:
+				law_memctl = LAW_TRGT_IF_DDR_INTLV_123;
+				if (i == 0) {
+					fsl_ddr_set_lawbar(&info.common_timing_params[i],
+						law_memctl, i);
+				}
+				break;
+			case FSL_DDR_4WAY_1KB_INTERLEAVING:
+			case FSL_DDR_4WAY_4KB_INTERLEAVING:
+			case FSL_DDR_4WAY_8KB_INTERLEAVING:
+				law_memctl = LAW_TRGT_IF_DDR_INTLV_1234;
+				if (i == 0)
+					fsl_ddr_set_lawbar(&info.common_timing_params[i],
+						law_memctl, i);
+				/* place holder for future 4-way interleaving */
+				break;
+			default:
+				break;
+			}
+		} else {
+			switch (i) {
+			case 0:
+				law_memctl = LAW_TRGT_IF_DDR_1;
+				break;
+			case 1:
+				law_memctl = LAW_TRGT_IF_DDR_2;
+				break;
+			case 2:
+				law_memctl = LAW_TRGT_IF_DDR_3;
+				break;
+			case 3:
+				law_memctl = LAW_TRGT_IF_DDR_4;
+				break;
+			default:
+				break;
+			}
+			fsl_ddr_set_lawbar(&info.common_timing_params[i],
+					law_memctl, i);
+		}
+	}
+
+	debug("total_memory by %s = %llu\n", __func__, total_memory);
 
 #if !defined(CONFIG_PHYS_64BIT)
 	/* Check for 4G or more.  Bad. */
 	if (total_memory >= (1ull << 32)) {
-		printf("Detected %lld MB of memory\n", total_memory >> 20);
+		puts("Detected ");
+		print_size(total_memory, " of memory\n");
 		printf("       This U-Boot only supports < 4G of DDR\n");
 		printf("       You could rebuild it with CONFIG_PHYS_64BIT\n");
 		printf("       "); /* re-align to match init_func_ram print */

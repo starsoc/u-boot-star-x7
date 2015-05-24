@@ -2,20 +2,7 @@
  * Copyright (C) 2007, 2008, 2010
  * Nobuhiro Iwamatsu <iwamatsu@nigauri.org>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -65,6 +52,7 @@ static int sh_flash_init(void)
 #if defined(CONFIG_WATCHDOG)
 extern int watchdog_init(void);
 extern int watchdog_disable(void);
+# undef INIT_FUNC_WATCHDOG_INIT
 # define INIT_FUNC_WATCHDOG_INIT	watchdog_init,
 # define WATCHDOG_DISABLE       	watchdog_disable
 #else
@@ -99,14 +87,6 @@ static int sh_mem_env_init(void)
 	jumptable_init();
 	return 0;
 }
-
-#if defined(CONFIG_CMD_NET)
-static int sh_net_init(void)
-{
-	gd->bd->bi_ip_addr = getenv_IPaddr("ipaddr");
-	return 0;
-}
-#endif
 
 #if defined(CONFIG_CMD_MMC)
 static int sh_mmc_init(void)
@@ -144,9 +124,6 @@ init_fnc_t *init_sequence[] =
 	interrupt_init,
 #ifdef CONFIG_BOARD_LATE_INIT
 	board_late_init,
-#endif
-#if defined(CONFIG_CMD_NET)
-	sh_net_init,		/* SH specific eth init */
 #endif
 #if defined(CONFIG_CMD_MMC)
 	sh_mmc_init,
@@ -201,28 +178,12 @@ void sh_generic_init(void)
 	bb_miiphy_init();
 #endif
 #if defined(CONFIG_CMD_NET)
-	{
-		char *s;
-		puts("Net:   ");
-		eth_initialize(gd->bd);
-
-		s = getenv("bootfile");
-		if (s != NULL)
-			copy_filename(BootFile, s, sizeof(BootFile));
-	}
+	puts("Net:   ");
+	eth_initialize(gd->bd);
 #endif /* CONFIG_CMD_NET */
 
 	while (1) {
 		WATCHDOG_RESET();
 		main_loop();
 	}
-}
-
-/***********************************************************************/
-
-void hang(void)
-{
-	puts("Board ERROR\n");
-	for (;;)
-		;
 }

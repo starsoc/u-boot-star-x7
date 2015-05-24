@@ -7,23 +7,7 @@
  * Sysgo Real-Time Solutions, GmbH <www.elinos.com>
  * Alex Zuepke <azu@sysgo.de>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -106,28 +90,6 @@ void pci_init(void)
 	return;
 }
 */
-
-#ifdef CONFIG_BOOTCOUNT_LIMIT
-
-void bootcount_store (ulong a)
-{
-	volatile ulong *save_addr = (volatile ulong *)(CONFIG_SYS_BOOTCOUNT_ADDR);
-
-	save_addr[0] = a;
-	save_addr[1] = BOOTCOUNT_MAGIC;
-}
-
-ulong bootcount_load (void)
-{
-	volatile ulong *save_addr = (volatile ulong *)(CONFIG_SYS_BOOTCOUNT_ADDR);
-
-	if (save_addr[1] != BOOTCOUNT_MAGIC)
-		return 0;
-	else
-		return save_addr[0];
-}
-
-#endif /* CONFIG_BOOTCOUNT_LIMIT */
 
 int cpu_eth_init(bd_t *bis)
 {

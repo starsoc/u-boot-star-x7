@@ -3,20 +3,7 @@
  *
  * Copyright (C) 2009-2010 Marek Vasut <marek.vasut@gmail.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -30,8 +17,8 @@
 #define	CONFIG_SYS_TEXT_BASE	0x0
 
 #undef	CONFIG_BOARD_LATE_INIT
-#undef	CONFIG_USE_IRQ
 #undef	CONFIG_SKIP_LOWLEVEL_INIT
+#define	CONFIG_PREBOOT
 
 /*
  * Environment settings
@@ -40,6 +27,9 @@
 #define CONFIG_ENV_IS_IN_FLASH		1
 #define CONFIG_ENV_ADDR			0x40000
 #define CONFIG_ENV_SIZE			0x20000
+
+/* we will never enable dcache, because we have to setup MMU first */
+#define CONFIG_SYS_DCACHE_OFF
 
 #define	CONFIG_SYS_MALLOC_LEN		(128*1024)
 #define	CONFIG_ARCH_CPU_INIT
@@ -66,8 +56,8 @@
  */
 #define	CONFIG_PXA_SERIAL
 #define	CONFIG_STUART			1
+#define CONFIG_CONS_INDEX		2
 #define	CONFIG_BAUDRATE			115200
-#define	CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 /*
  * Bootloader Components Configuration
@@ -100,6 +90,7 @@
 #ifdef	CONFIG_CMD_SPI
 #define	CONFIG_SOFT_SPI
 #define	CONFIG_LCD
+#define	CONFIG_PXA_LCD
 #define	CONFIG_LMS283GF05
 #define	CONFIG_VIDEO_LOGO
 #define	CONFIG_CMD_BMP
@@ -133,7 +124,6 @@ unsigned char zipitz2_spi_read(void);
  * HUSH Shell Configuration
  */
 #define	CONFIG_SYS_HUSH_PARSER		1
-#define	CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 #define	CONFIG_SYS_LONGHELP				/* undef to save memory	*/
 #ifdef	CONFIG_SYS_HUSH_PARSER
@@ -153,15 +143,6 @@ unsigned char zipitz2_spi_read(void);
 #undef	CONFIG_SYS_CLKS_IN_HZ
 #define	CONFIG_SYS_HZ			3250000		/* Timer @ 3250000 Hz */
 #define CONFIG_SYS_CPUSPEED		0x190		/* standard setting for 312MHz; L=16, N=1.5, A=0, SDCLK!=SystemBus */
-
-/*
- * Stack sizes
- */
-#define	CONFIG_STACKSIZE		(128*1024)	/* regular stack */
-#ifdef	CONFIG_USE_IRQ
-#define	CONFIG_STACKSIZE_IRQ		(4*1024)	/* IRQ stack */
-#define	CONFIG_STACKSIZE_FIQ		(4*1024)	/* FIQ stack */
-#endif
 
 /*
  * SRAM Map

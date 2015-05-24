@@ -4,21 +4,7 @@
  * Copyright (C) 2006-2007 Rodolfo Giometti <giometti@linux.it>
  * Copyright (C) 2006-2007 Eurotech S.p.A. <info@eurotech.it>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
- *
+ * SPDX-License-Identifier:	GPL-2.0+
  *
  * Derived in part from the SL811 HCD driver "u-boot/drivers/usb/sl811_usb.c"
  * (original copyright message follows):
@@ -617,7 +603,7 @@ static int isp116x_submit_job(struct usb_device *dev, unsigned long pipe,
 	int epnum = usb_pipeendpoint(pipe);
 	int max = usb_maxpacket(dev, pipe);
 	int dir_out = usb_pipeout(pipe);
-	int speed_low = usb_pipeslow(pipe);
+	int speed_low = (dev->speed == USB_SPEED_LOW);
 	int i, done = 0, stat, timeout, cc;
 
 	/* 500 frames or 0.5s timeout when function is busy and NAKs transactions for a while */
@@ -1391,7 +1377,7 @@ int isp116x_check_id(struct isp116x *isp116x)
 	return 0;
 }
 
-int usb_lowlevel_init(void)
+int usb_lowlevel_init(int index, void **controller))
 {
 	struct isp116x *isp116x = &isp116x_dev;
 
@@ -1428,7 +1414,7 @@ int usb_lowlevel_init(void)
 	return 0;
 }
 
-int usb_lowlevel_stop(void)
+int usb_lowlevel_stop(int index)
 {
 	struct isp116x *isp116x = &isp116x_dev;
 

@@ -14,21 +14,7 @@
  * Adam Bezanson, Network Audio Technologies, Inc.
  * <bezanson@netaudiotech.com>
  *
- * See file CREDITS for list of people who contributed to this project.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 675 Mass Ave, Cambridge, MA 02139, USA.
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <command.h>
@@ -380,7 +366,7 @@ static int ep93xx_eth_rcv_packet(struct eth_device *dev)
  * Send a block of data via ethernet.
  */
 static int ep93xx_eth_send_packet(struct eth_device *dev,
-				volatile void * const packet, int const length)
+				void * const packet, int const length)
 {
 	struct mac_regs *mac = GET_REGS(dev);
 	struct ep93xx_priv *priv = GET_PRIV(dev);

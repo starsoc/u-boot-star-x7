@@ -2,23 +2,7 @@
  * (C) Copyright 2001-2003
  * Stefan Roese, esd gmbh germany, stefan.roese@esd-electronics.com
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 #include <common.h>
 #include <libfdt.h>
@@ -697,7 +681,6 @@ U_BOOT_CMD(
  */
 int do_get_bpip(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
-	bd_t *bd = gd->bd;
 	char *buf;
 	ulong crc;
 	char str[32];
@@ -730,12 +713,7 @@ int do_get_bpip(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		/*
 		 * Update whole ip-addr
 		 */
-		bd->bi_ip_addr = ipaddr;
-		sprintf(str, "%ld.%ld.%ld.%ld",
-			(bd->bi_ip_addr & 0xff000000) >> 24,
-			(bd->bi_ip_addr & 0x00ff0000) >> 16,
-			(bd->bi_ip_addr & 0x0000ff00) >> 8,
-			(bd->bi_ip_addr & 0x000000ff));
+		sprintf(str, "%pI4", &ipaddr);
 		setenv("ipaddr", str);
 		printf("Updated ip_addr from bp_eeprom to %s!\n", str);
 	}

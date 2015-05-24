@@ -4,23 +4,7 @@
  * (C) Copyright 2010
  * Heiko Schocher, DENX Software Engineering, hs@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 /*
  * ve8313 board configuration file
@@ -43,6 +27,7 @@
 #endif
 
 #define CONFIG_PCI		1
+#define CONFIG_PCI_INDIRECT_BRIDGE 1
 #define CONFIG_FSL_ELBC		1
 
 #define CONFIG_BOARD_EARLY_INIT_F	1
@@ -279,7 +264,6 @@
 
 /* Use the HUSH parser */
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2 "> "
 
 #if defined(CONFIG_PCI)
 /*
@@ -501,22 +485,17 @@
 #define CONFIG_BOOTDELAY	6	/* -1 disables auto-boot */
 #define CONFIG_BAUDRATE		115200
 
-#define XMK_STR(x)	#x
-#define MK_STR(x)	XMK_STR(x)
-
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"netdev=" MK_STR(CONFIG_NETDEV) "\0"				\
-	"ethprime=" MK_STR(CONFIG_TSEC1_NAME) "\0"			\
-	"u-boot=" MK_STR(CONFIG_UBOOTPATH) "\0"				\
+	"netdev=" __stringify(CONFIG_NETDEV) "\0"			\
+	"ethprime=" __stringify(CONFIG_TSEC1_NAME) "\0"			\
+	"u-boot=" __stringify(CONFIG_UBOOTPATH) "\0"			\
 	"u-boot_addr_r=100000\0"					\
 	"load=tftp ${u-boot_addr_r} ${u-boot}\0"			\
-	"update=protect off " MK_STR(CONFIG_SYS_FLASH_BASE) " +${filesize};" \
-	"erase " MK_STR(CONFIG_SYS_FLASH_BASE) " +${filesize};"		\
-	"cp.b ${u-boot_addr_r} " MK_STR(CONFIG_SYS_FLASH_BASE)		\
+	"update=protect off " __stringify(CONFIG_SYS_FLASH_BASE)	\
+		" +${filesize};"	\
+	"erase " __stringify(CONFIG_SYS_FLASH_BASE) " +${filesize};"	\
+	"cp.b ${u-boot_addr_r} " __stringify(CONFIG_SYS_FLASH_BASE)	\
 	" ${filesize};"							\
-	"protect on " MK_STR(CONFIG_SYS_FLASH_BASE) " +${filesize}\0"	\
-
-#undef MK_STR
-#undef XMK_STR
+	"protect on " __stringify(CONFIG_SYS_FLASH_BASE) " +${filesize}\0" \
 
 #endif	/* __CONFIG_H */

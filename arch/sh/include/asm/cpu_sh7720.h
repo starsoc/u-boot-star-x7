@@ -7,20 +7,7 @@
  *
  * SH7720 Internal I/O register
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _ASM_CPU_SH7720_H_
@@ -105,16 +92,6 @@
 
 /*	TMU	*/
 #define TMU_BASE	0xA412FE90
-#define TSTR		(TMU_BASE + 0x02)
-#define TCOR0		(TMU_BASE + 0x04)
-#define TCNT0		(TMU_BASE + 0x08)
-#define TCR0		(TMU_BASE + 0x0C)
-#define TCOR1		(TMU_BASE + 0x10)
-#define TCNT1		(TMU_BASE + 0x14)
-#define TCR1		(TMU_BASE + 0x18)
-#define TCOR2		(TMU_BASE + 0x1C)
-#define TCNT2		(TMU_BASE + 0x20)
-#define TCR2		(TMU_BASE + 0x24)
 
 /*	TPU	*/
 #define TPU_BASE	0xA4480000

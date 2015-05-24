@@ -5,23 +5,7 @@
  * Michal  SIMEK <monstr@monstr.eu>
  * Yasushi SHOJI <yashi@atmark-techno.com>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <asm-offsets.h>
@@ -108,7 +92,6 @@ _start:
 	sh	r6, r0, r8
 #endif
 
-#ifdef CONFIG_SYS_INTC_0
 	/* interrupt_handler */
 	swi	r2, r0, 0x10	/* interrupt - imm opcode */
 	swi	r3, r0, 0x14	/* interrupt - brai opcode */
@@ -120,7 +103,6 @@ _start:
 	sh	r7, r0, r8
 	rsubi	r8, r10, 0x16
 	sh	r6, r0, r8
-#endif
 
 	/* hardware exception */
 	swi	r2, r0, 0x20	/* hardware exception - imm opcode */
@@ -133,6 +115,12 @@ _start:
 	sh	r7, r0, r8
 	rsubi	r8, r10, 0x26
 	sh	r6, r0, r8
+
+	/* Flush cache before enable cache */
+	addik	r5, r0, 0
+	addik	r6, r0, XILINX_DCACHE_BYTE_SIZE
+flush:	bralid r15, flush_cache
+	nop
 
 	/* enable instruction and data cache */
 	mfs	r12, rmsr
@@ -151,7 +139,7 @@ clear_bss:
 	cmp     r6, r5, r4 /* check if we have reach the end */
 	bnei    r6, 2b
 3:	/* jumping to board_init */
-	brai	board_init
+	brai	board_init_f
 1:	bri	1b
 
 /*

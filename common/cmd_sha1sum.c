@@ -1,53 +1,54 @@
 /*
+ * (C) Copyright 2011
+ * Joe Hershberger, National Instruments, joe.hershberger@ni.com
+ *
  * (C) Copyright 2000
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
 #include <command.h>
+#include <hash.h>
 #include <sha1.h>
 
-static int do_sha1sum(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_sha1sum(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
-	unsigned long addr, len;
-	unsigned int i;
-	u8 output[20];
+	int flags = HASH_FLAG_ENV;
+	int ac;
+	char * const *av;
 
 	if (argc < 3)
 		return CMD_RET_USAGE;
 
-	addr = simple_strtoul(argv[1], NULL, 16);
-	len = simple_strtoul(argv[2], NULL, 16);
+	av = argv + 1;
+	ac = argc - 1;
+#ifdef CONFIG_SHA1SUM_VERIFY
+	if (strcmp(*av, "-v") == 0) {
+		flags |= HASH_FLAG_VERIFY;
+		av++;
+		ac--;
+	}
+#endif
 
-	sha1_csum_wd((unsigned char *) addr, len, output, CHUNKSZ_SHA1);
-	printf("SHA1 for %08lx ... %08lx ==> ", addr, addr + len - 1);
-	for (i = 0; i < 20; i++)
-		printf("%02x", output[i]);
-	printf("\n");
-
-	return 0;
+	return hash_command("sha1", flags, cmdtp, flag, ac, av);
 }
 
+#ifdef CONFIG_SHA1SUM_VERIFY
 U_BOOT_CMD(
-	sha1sum,	3,	1,	do_sha1sum,
+	sha1sum,	5,	1,	do_sha1sum,
 	"compute SHA1 message digest",
-	"address count"
+	"address count [[*]sum]\n"
+		"    - compute SHA1 message digest [save to sum]\n"
+	"sha1sum -v address count [*]sum\n"
+		"    - verify sha1sum of memory area"
 );
+#else
+U_BOOT_CMD(
+	sha1sum,	4,	1,	do_sha1sum,
+	"compute SHA1 message digest",
+	"address count [[*]sum]\n"
+		"    - compute SHA1 message digest [save to sum]"
+);
+#endif

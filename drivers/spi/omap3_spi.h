@@ -8,32 +8,21 @@
  *
  * Modified by Ruslan Araslanov <ruslan.araslanov@vitecmm.com>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _OMAP3_SPI_H_
 #define _OMAP3_SPI_H_
 
+#ifdef CONFIG_AM33XX
+#define OMAP3_MCSPI1_BASE	0x48030100
+#define OMAP3_MCSPI2_BASE	0x481A0100
+#else
 #define OMAP3_MCSPI1_BASE	0x48098000
 #define OMAP3_MCSPI2_BASE	0x4809A000
 #define OMAP3_MCSPI3_BASE	0x480B8000
 #define OMAP3_MCSPI4_BASE	0x480BA000
+#endif
 
 #define OMAP3_MCSPI_MAX_FREQ	48000000
 
@@ -94,6 +83,7 @@ struct mcspi {
 #define OMAP3_MCSPI_CHSTAT_EOT		(1 << 2)
 
 #define OMAP3_MCSPI_CHCTRL_EN		(1 << 0)
+#define OMAP3_MCSPI_CHCTRL_DIS		(0 << 0)
 
 #define OMAP3_MCSPI_WAKEUPENABLE_WKEN	(1 << 0)
 

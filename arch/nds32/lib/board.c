@@ -6,23 +6,7 @@
  * Shawn Lin, Andes Technology Corporation <nobuhiro@andestech.com>
  * Macpaul Lin, Andes Technology Corporation <macpaul@andestech.com>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -36,8 +20,13 @@
 #include <nand.h>
 #include <onenand_uboot.h>
 #include <mmc.h>
+#include <asm/sections.h>
 
 DECLARE_GLOBAL_DATA_PTR;
+
+#if defined(CONFIG_SYS_I2C)
+#include <i2c.h>
+#endif
 
 ulong monitor_flash_len;
 
@@ -103,6 +92,7 @@ static int nds32_pci_init(void)
 #endif /* CONFIG_CMD_PCI || CONFIG_PCI */
 
 #if defined(CONFIG_PMU) || defined(CONFIG_PCU)
+#ifndef CONFIG_SKIP_LOWLEVEL_INIT
 static int pmu_init(void)
 {
 #if defined(CONFIG_FTPMU010_POWER)
@@ -114,6 +104,7 @@ static int pmu_init(void)
 #endif
 	return 0;
 }
+#endif
 #endif
 
 /*
@@ -170,7 +161,7 @@ init_fnc_t *init_sequence[] = {
 #if defined(CONFIG_DISPLAY_BOARDINFO)
 	checkboard,		/* display board info */
 #endif
-#if defined(CONFIG_HARD_I2C) || defined(CONFIG_SOFT_I2C)
+#if defined(CONFIG_HARD_I2C) || defined(CONFIG_SYS_I2C)
 	init_func_i2c,
 #endif
 	dram_init,		/* configure available RAM banks */
@@ -190,7 +181,7 @@ void board_init_f(ulong bootflag)
 
 	memset((void *)gd, 0, GENERATED_GBL_DATA_SIZE);
 
-	gd->mon_len = (unsigned int)(&__bss_end__) - (unsigned int)(&_start);
+	gd->mon_len = (unsigned int)(&__bss_end) - (unsigned int)(&_start);
 
 	for (init_fnc_ptr = init_sequence; *init_fnc_ptr; ++init_fnc_ptr) {
 		if ((*init_fnc_ptr)() != 0)
@@ -204,17 +195,6 @@ void board_init_f(ulong bootflag)
 	debug("ramsize: %08lX\n", gd->ram_size);
 
 	addr = CONFIG_SYS_SDRAM_BASE + gd->ram_size;
-
-#if !(defined(CONFIG_SYS_ICACHE_OFF) && defined(CONFIG_SYS_DCACHE_OFF))
-	/* reserve TLB table */
-	addr -= (4096 * 4);
-
-	/* round down to next 64 kB limit */
-	addr &= ~(0x10000 - 1);
-
-	gd->tlb_addr = addr;
-	debug("TLB table at: %08lx\n", addr);
-#endif
 
 	/* round down to next 4 kB limit */
 	addr &= ~(4096 - 1);
@@ -301,18 +281,15 @@ void board_init_f(ulong bootflag)
  */
 void board_init_r(gd_t *id, ulong dest_addr)
 {
-	char *s;
 	bd_t *bd;
 	ulong malloc_start;
-
-	extern void malloc_bin_reloc(void);
 
 	gd = id;
 	bd = gd->bd;
 
 	gd->flags |= GD_FLG_RELOC;	/* tell others: relocation done */
 
-	monitor_flash_len = &_end - &_start;
+	monitor_flash_len = (ulong)&_end - (ulong)&_start;
 	debug("monitor flash len: %08lX\n", monitor_flash_len);
 
 	board_init();	/* Setup chipselects */
@@ -321,20 +298,17 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	/*
 	 * We have to relocate the command table manually
 	 */
-	fixup_cmdtable(&__u_boot_cmd_start,
-		(ulong)(&__u_boot_cmd_end - &__u_boot_cmd_start));
+	fixup_cmdtable(ll_entry_start(cmd_tbl_t, cmd),
+			ll_entry_count(cmd_tbl_t, cmd));
 #endif /* defined(CONFIG_NEEDS_MANUAL_RELOC) */
 
-#ifdef CONFIG_SERIAL_MULTI
 	serial_initialize();
-#endif
 
 	debug("Now running in RAM - U-Boot at: %08lx\n", dest_addr);
 
 	/* The Malloc area is immediately below the monitor copy in DRAM */
 	malloc_start = dest_addr - TOTAL_MALLOC_LEN;
 	mem_malloc_init(malloc_start, TOTAL_MALLOC_LEN);
-	malloc_bin_reloc();
 
 #ifndef CONFIG_SYS_NO_FLASH
 	/* configure available FLASH banks */
@@ -361,6 +335,10 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	mmc_initialize(gd->bd);
 #endif
 
+#if defined(CONFIG_SYS_I2C_ADAPTERS)
+	i2c_reloc_fixup();
+#endif
+
 	/* initialize environment */
 	env_relocate();
 
@@ -368,9 +346,6 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	puts("PCI:   ");
 	nds32_pci_init();
 #endif
-
-	/* IP Address */
-	gd->bd->bi_ip_addr = getenv_IPaddr("ipaddr");
 
 	stdio_init();	/* get the devices list going. */
 
@@ -402,13 +377,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	/* Initialize from environment */
 	load_addr = getenv_ulong("loadaddr", 16, load_addr);
 
-#if defined(CONFIG_CMD_NET)
-	s = getenv("bootfile");
-	if (s != NULL)
-		copy_filename(BootFile, s, sizeof(BootFile));
-#endif
-
-#ifdef BOARD_LATE_INIT
+#ifdef CONFIG_BOARD_LATE_INIT
 	board_late_init();
 #endif
 
@@ -427,11 +396,4 @@ void board_init_r(gd_t *id, ulong dest_addr)
 		main_loop();
 
 	/* NOTREACHED - no way out of command loop except booting */
-}
-
-void hang(void)
-{
-	puts("### ERROR ### Please RESET the board ###\n");
-	for (;;)
-		;
 }

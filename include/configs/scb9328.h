@@ -1,21 +1,7 @@
 /*
  * Copyright (C) 2003 ETC s.r.o.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
- *
+ * SPDX-License-Identifier:	GPL-2.0+
  * Written by Peter Figuli <peposh@etc.sk>, 2003.
  *
  * 2003/13/06 Initial MP10 Support copied from wepep250
@@ -27,7 +13,6 @@
 #define CONFIG_ARM920T		1     /* this is an ARM920T CPU	    */
 #define CONFIG_IMX		1     /* in a Motorola MC9328MXL Chip */
 #define CONFIG_SCB9328		1     /* on a scb9328tronix board */
-#undef	CONFIG_USE_IRQ		      /* don't need use IRQ/FIQ	   */
 
 #define CONFIG_IMX_SERIAL
 #define CONFIG_IMX_SERIAL1
@@ -87,7 +72,6 @@
 #define CONFIG_SYS_HZ			3686400	     /* incrementer freq: 3.6864 MHz */
 #define CONFIG_SYS_CPUSPEED		0x141	     /* core clock - register value  */
 
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 #define CONFIG_BAUDRATE 115200
 /*
  * Definitions related to passing arguments to kernel.
@@ -100,13 +84,6 @@
  * Malloc pool need to host env + 128 Kb reserve for other allocations.
  */
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (128<<10) )
-
-#define CONFIG_STACKSIZE	(120<<10)      /* stack size		     */
-
-#ifdef CONFIG_USE_IRQ
-#define CONFIG_STACKSIZE_IRQ	(4<<10)	       /* IRQ stack		     */
-#define CONFIG_STACKSIZE_FIQ	(4<<10)	       /* FIQ stack		     */
-#endif
 
 /* SDRAM Setup Values
 0x910a8300 Precharge Command CAS 3

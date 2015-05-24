@@ -2,23 +2,9 @@
  * Copyright (c) 2009 Wind River Systems, Inc.
  * Tom Rix <Tom.Rix@windriver.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  *
  * This file was adapted from arch/powerpc/cpu/mpc5xxx/serial.c
- *
  */
 
 #include <common.h>
@@ -135,5 +121,10 @@ QUAD_INIT (3)
 
 struct serial_device *default_serial_console(void)
 {
-	return ZOOM2_DEFAULT_SERIAL_DEVICE;
+	switch (ZOOM2_DEFAULT_SERIAL_DEVICE) {
+	case 0: return &zoom2_serial_device0;
+	case 1: return &zoom2_serial_device1;
+	case 2: return &zoom2_serial_device2;
+	case 3: return &zoom2_serial_device3;
+	}
 }

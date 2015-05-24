@@ -3,23 +3,7 @@
  * BuS Elektronik GmbH & Co. KG <www.bus-elektronik.de>
  * Jens Scharsig <esw@bus-elektronik.de>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -59,8 +43,6 @@ DECLARE_GLOBAL_DATA_PTR;
 int board_init(void)
 {
 	at91_pio_t *pio	= (at91_pio_t *) ATMEL_BASE_PIO;
-	/* Enable Ctrlc */
-	console_init_f();
 
 	/* Correct IRDA resistor problem / Set PA23_TXD in Output */
 	writel(ATMEL_PMX_AA_TXD2, &pio->pioa.oer);
@@ -269,9 +251,9 @@ int drv_video_init(void)
 		display_height = 256;
 	printf("%ld x %ld pixel matrix\n", display_width, display_height);
 
-	/* RWH = 7 | RWS =7  | TDF = 15 | NWS = 0x7F */
-	csr =	AT91_SMC_CSR_RWHOLD(7) | AT91_SMC_CSR_RWSETUP(7) |
-		AT91_SMC_CSR_TDF(15) | AT91_SMC_CSR_NWS(127) |
+	/* RWH = 2 | RWS =2  | TDF = 4 | NWS = 0x6 */
+	csr =	AT91_SMC_CSR_RWHOLD(2) | AT91_SMC_CSR_RWSETUP(2) |
+		AT91_SMC_CSR_TDF(4) | AT91_SMC_CSR_NWS(6) |
 		AT91_SMC_CSR_ACSS_STANDARD | AT91_SMC_CSR_DBW_16 |
 		AT91_SMC_CSR_BAT_16 | AT91_SMC_CSR_WSEN;
 	writel(csr, &mc->smc.csr[2]);
@@ -290,7 +272,7 @@ int drv_video_init(void)
 }
 #endif
 
-#ifdef CONFIG_SOFT_I2C
+#ifdef CONFIG_SYS_I2C_SOFT
 
 void i2c_init_board(void)
 {

@@ -8,23 +8,7 @@
  *
  * (C) Copyright 2005-2010 Freescale Semiconductor, Inc.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /* #define DEBUG */
@@ -94,6 +78,7 @@ struct ipu_ch_param {
 	temp1; \
 })
 
+#define IPU_SW_RST_TOUT_USEC	(10000)
 
 void clk_enable(struct clk *clk)
 {
@@ -169,6 +154,7 @@ static int clk_ipu_enable(struct clk *clk)
 	reg |= MXC_CCM_CCGR_CG_MASK << clk->enable_shift;
 	__raw_writel(reg, clk->enable_reg);
 
+#if defined(CONFIG_MX51) || defined(CONFIG_MX53)
 	/* Handshake with IPU when certain clock rates are changed. */
 	reg = __raw_readl(&mxc_ccm->ccdr);
 	reg &= ~MXC_CCM_CCDR_IPU_HS_MASK;
@@ -178,7 +164,7 @@ static int clk_ipu_enable(struct clk *clk)
 	reg = __raw_readl(&mxc_ccm->clpcr);
 	reg &= ~MXC_CCM_CLPCR_BYPASS_IPU_LPM_HS;
 	__raw_writel(reg, &mxc_ccm->clpcr);
-
+#endif
 	return 0;
 }
 
@@ -190,6 +176,7 @@ static void clk_ipu_disable(struct clk *clk)
 	reg &= ~(MXC_CCM_CCGR_CG_MASK << clk->enable_shift);
 	__raw_writel(reg, clk->enable_reg);
 
+#if defined(CONFIG_MX51) || defined(CONFIG_MX53)
 	/*
 	 * No handshake with IPU whe dividers are changed
 	 * as its not enabled.
@@ -202,22 +189,36 @@ static void clk_ipu_disable(struct clk *clk)
 	reg = __raw_readl(&mxc_ccm->clpcr);
 	reg |= MXC_CCM_CLPCR_BYPASS_IPU_LPM_HS;
 	__raw_writel(reg, &mxc_ccm->clpcr);
+#endif
 }
 
 
 static struct clk ipu_clk = {
 	.name = "ipu_clk",
-	.rate = 133000000,
-	.enable_reg = (u32 *)(MXC_CCM_BASE +
+	.rate = CONFIG_IPUV3_CLK,
+#if defined(CONFIG_MX51) || defined(CONFIG_MX53)
+	.enable_reg = (u32 *)(CCM_BASE_ADDR +
 		offsetof(struct mxc_ccm_reg, CCGR5)),
-	.enable_shift = MXC_CCM_CCGR5_CG5_OFFSET,
+	.enable_shift = MXC_CCM_CCGR5_IPU_OFFSET,
+#else
+	.enable_reg = (u32 *)(CCM_BASE_ADDR +
+		offsetof(struct mxc_ccm_reg, CCGR3)),
+	.enable_shift = MXC_CCM_CCGR3_IPU1_IPU_DI0_OFFSET,
+#endif
 	.enable = clk_ipu_enable,
 	.disable = clk_ipu_disable,
 	.usecount = 0,
 };
 
+static struct clk ldb_clk = {
+	.name = "ldb_clk",
+	.rate = 65000000,
+	.usecount = 0,
+};
+
 /* Globals */
 struct clk *g_ipu_clk;
+struct clk *g_ldb_clk;
 unsigned char g_ipu_clk_enabled;
 struct clk *g_di_clk[2];
 struct clk *g_pixel_clk[2];
@@ -340,7 +341,7 @@ static int ipu_pixel_clk_set_parent(struct clk *clk, struct clk *parent)
 
 	if (parent == g_ipu_clk)
 		di_gen &= ~DI_GEN_DI_CLK_EXT;
-	else if (!IS_ERR(g_di_clk[clk->id]) && parent == g_di_clk[clk->id])
+	else if (!IS_ERR(g_di_clk[clk->id]) && parent == g_ldb_clk)
 		di_gen |= DI_GEN_DI_CLK_EXT;
 	else
 		return -EINVAL;
@@ -382,11 +383,20 @@ void ipu_reset(void)
 {
 	u32 *reg;
 	u32 value;
+	int timeout = IPU_SW_RST_TOUT_USEC;
 
 	reg = (u32 *)SRC_BASE_ADDR;
 	value = __raw_readl(reg);
 	value = value | SW_IPU_RST;
 	__raw_writel(value, reg);
+
+	while (__raw_readl(reg) & SW_IPU_RST) {
+		udelay(1);
+		if (!(timeout--)) {
+			printf("ipu software reset timeout\n");
+			break;
+		}
+	};
 }
 
 /*
@@ -401,6 +411,7 @@ void ipu_reset(void)
 int ipu_probe(void)
 {
 	unsigned long ipu_base;
+#if defined CONFIG_MX51
 	u32 temp;
 
 	u32 *reg_hsc_mcd = (u32 *)MIPI_HSC_BASE_ADDR;
@@ -414,6 +425,7 @@ int ipu_probe(void)
 
 	temp = __raw_readl(reg_hsc_mxt_conf);
 	__raw_writel(temp | 0x10000, reg_hsc_mxt_conf);
+#endif
 
 	ipu_base = IPU_CTRL_BASE_ADDR;
 	ipu_cpmem_base = (u32 *)(ipu_base + IPU_CPMEM_REG_BASE);
@@ -424,7 +436,8 @@ int ipu_probe(void)
 
 	g_ipu_clk = &ipu_clk;
 	debug("ipu_clk = %u\n", clk_get_rate(g_ipu_clk));
-
+	g_ldb_clk = &ldb_clk;
+	debug("ldb_clk = %u\n", clk_get_rate(g_ldb_clk));
 	ipu_reset();
 
 	clk_set_parent(g_pixel_clk[0], g_ipu_clk);

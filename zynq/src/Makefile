@@ -25,15 +25,12 @@ include $(TOPDIR)/config.mk
 
 LIB	:= $(obj)libzynq.o
 
-# add by star-star
-
-
+# add by starsoc
 COBJS-y += common/xdevcfg.o
 COBJS-y += common/xdevcfg_g.o
 COBJS-y += common/xdevcfg_intr.o
 COBJS-y += common/xdevcfg_sinit.o
 COBJS-y += common/pcap.o
-# COBJS-y += common/xil_printf.o
 COBJS-y += common/xil_io.o
 COBJS-y += common/xil_assert.o
 COBJS-y += common/outbyte.o
@@ -61,81 +58,11 @@ COBJS-y += common/xiic_l.o
 COBJS-y += common/zynq_i2c.o
 
 
-COBJS-y += ps_memory_test/xil_testmem.o
-
-COBJS-y += ps_i2c_eeprom_test/xiicps_eeprom_polled_example.o
-
-COBJS-y += ps_i2c_rtc_test/xiicps_polled_master_example.o
-COBJS-y += ps_i2c_rtc_test/xiicps_rtc.o
-COBJS-y += ps_i2c_rtc_test/xiicps_selftest.o
-
-COBJS-y += ps_scu_timer_test/xscutimer_polled_example.o
-COBJS-y += ps_scu_timer_test/xscutimer_sinit.o
-COBJS-y += ps_scu_timer_test/xscutimer.o
-COBJS-y += ps_scu_timer_test/xscutimer_g.o
-COBJS-y += ps_scu_timer_test/xscutimer_selftest.o
-
-
-COBJS-y += ps_scu_gic_test/xscugic_tapp_example.o
-COBJS-y += ps_scu_gic_test/xscugic_sinit.o
-COBJS-y += ps_scu_gic_test/xscugic.o
-COBJS-y += ps_scu_gic_test/xscugic_intr.o
-COBJS-y += ps_scu_gic_test/xscugic_g.o
-
-
-COBJS-y += ps_usb_test/xusbps_sinit.o
-COBJS-y += ps_usb_test/xusbps_intr.o
-COBJS-y += ps_usb_test/xusbps_hw.o
-COBJS-y += ps_usb_test/xusbps_g.o
-COBJS-y += ps_usb_test/xusbps_endpoint.o
-COBJS-y += ps_usb_test/xusbps.o
-COBJS-y += ps_usb_test/zynq_usb.o
-
-COBJS-y += ps_qspi_test/xqspips_selftest_example.o
-#COBJS-y += ps_qspi_test/xqspips_sinit.o
-COBJS-y += ps_qspi_test/xqspips.o
-#COBJS-y += ps_qspi_test/xqspips_g.o
-COBJS-y += ps_qspi_test/xqspips_hw.o
-COBJS-y += ps_qspi_test/xqspips_options.o
-COBJS-y += ps_qspi_test/xqspips_selftest.o
-
-
-#COBJS-y += ps_xemacps_example_intr_dma.o
-#COBJS-y += ps_xemacps_example_util.o
-#COBJS-y += ps_xemacps.o
-#COBJS-y += ps_xemacps_bdring.o
-#COBJS-y += ps_xemacps_control.o
-#COBJS-y += ps_xemacps_intr.o
-#COBJS-y += ps_xemacps_sinit.o
-#COBJS-y += ps_xemacps_g.o
-
-COBJS-y += ps_gpio_test/xgpiops.o
-COBJS-y += ps_gpio_test/xgpiops_g.o
-COBJS-y += ps_gpio_test/xgpiops_hw.o
-COBJS-y += ps_gpio_test/xgpiops_intr.o
-COBJS-y += ps_gpio_test/xgpiops_sinit.o
-
-COBJS-y += ps_sd_test/ff.o
-COBJS-y += ps_sd_test/sd.o
-COBJS-y += ps_sd_test/main.o
-COBJS-y += ps_sd_test/mmc.o
-COBJS-y += ps_sd_test/fsbl_hooks.o
-COBJS-y += ps_sd_test/image_mover.o
-COBJS-y += ps_sd_test/nor.o
-#COBJS-y += ps_sd_test/qspi.o
-COBJS-y += ps_sd_test/ps7_init.o
-
-COBJS-y += ps_uart_test/zynq_ps_uart.o
-
-#COBJS-y += pl_oled_test/zynq_pl_oled.o
+COBJS-y += ps_i2c_test/xiicps_polled_master_example.o
+COBJS-y += ps_i2c_test/xiicps_rtc.o
+COBJS-y += ps_i2c_test/xiicps_selftest.o
 
 COBJS-y += pl_hdmi_test/zynq_pl_hdmi.o
-
-COBJS-y += pl_vga_test/zynq_pl_vga.o
-
-COBJS-y += pl_gpio_test/zynq_pl_gpio.o
-
-COBJS-y += pl_audio_test/zynq_pl_audio.o
 
 COBJS	:= $(COBJS-y)
 SRCS	:= $(COBJS:.o=.c)

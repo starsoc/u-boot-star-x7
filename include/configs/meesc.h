@@ -9,23 +9,7 @@
  *
  * Configuation settings for the esd MEESC board.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -68,7 +52,6 @@
 #define CONFIG_REVISION_TAG
 #define CONFIG_CMDLINE_TAG			/* enable passing of ATAGs */
 #define CONFIG_MISC_INIT_R			/* Call misc_init_r */
-#undef CONFIG_USE_IRQ				/* don't need IRQ/FIQ stuff */
 
 #define CONFIG_DISPLAY_BOARDINFO		/* call checkboard() */
 #define CONFIG_DISPLAY_CPUINFO			/* display cpu info and speed */
@@ -89,7 +72,6 @@
 #define CONFIG_USART_BASE		ATMEL_BASE_DBGU
 #define CONFIG_USART_ID			ATMEL_ID_SYS
 #define CONFIG_BAUDRATE			115200
-#define CONFIG_SYS_BAUDRATE_TABLE	{115200, 19200, 38400, 57600, 9600}
 
 #define CONFIG_BOOTDELAY		3
 #define CONFIG_ZERO_BOOTDELAY_CHECK
@@ -164,7 +146,6 @@
 # define CONFIG_SYS_NAND_MASK_CLE		(1 << 22)
 # define CONFIG_SYS_NAND_ENABLE_PIN		AT91_PIO_PORTD, 15
 # define CONFIG_SYS_NAND_READY_PIN		AT91_PIO_PORTA, 22
-# define CONFIG_SYS_64BIT_VSPRINTF		/* needed for nand_util.c */
 #endif
 
 /* Ethernet */
@@ -222,11 +203,5 @@
  */
 #define CONFIG_SYS_MALLOC_LEN		ROUND(3 * CONFIG_ENV_SIZE + \
 					128*1024, 0x1000)
-
-#define CONFIG_STACKSIZE		(32 * 1024)	/* regular stack */
-
-#ifdef CONFIG_USE_IRQ
-# error CONFIG_USE_IRQ not supported
-#endif
 
 #endif

@@ -2,20 +2,7 @@
  *  Copyright (c) 2008 Eric Jarrige <eric.jarrige@armadeus.org>
  *  Copyright (c) 2009 Ilya Yanok <yanok@emcraft.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -24,6 +11,7 @@
 #include <asm/io.h>
 #include <asm/arch/imx-regs.h>
 #include <asm/arch/clock.h>
+#include <asm/arch/gpio.h>
 #ifdef CONFIG_MXC_MMC
 #include <asm/arch/mxcmmc.h>
 #endif
@@ -158,6 +146,8 @@ unsigned int mxc_get_clock(enum mxc_clock clk)
 	switch (clk) {
 	case MXC_ARM_CLK:
 		return imx_get_armclk();
+	case MXC_I2C_CLK:
+		return imx_get_ahbclk()/2;
 	case MXC_UART_CLK:
 		return imx_get_perclk1();
 	case MXC_FEC_CLK:
@@ -209,7 +199,7 @@ int cpu_mmc_init(bd_t *bis)
 
 void imx_gpio_mode(int gpio_mode)
 {
-	struct gpio_regs *regs = (struct gpio_regs *)IMX_GPIO_BASE;
+	struct gpio_port_regs *regs = (struct gpio_port_regs *)IMX_GPIO_BASE;
 	unsigned int pin = gpio_mode & GPIO_PIN_MASK;
 	unsigned int port = (gpio_mode & GPIO_PORT_MASK) >> GPIO_PORT_SHIFT;
 	unsigned int ocr = (gpio_mode & GPIO_OCR_MASK) >> GPIO_OCR_SHIFT;
@@ -228,11 +218,11 @@ void imx_gpio_mode(int gpio_mode)
 
 	/* Data direction */
 	if (gpio_mode & GPIO_OUT) {
-		writel(readl(&regs->port[port].ddir) | 1 << pin,
-				&regs->port[port].ddir);
+		writel(readl(&regs->port[port].gpio_dir) | 1 << pin,
+				&regs->port[port].gpio_dir);
 	} else {
-		writel(readl(&regs->port[port].ddir) & ~(1 << pin),
-				&regs->port[port].ddir);
+		writel(readl(&regs->port[port].gpio_dir) & ~(1 << pin),
+				&regs->port[port].gpio_dir);
 	}
 
 	/* Primary / alternate function */
@@ -379,3 +369,11 @@ void mx27_sd2_init_pins(void)
 
 }
 #endif /* CONFIG_MXC_MMC */
+
+#ifndef CONFIG_SYS_DCACHE_OFF
+void enable_caches(void)
+{
+	/* Enable D-cache. I-cache is already enabled in start.S */
+	dcache_enable();
+}
+#endif /* CONFIG_SYS_DCACHE_OFF */

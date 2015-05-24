@@ -16,25 +16,11 @@
  *
  * ----------------------------------------------------------------------------
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * SPDX-License-Identifier:	GPL-2.0+
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- * ----------------------------------------------------------------------------
-
  * Modifications:
  * ver. 1.0: Sep 2005, Anant Gole - Created EMAC version for uBoot.
  * ver  1.1: Nov 2005, Anant Gole - Extended the RX logic for multiple descriptors
- *
  */
 #include <common.h>
 #include <command.h>
@@ -637,7 +623,7 @@ static int tx_send_loop = 0;
  * positive number (number of bytes transmitted) or negative for error
  */
 static int davinci_eth_send_packet (struct eth_device *dev,
-					volatile void *packet, int length)
+					void *packet, int length)
 {
 	int ret_status = -1;
 	int index;
@@ -895,5 +881,14 @@ int davinci_emac_initialize(void)
 		miiphy_register(phy[i].name, davinci_mii_phy_read,
 						davinci_mii_phy_write);
 	}
+
+#if defined(CONFIG_DRIVER_TI_EMAC_USE_RMII) && \
+		defined(CONFIG_MACH_DAVINCI_DA850_EVM) && \
+			!defined(CONFIG_DRIVER_TI_EMAC_RMII_NO_NEGOTIATE)
+	for (i = 0; i < num_phy; i++) {
+		if (phy[i].is_phy_connected(i))
+			phy[i].auto_negotiate(i);
+	}
+#endif
 	return(1);
 }

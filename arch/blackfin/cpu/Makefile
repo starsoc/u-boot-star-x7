@@ -17,16 +17,13 @@ EXTRA    := init.elf
 CEXTRA   := initcode.o
 SEXTRA   := start.o
 SOBJS    := interrupt.o cache.o
-COBJS-$(CONFIG_BOOTCOUNT_LIMIT) += bootcount.o
 COBJS-y  += cpu.o
-COBJS-y  += gpio.o
+COBJS-$(CONFIG_ADI_GPIO1) += gpio.o
 COBJS-y  += interrupts.o
 COBJS-$(CONFIG_JTAG_CONSOLE) += jtag-console.o
 COBJS-y  += os_log.o
 COBJS-y  += reset.o
-COBJS-y  += serial.o
 COBJS-y  += traps.o
-COBJS-$(CONFIG_HW_WATCHDOG)  += watchdog.o
 
 SRCS     := $(SEXTRA:.o=.S) $(SOBJS:.o=.S) $(COBJS-y:.o=.c)
 OBJS     := $(addprefix $(obj),$(COBJS-y) $(SOBJS))

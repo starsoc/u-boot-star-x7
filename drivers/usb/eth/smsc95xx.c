@@ -1,23 +1,8 @@
 /*
  * Copyright (c) 2011 The Chromium OS Authors.
  * Copyright (C) 2009 NVIDIA, Corporation
- * See file CREDITS for list of people who contributed to this
- * project.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <asm/unaligned.h>
@@ -25,6 +10,7 @@
 #include <usb.h>
 #include <linux/mii.h>
 #include "usb_ether.h"
+#include <malloc.h>
 
 /* SMSC LAN95xx based USB 2.0 Ethernet Devices */
 
@@ -146,6 +132,12 @@
 /* local vars */
 static int curr_eth_dev; /* index for name of next device detected */
 
+/* driver private */
+struct smsc95xx_private {
+	size_t rx_urb_size;  /* maximum USB URB size */
+	u32 mac_cr;  /* MAC control register value */
+	int have_hwaddr;  /* 1 if we have a hardware MAC address */
+};
 
 /*
  * Smsc95xx infrastructure commands
@@ -153,13 +145,15 @@ static int curr_eth_dev; /* index for name of next device detected */
 static int smsc95xx_write_reg(struct ueth_data *dev, u32 index, u32 data)
 {
 	int len;
+	ALLOC_CACHE_ALIGN_BUFFER(u32, tmpbuf, 1);
 
 	cpu_to_le32s(&data);
+	tmpbuf[0] = data;
 
 	len = usb_control_msg(dev->pusb_dev, usb_sndctrlpipe(dev->pusb_dev, 0),
 		USB_VENDOR_REQUEST_WRITE_REGISTER,
 		USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-		00, index, &data, sizeof(data), USB_CTRL_SET_TIMEOUT);
+		00, index, tmpbuf, sizeof(data), USB_CTRL_SET_TIMEOUT);
 	if (len != sizeof(data)) {
 		debug("smsc95xx_write_reg failed: index=%d, data=%d, len=%d",
 		      index, data, len);
@@ -171,11 +165,13 @@ static int smsc95xx_write_reg(struct ueth_data *dev, u32 index, u32 data)
 static int smsc95xx_read_reg(struct ueth_data *dev, u32 index, u32 *data)
 {
 	int len;
+	ALLOC_CACHE_ALIGN_BUFFER(u32, tmpbuf, 1);
 
 	len = usb_control_msg(dev->pusb_dev, usb_rcvctrlpipe(dev->pusb_dev, 0),
 		USB_VENDOR_REQUEST_READ_REGISTER,
 		USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-		00, index, data, sizeof(data), USB_CTRL_GET_TIMEOUT);
+		00, index, tmpbuf, sizeof(data), USB_CTRL_GET_TIMEOUT);
+	*data = tmpbuf[0];
 	if (len != sizeof(data)) {
 		debug("smsc95xx_read_reg failed: index=%d, len=%d",
 		      index, len);
@@ -254,10 +250,6 @@ static int smsc95xx_eeprom_confirm_not_busy(struct ueth_data *dev)
 
 	do {
 		smsc95xx_read_reg(dev, E2P_CMD, &val);
-		if (!(val & E2P_CMD_LOADED_)) {
-			debug("No EEPROM present\n");
-			return -1;
-		}
 		if (!(val & E2P_CMD_BUSY_))
 			return 0;
 		udelay(40);
@@ -373,6 +365,7 @@ static int smsc95xx_init_mac_address(struct eth_device *eth,
 static int smsc95xx_write_hwaddr(struct eth_device *eth)
 {
 	struct ueth_data *dev = (struct ueth_data *)eth->priv;
+	struct smsc95xx_private *priv = dev->dev_priv;
 	u32 addr_lo = __get_unaligned_le32(&eth->enetaddr[0]);
 	u32 addr_hi = __get_unaligned_le16(&eth->enetaddr[4]);
 	int ret;
@@ -388,7 +381,7 @@ static int smsc95xx_write_hwaddr(struct eth_device *eth)
 		return ret;
 
 	debug("MAC %pM\n", eth->enetaddr);
-	dev->have_hwaddr = 1;
+	priv->have_hwaddr = 1;
 	return 0;
 }
 
@@ -421,19 +414,22 @@ static int smsc95xx_set_csums(struct ueth_data *dev,
 
 static void smsc95xx_set_multicast(struct ueth_data *dev)
 {
+	struct smsc95xx_private *priv = dev->dev_priv;
+
 	/* No multicast in u-boot */
-	dev->mac_cr &= ~(MAC_CR_PRMS_ | MAC_CR_MCPAS_ | MAC_CR_HPFILT_);
+	priv->mac_cr &= ~(MAC_CR_PRMS_ | MAC_CR_MCPAS_ | MAC_CR_HPFILT_);
 }
 
 /* starts the TX path */
 static void smsc95xx_start_tx_path(struct ueth_data *dev)
 {
+	struct smsc95xx_private *priv = dev->dev_priv;
 	u32 reg_val;
 
 	/* Enable Tx at MAC */
-	dev->mac_cr |= MAC_CR_TXEN_;
+	priv->mac_cr |= MAC_CR_TXEN_;
 
-	smsc95xx_write_reg(dev, MAC_CR, dev->mac_cr);
+	smsc95xx_write_reg(dev, MAC_CR, priv->mac_cr);
 
 	/* Enable Tx at SCSRs */
 	reg_val = TX_CFG_ON_;
@@ -443,8 +439,10 @@ static void smsc95xx_start_tx_path(struct ueth_data *dev)
 /* Starts the Receive path */
 static void smsc95xx_start_rx_path(struct ueth_data *dev)
 {
-	dev->mac_cr |= MAC_CR_RXEN_;
-	smsc95xx_write_reg(dev, MAC_CR, dev->mac_cr);
+	struct smsc95xx_private *priv = dev->dev_priv;
+
+	priv->mac_cr |= MAC_CR_RXEN_;
+	smsc95xx_write_reg(dev, MAC_CR, priv->mac_cr);
 }
 
 /*
@@ -458,6 +456,8 @@ static int smsc95xx_init(struct eth_device *eth, bd_t *bd)
 	u32 burst_cap;
 	int timeout;
 	struct ueth_data *dev = (struct ueth_data *)eth->priv;
+	struct smsc95xx_private *priv =
+		(struct smsc95xx_private *)dev->dev_priv;
 #define TIMEOUT_RESOLUTION 50	/* ms */
 	int link_detected;
 
@@ -500,9 +500,9 @@ static int smsc95xx_init(struct eth_device *eth, bd_t *bd)
 		debug("timeout waiting for PHY Reset\n");
 		return -1;
 	}
-	if (!dev->have_hwaddr && smsc95xx_init_mac_address(eth, dev) == 0)
-		dev->have_hwaddr = 1;
-	if (!dev->have_hwaddr) {
+	if (!priv->have_hwaddr && smsc95xx_init_mac_address(eth, dev) == 0)
+		priv->have_hwaddr = 1;
+	if (!priv->have_hwaddr) {
 		puts("Error: SMSC95xx: No MAC address set - set usbethaddr\n");
 		return -1;
 	}
@@ -528,16 +528,16 @@ static int smsc95xx_init(struct eth_device *eth, bd_t *bd)
 #ifdef TURBO_MODE
 	if (dev->pusb_dev->speed == USB_SPEED_HIGH) {
 		burst_cap = DEFAULT_HS_BURST_CAP_SIZE / HS_USB_PKT_SIZE;
-		dev->rx_urb_size = DEFAULT_HS_BURST_CAP_SIZE;
+		priv->rx_urb_size = DEFAULT_HS_BURST_CAP_SIZE;
 	} else {
 		burst_cap = DEFAULT_FS_BURST_CAP_SIZE / FS_USB_PKT_SIZE;
-		dev->rx_urb_size = DEFAULT_FS_BURST_CAP_SIZE;
+		priv->rx_urb_size = DEFAULT_FS_BURST_CAP_SIZE;
 	}
 #else
 	burst_cap = 0;
-	dev->rx_urb_size = MAX_SINGLE_PACKET_SIZE;
+	priv->rx_urb_size = MAX_SINGLE_PACKET_SIZE;
 #endif
-	debug("rx_urb_size=%ld\n", (ulong)dev->rx_urb_size);
+	debug("rx_urb_size=%ld\n", (ulong)priv->rx_urb_size);
 
 	ret = smsc95xx_write_reg(dev, BURST_CAP, burst_cap);
 	if (ret < 0)
@@ -602,7 +602,7 @@ static int smsc95xx_init(struct eth_device *eth, bd_t *bd)
 	if (ret < 0)
 		return ret;
 
-	ret = smsc95xx_read_reg(dev, MAC_CR, &dev->mac_cr);
+	ret = smsc95xx_read_reg(dev, MAC_CR, &priv->mac_cr);
 	if (ret < 0)
 		return ret;
 
@@ -657,15 +657,15 @@ static int smsc95xx_init(struct eth_device *eth, bd_t *bd)
 	return 0;
 }
 
-static int smsc95xx_send(struct eth_device *eth, volatile void* packet,
-			 int length)
+static int smsc95xx_send(struct eth_device *eth, void* packet, int length)
 {
 	struct ueth_data *dev = (struct ueth_data *)eth->priv;
 	int err;
 	int actual_len;
 	u32 tx_cmd_a;
 	u32 tx_cmd_b;
-	unsigned char msg[PKTSIZE + sizeof(tx_cmd_a) + sizeof(tx_cmd_b)];
+	ALLOC_CACHE_ALIGN_BUFFER(unsigned char, msg,
+				 PKTSIZE + sizeof(tx_cmd_a) + sizeof(tx_cmd_b));
 
 	debug("** %s(), len %d, buf %#x\n", __func__, length, (int)msg);
 	if (length > PKTSIZE)
@@ -696,7 +696,7 @@ static int smsc95xx_send(struct eth_device *eth, volatile void* packet,
 static int smsc95xx_recv(struct eth_device *eth)
 {
 	struct ueth_data *dev = (struct ueth_data *)eth->priv;
-	static unsigned char  recv_buf[AX_RX_URB_SIZE];
+	DEFINE_CACHE_ALIGN_BUFFER(unsigned char, recv_buf, AX_RX_URB_SIZE);
 	unsigned char *buf_ptr;
 	int err;
 	int actual_len;
@@ -783,6 +783,8 @@ struct smsc95xx_dongle {
 static const struct smsc95xx_dongle smsc95xx_dongles[] = {
 	{ 0x0424, 0xec00 },	/* LAN9512/LAN9514 Ethernet */
 	{ 0x0424, 0x9500 },	/* LAN9500 Ethernet */
+	{ 0x0424, 0x9730 },	/* LAN9730 Ethernet (HSIC) */
+	{ 0x0424, 0x9900 },	/* SMSC9500 USB Ethernet Device (SAL10) */
 	{ 0x0000, 0x0000 }	/* END - Do not remove */
 };
 
@@ -853,6 +855,12 @@ int smsc95xx_eth_probe(struct usb_device *dev, unsigned int ifnum,
 		return 0;
 	}
 	dev->privptr = (void *)ss;
+
+	/* alloc driver private */
+	ss->dev_priv = calloc(1, sizeof(struct smsc95xx_private));
+	if (!ss->dev_priv)
+		return 0;
+
 	return 1;
 }
 

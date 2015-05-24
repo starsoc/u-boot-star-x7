@@ -15,7 +15,7 @@
 #include <asm/io.h>
 #include <asm/fsl_law.h>
 
-#ifdef CONFIG_DDR_RAW_TIMING
+#ifdef CONFIG_SYS_DDR_RAW_TIMING
 #if	defined(CONFIG_P1020RDB_PROTO) || \
 	defined(CONFIG_P1021RDB) || \
 	defined(CONFIG_P1020UTM)
@@ -80,7 +80,7 @@ dimm_params_t ddr_raw_timing = {
 	.refresh_rate_ps = 7800000,
 	.tFAW_ps = 30000,
 };
-#elif defined(CONFIG_P1020MBG)
+#elif (defined(CONFIG_P1020MBG) || defined(CONFIG_P1020RDB_PD))
 /* Micron MT41J512M8_187E */
 dimm_params_t ddr_raw_timing = {
 	.n_ranks = 2,
@@ -111,7 +111,7 @@ dimm_params_t ddr_raw_timing = {
 	.refresh_rate_ps = 7800000,
 	.tFAW_ps = 37500,
 };
-#elif defined(CONFIG_P1020RDB)
+#elif defined(CONFIG_P1020RDB_PC)
 /*
  * Samsung K4B2G0846C-HCF8
  * The following timing are for "downshift"
@@ -204,8 +204,9 @@ int fsl_ddr_get_dimm_params(dimm_params_t *pdimm,
 
 	return 0;
 }
-#endif /* CONFIG_DDR_RAW_TIMING */
+#endif /* CONFIG_SYS_DDR_RAW_TIMING */
 
+#ifdef CONFIG_SYS_DDR_CS0_BNDS
 /* Fixed sdram init -- doesn't use serial presence detect. */
 phys_size_t fixed_sdram(void)
 {
@@ -246,11 +247,11 @@ phys_size_t fixed_sdram(void)
 
 	get_sys_info(&sysinfo);
 	printf("Configuring DDR for %s MT/s data rate\n",
-			strmhz(buf, sysinfo.freqDDRBus));
+			strmhz(buf, sysinfo.freq_ddrbus));
 
 	ddr_size = CONFIG_SYS_SDRAM_SIZE * 1024 * 1024;
 
-	fsl_ddr_set_memctl_regs(&ddr_cfg_regs, 0);
+	fsl_ddr_set_memctl_regs(&ddr_cfg_regs, 0, 0);
 
 	if (set_ddr_laws(CONFIG_SYS_DDR_SDRAM_BASE,
 				ddr_size, LAW_TRGT_IF_DDR_1) < 0) {
@@ -260,6 +261,7 @@ phys_size_t fixed_sdram(void)
 
 	return ddr_size;
 }
+#endif
 
 void fsl_ddr_board_options(memctl_options_t *popts,
 				dimm_params_t *pdimm,

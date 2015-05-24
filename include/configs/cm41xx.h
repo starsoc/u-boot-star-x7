@@ -3,23 +3,7 @@
  * Greg Ungerer <greg.ungerer@opengear.com>.
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 #ifndef __CONFIG_H
 #define __CONFIG_H
@@ -30,8 +14,6 @@
  */
 #define CONFIG_KS8695	1		/* it is a KS8695 CPU */
 #define CONFIG_CM41xx	1		/* it is an OpenGear CM41xx boad */
-
-#undef CONFIG_USE_IRQ			/* we don't need IRQ/FIQ stuff	*/
 
 #define CONFIG_CMDLINE_TAG	 1	/* enable passing of ATAGs	*/
 #define CONFIG_SETUP_MEMORY_TAGS 1
@@ -56,8 +38,6 @@
 #define	CONFIG_SERIAL1
 #define CONFIG_CONS_INDEX	1
 #define CONFIG_BAUDRATE		115200
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
-
 
 /*
  * BOOTP options
@@ -96,17 +76,6 @@
 #define CONFIG_SYS_LOAD_ADDR		0x00008000	/* default load address */
 
 #define CONFIG_SYS_HZ			(1000)		/* 1ms resolution ticks */
-
-/*-----------------------------------------------------------------------
- * Stack sizes
- *
- * The stack sizes are set up in start.S using the settings below
- */
-#define CONFIG_STACKSIZE	(128*1024)	/* regular stack */
-#ifdef CONFIG_USE_IRQ
-#define CONFIG_STACKSIZE_IRQ	(4*1024)	/* IRQ stack */
-#define CONFIG_STACKSIZE_FIQ	(4*1024)	/* FIQ stack */
-#endif
 
 /*-----------------------------------------------------------------------
  * Physical Memory Map

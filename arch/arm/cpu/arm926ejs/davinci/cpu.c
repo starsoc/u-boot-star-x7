@@ -2,22 +2,7 @@
  * Copyright (C) 2004 Texas Instruments.
  * Copyright (C) 2009 David Brownell
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -117,6 +102,17 @@ int clk_get(enum davinci_clk_ids id)
 out:
 	return pll_out;
 }
+
+int set_cpu_clk_info(void)
+{
+	gd->bd->bi_arm_freq = clk_get(DAVINCI_ARM_CLKID) / 1000000;
+	/* DDR PHY uses an x2 input clock */
+	gd->bd->bi_ddr_freq = cpu_is_da830() ? 0 :
+				(clk_get(DAVINCI_DDR_CLKID) / 1000000);
+	gd->bd->bi_dsp_freq = 0;
+	return 0;
+}
+
 #else /* CONFIG_SOC_DA8XX */
 
 static unsigned pll_div(volatile void *pllbase, unsigned offset)
@@ -187,16 +183,9 @@ unsigned int davinci_clk_get(unsigned int div)
 	return pll_sysclk_mhz(DAVINCI_PLL_CNTRL0_BASE, div) * 1000000;
 }
 #endif
-#endif /* !CONFIG_SOC_DA8XX */
 
 int set_cpu_clk_info(void)
 {
-#ifdef CONFIG_SOC_DA8XX
-	gd->bd->bi_arm_freq = clk_get(DAVINCI_ARM_CLKID) / 1000000;
-	/* DDR PHY uses an x2 input clock */
-	gd->bd->bi_ddr_freq = clk_get(0x10001) / 1000000;
-#else
-
 	unsigned int pllbase = DAVINCI_PLL_CNTRL0_BASE;
 #if defined(CONFIG_SOC_DM365)
 	pllbase = DAVINCI_PLL_CNTRL1_BASE;
@@ -215,9 +204,11 @@ int set_cpu_clk_info(void)
 	pllbase = DAVINCI_PLL_CNTRL0_BASE;
 #endif
 	gd->bd->bi_ddr_freq = pll_sysclk_mhz(pllbase, DDR_PLLDIV) / 2;
-#endif
+
 	return 0;
 }
+
+#endif /* !CONFIG_SOC_DA8XX */
 
 /*
  * Initializes on-chip ethernet controllers.

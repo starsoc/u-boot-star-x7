@@ -4,10 +4,7 @@ Skeleton NIC driver for Etherboot
 ***************************************************************************/
 
 /*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2, or (at
- * your option) any later version.
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -246,8 +243,7 @@ gt6426x_eth_poll(void *v)
 /**************************************************************************
 TRANSMIT - Transmit a frame
 ***************************************************************************/
-int
-gt6426x_eth_transmit(void *v, volatile char *p, unsigned int s)
+int gt6426x_eth_transmit(void *v, char *p, unsigned int s)
 {
 	struct eth_device *wp = (struct eth_device *)v;
 	struct eth_dev_s *dev = (struct eth_dev_s *)wp->priv;

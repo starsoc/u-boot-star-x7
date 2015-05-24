@@ -2,20 +2,7 @@
  * (C) Copyright 2011, Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
  * (C) Copyright 2011, Julius Baxter <julius@opencores.org>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <config.h>
@@ -26,8 +13,11 @@
 
 #define HANDLE_EXCEPTION			\
 	l.addi	r1, r1, -EXCEPTION_STACK_SIZE	;\
+	l.sw	0x00(r1), r2			;\
 	l.sw	0x1c(r1), r9			;\
-	l.jal	_exception_handler		;\
+	l.movhi r2,hi(_exception_handler)       ;\
+	l.ori   r2,r2,lo(_exception_handler)    ;\
+	l.jalr	r2              		;\
 	 l.nop					;\
 	l.lwz 	r9, 0x1c(r1)			;\
 	l.addi	r1, r1, EXCEPTION_STACK_SIZE	;\
@@ -79,8 +69,9 @@ __reset:
 	l.bnf	.L_relocvectors
 	 l.addi	r4,r4, 4
 #endif
-
-	l.j	_start
+	l.movhi	r4,hi(_start)
+	l.ori	r4,r4,lo(_start)
+	l.jr	r4
 	 l.nop
 
 	/* bus error */
@@ -262,8 +253,7 @@ _start:
 	.type	_exception_handler,@function
 
 _exception_handler:
-	/* Store state (r9 already saved)*/
-	l.sw	0x00(r1), r2
+	/* Store state (r2 and r9 already saved)*/
 	l.sw	0x04(r1), r3
 	l.sw	0x08(r1), r4
 	l.sw	0x0c(r1), r5

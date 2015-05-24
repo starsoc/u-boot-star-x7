@@ -1,26 +1,10 @@
 /*
- * Copyright 2010-2011 Freescale Semiconductor, Inc.
+ * Copyright 2010-2012 Freescale Semiconductor, Inc.
  *
  * Authors:  Roy Zang <tie-fei.zang@freescale.com>
  *	     Chunhe Lan <b25806@freescale.com>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -73,6 +57,7 @@
 #define CONFIG_PCIE2		/* PCIE controler 2 (slot 2) */
 #define CONFIG_PCIE3		/* PCIE controler 3 (slot 3) */
 #define CONFIG_FSL_PCI_INIT	/* Use common FSL init code */
+#define CONFIG_PCI_INDIRECT_BRIDGE	/* indirect PCI bridge support */
 #define CONFIG_FSL_PCIE_RESET	/* need PCIe reset errata */
 #define CONFIG_SYS_PCI_64BIT	/* enable 64-bit PCI resources */
 #define CONFIG_FSL_LAW		/* Use common FSL init code */
@@ -299,9 +284,6 @@ extern unsigned long get_clock_freq(void);
 
 /* Use the HUSH parser */
 #define CONFIG_SYS_HUSH_PARSER
-#ifdef	CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2 "> "
-#endif
 
 /*
  * Pass open firmware flat tree
@@ -310,23 +292,20 @@ extern unsigned long get_clock_freq(void);
 #define CONFIG_OF_BOARD_SETUP
 #define CONFIG_OF_STDOUT_VIA_ALIAS
 
-#define CONFIG_SYS_64BIT_VSPRINTF
-#define CONFIG_SYS_64BIT_STRTOUL
-
 /* new uImage format support */
 #define CONFIG_FIT
 #define CONFIG_FIT_VERBOSE	/* enable fit_format_{error,warning}() */
 
 /* I2C */
-#define CONFIG_FSL_I2C		/* Use FSL common I2C driver */
-#define CONFIG_HARD_I2C		/* I2C with hardware support */
-#undef	CONFIG_SOFT_I2C		/* I2C bit-banged */
-#define CONFIG_I2C_MULTI_BUS
-#define CONFIG_SYS_I2C_SPEED	400000	/* I2C speed and slave address */
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_I2C_FSL
+#define CONFIG_SYS_FSL_I2C_SPEED	400000
+#define CONFIG_SYS_FSL_I2C_SLAVE	0x7F
+#define CONFIG_SYS_FSL_I2C_OFFSET	0x3000
+#define CONFIG_SYS_FSL_I2C2_SPEED	400000
+#define CONFIG_SYS_FSL_I2C2_SLAVE	0x7F
+#define CONFIG_SYS_FSL_I2C2_OFFSET	0x3100
 #define CONFIG_SYS_I2C_EEPROM_ADDR	0x51
-#define CONFIG_SYS_I2C_SLAVE		0x7F
-#define CONFIG_SYS_I2C_OFFSET		0x3000
-#define CONFIG_SYS_I2C2_OFFSET		0x3100
 
 /*
  * I2C2 EEPROM
@@ -447,6 +426,8 @@ extern unsigned long get_clock_freq(void);
 /*
  * USB
  */
+#define CONFIG_HAS_FSL_DR_USB
+#ifdef CONFIG_HAS_FSL_DR_USB
 #define CONFIG_USB_EHCI
 
 #ifdef CONFIG_USB_EHCI
@@ -458,6 +439,7 @@ extern unsigned long get_clock_freq(void);
 #define CONFIG_CMD_EXT2
 #define CONFIG_CMD_FAT
 #define CONFIG_DOS_PARTITION
+#endif
 #endif
 
 /*
@@ -527,7 +509,7 @@ extern unsigned long get_clock_freq(void);
 /* Default address of microcode for the Linux Fman driver */
 /* QE microcode/firmware address */
 #define CONFIG_SYS_QE_FMAN_FW_IN_NOR
-#define CONFIG_SYS_QE_FMAN_FW_ADDR	0xEF000000
+#define CONFIG_SYS_QE_FMAN_FW_ADDR	0xEFF40000
 #else
 #define CONFIG_SYS_QE_FMAN_FW_IN_NAND
 #define CONFIG_SYS_QE_FMAN_FW_ADDR	0x1f00000

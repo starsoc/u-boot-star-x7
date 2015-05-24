@@ -7,23 +7,7 @@
  * Matthew E. Karger, karger@arlut.utexas.edu
  * Applied Research Laboratories, The University of Texas at Austin
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -58,7 +42,6 @@
 
 #define CONFIG_CONS_INDEX	1
 #define CONFIG_BAUDRATE		57600
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 #define CONFIG_BOOTDELAY	2
 #define CONFIG_AUTOBOOT_PROMPT	"autoboot in %d seconds\n", bootdelay
@@ -66,7 +49,6 @@
 #define CONFIG_BOOTARGS		"root=/dev/ram console=ttyS0,57600" /* RAMdisk */
 #define CONFIG_ETHADDR		00:AA:00:14:00:05	/* UTX5 */
 #define CONFIG_SERVERIP		10.8.17.105	/* Spree */
-#define CONFIG_SYS_TFTP_LOADADDR	10000
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"kernel_addr=FFA00000\0" \
@@ -141,6 +123,7 @@ protect on ${u-boot_startaddr} ${u-boot_endaddr}"
  *-----------------------------------------------------------------------
  */
 #define CONFIG_PCI				/* include pci support		*/
+#define	CONFIG_PCI_INDIRECT_BRIDGE 1	/* indirect PCI bridge support */
 #undef CONFIG_PCI_PNP
 #define CONFIG_PCI_SCAN_SHOW
 #define CONFIG_EEPRO100
@@ -236,8 +219,7 @@ protect on ${u-boot_startaddr} ${u-boot_endaddr}"
  *------------------------------------------------------------------*/
 #if 1
 #define CONFIG_HARD_I2C		1		/* To enable I2C support	*/
-#undef  CONFIG_SOFT_I2C				/* I2C bit-banged		*/
-#define CONFIG_SYS_I2C_SPEED		400000		/* I2C speed and slave address	*/
+#define CONFIG_SYS_I2C_SPEED		400000
 #define CONFIG_SYS_I2C_SLAVE		0x7F
 #endif
 

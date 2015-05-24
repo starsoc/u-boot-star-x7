@@ -2,23 +2,7 @@
  * Copyright 2008 Extreme Engineering Solutions, Inc.
  * Copyright 2004-2008 Freescale Semiconductor, Inc.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -48,6 +32,7 @@
 #define CONFIG_PCI_SCAN_SHOW	1	/* show pci devices on startup */
 #define CONFIG_PCI1		1	/* PCI controller 1 */
 #define CONFIG_FSL_PCI_INIT	1	/* Use common FSL init code */
+#define CONFIG_PCI_INDIRECT_BRIDGE 1	/* indirect PCI bridge support */
 #define CONFIG_SYS_PCI_64BIT	1	/* enable 64-bit PCI resources */
 #define CONFIG_FSL_LAW		1	/* Use common FSL init code */
 
@@ -208,7 +193,6 @@
  * Use the HUSH parser
  */
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 /*
  * Pass open firmware flat tree
@@ -220,13 +204,14 @@
 /*
  * I2C
  */
-#define CONFIG_FSL_I2C				/* Use FSL common I2C driver */
-#define CONFIG_HARD_I2C				/* I2C with hardware support */
-#define CONFIG_SYS_I2C_SPEED		400000	/* I2C speed and slave address */
-#define CONFIG_SYS_I2C_SLAVE		0x7F
-#define CONFIG_SYS_I2C_OFFSET		0x3000
-#define CONFIG_SYS_I2C2_OFFSET		0x3100
-#define CONFIG_I2C_MULTI_BUS
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_I2C_FSL
+#define CONFIG_SYS_FSL_I2C_SPEED	400000
+#define CONFIG_SYS_FSL_I2C_SLAVE	0x7F
+#define CONFIG_SYS_FSL_I2C_OFFSET	0x3000
+#define CONFIG_SYS_FSL_I2C2_SPEED	400000
+#define CONFIG_SYS_FSL_I2C2_SLAVE	0x7F
+#define CONFIG_SYS_FSL_I2C2_OFFSET	0x3100
 
 /* I2C EEPROM */
 #define CONFIG_SYS_I2C_EEPROM_ADDR		0x50
@@ -399,12 +384,12 @@
  * faf00000 - fbefffff     Sec OS image (16MB)
  * f8000000 - faefffff     Sec OS Use/Filesystem (47MB)
  */
-#define CONFIG_UBOOT1_ENV_ADDR	MK_STR(0xfff80000)
-#define CONFIG_UBOOT2_ENV_ADDR	MK_STR(0xfbf80000)
-#define CONFIG_FDT1_ENV_ADDR	MK_STR(0xfff00000)
-#define CONFIG_FDT2_ENV_ADDR	MK_STR(0xfbf00000)
-#define CONFIG_OS1_ENV_ADDR	MK_STR(0xfef00000)
-#define CONFIG_OS2_ENV_ADDR	MK_STR(0xfaf00000)
+#define CONFIG_UBOOT1_ENV_ADDR	__stringify(0xfff80000)
+#define CONFIG_UBOOT2_ENV_ADDR	__stringify(0xfbf80000)
+#define CONFIG_FDT1_ENV_ADDR	__stringify(0xfff00000)
+#define CONFIG_FDT2_ENV_ADDR	__stringify(0xfbf00000)
+#define CONFIG_OS1_ENV_ADDR	__stringify(0xfef00000)
+#define CONFIG_OS2_ENV_ADDR	__stringify(0xfaf00000)
 
 #define CONFIG_PROG_UBOOT1						\
 	"$download_cmd $loadaddr $ubootfile; "				\

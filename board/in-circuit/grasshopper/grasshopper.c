@@ -2,23 +2,7 @@
  * Copyright (C) 2011
  * Corscience GmbH & Co.KG, Andreas Bießmann <biessmann@corscience.de>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 #include <common.h>
 
@@ -72,6 +56,13 @@ int board_early_init_f(void)
 	portmux_enable_usart0(PORTMUX_DRIVE_MIN);
 	portmux_enable_usart1(PORTMUX_DRIVE_MIN);
 #if defined(CONFIG_MACB)
+	/* set PHY reset and pwrdown to low */
+	portmux_select_gpio(PORTMUX_PORT_B, (1 << 29) | (1 << 30),
+		PORTMUX_DIR_OUTPUT | PORTMUX_INIT_LOW);
+	udelay(100);
+	/* release PHYs reset */
+	gpio_set_value(GPIO_PIN_PB(29), 1);
+
 	portmux_enable_macb0(PORTMUX_MACB_MII, PORTMUX_DRIVE_LOW);
 #endif
 

@@ -6,20 +6,7 @@
  * Jacqueline Pira-Ferriol, AMCC/IBM, jpira-ferriol@fr.ibm.com
  * Alain Saurel,            AMCC/IBM, alain.saurel@fr.ibm.com
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -232,7 +219,7 @@
 /*
  * I2C
  */
-#define CONFIG_SYS_I2C_SPEED		400000	/* I2C speed and slave address	*/
+#define CONFIG_SYS_I2C_PPC4XX_SPEED_0		400000
 
 #define CONFIG_SYS_I2C_MULTI_EEPROMS
 #define CONFIG_SYS_I2C_EEPROM_ADDR	(0xa8>>1)
@@ -288,9 +275,6 @@
 #define CONFIG_EHCI_HCD_INIT_AFTER_RESET
 #define CONFIG_EHCI_MMIO_BIG_ENDIAN
 #define CONFIG_EHCI_DESC_BIG_ENDIAN
-#ifdef CONFIG_4xx_DCACHE
-#define CONFIG_EHCI_DCACHE
-#endif
 #else /* CONFIG_USB_EHCI */
 #define CONFIG_USB_OHCI_NEW
 #define CONFIG_SYS_OHCI_BE_CONTROLLER
@@ -366,6 +350,7 @@
  */
 /* General PCI */
 #define CONFIG_PCI			/* include pci support		*/
+#define CONFIG_PCI_INDIRECT_BRIDGE	/* indirect PCI bridge support */
 #define CONFIG_PCI_PNP			/* do pci plug-and-play		*/
 #define CONFIG_SYS_PCI_CACHE_LINE_SIZE	0	/* to avoid problems with PNP	*/
 #define CONFIG_PCI_SCAN_SHOW		/* show pci devices on startup	*/

@@ -1,23 +1,7 @@
 /*
  * Copyright (C) Sheldon Instruments, Inc. 2008
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 /*
  * simpc8313 board configuration file
@@ -52,6 +36,7 @@
 #endif
 
 #define CONFIG_PCI
+#define CONFIG_PCI_INDIRECT_BRIDGE
 #define CONFIG_FSL_ELBC			1
 
 #define CONFIG_MISC_INIT_R
@@ -242,17 +227,17 @@
 
 /* Use the HUSH parser */
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 /* I2C */
-#define CONFIG_HARD_I2C		/* I2C with hardware support*/
-#define CONFIG_FSL_I2C
-#define CONFIG_I2C_MULTI_BUS
-#define CONFIG_SYS_I2C_SPEED	400000	/* I2C speed and slave address */
-#define CONFIG_SYS_I2C_SLAVE	0x7F
-#define CONFIG_SYS_I2C_NOPROBES	{ {0, 0x69} } /* Don't probe these addrs */
-#define CONFIG_SYS_I2C_OFFSET	0x3000
-#define CONFIG_SYS_I2C2_OFFSET	0x3100
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_I2C_FSL
+#define CONFIG_SYS_FSL_I2C_SPEED	400000
+#define CONFIG_SYS_FSL_I2C_SLAVE	0x7F
+#define CONFIG_SYS_FSL_I2C_OFFSET	0x3000
+#define CONFIG_SYS_FSL_I2C2_SPEED	400000
+#define CONFIG_SYS_FSL_I2C2_SLAVE	0x7F
+#define CONFIG_SYS_FSL_I2C2_OFFSET	0x3100
+#define CONFIG_SYS_I2C_NOPROBES		{ {0, 0x69} }
 
 /*
  * General PCI
@@ -538,19 +523,21 @@
 #define CONFIG_BOOTCOMMAND	"nand read $loadaddr kernel 600000;" \
 					"bootm $loadaddr - $fdtaddr"
 
-#define XMK_STR(x)	#x
-#define MK_STR(x)	XMK_STR(x)
-
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"netdev=" CONFIG_NETDEV "\0"					\
 	"ethprime=TSEC1\0"						\
 	"uboot=" CONFIG_UBOOTPATH "\0"					\
 	"tftpflash=tftpboot $loadaddr $uboot; "				\
-		"protect off " MK_STR(CONFIG_SYS_TEXT_BASE) " +$filesize; " \
-		"erase " MK_STR(CONFIG_SYS_TEXT_BASE) " +$filesize; "	\
-		"cp.b $loadaddr " MK_STR(CONFIG_SYS_TEXT_BASE) " $filesize; " \
-		"protect on " MK_STR(CONFIG_SYS_TEXT_BASE) " +$filesize; " \
-		"cmp.b $loadaddr " MK_STR(CONFIG_SYS_TEXT_BASE) " $filesize\0" \
+		"protect off " __stringify(CONFIG_SYS_TEXT_BASE)	\
+			" +$filesize; "	\
+		"erase " __stringify(CONFIG_SYS_TEXT_BASE)		\
+			" +$filesize; "	\
+		"cp.b $loadaddr " __stringify(CONFIG_SYS_TEXT_BASE)	\
+			" $filesize; "	\
+		"protect on " __stringify(CONFIG_SYS_TEXT_BASE)		\
+			" +$filesize; "	\
+		"cmp.b $loadaddr " __stringify(CONFIG_SYS_TEXT_BASE)	\
+			" $filesize\0"	\
 	"fdtaddr=ae0000\0"						\
 	"fdtfile=" CONFIG_FDTFILE "\0"					\
 	"console=ttyS0\0"						\
@@ -592,8 +579,5 @@
 	"tftp $loadaddr $bootfile;"					\
 	"tftp $fdtaddr $fdtfile;"					\
 	"bootm $loadaddr $ramdiskaddr $fdtaddr"
-
-#undef MK_STR
-#undef XMK_STR
 
 #endif	/* __CONFIG_H */

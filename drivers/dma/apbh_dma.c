@@ -7,19 +7,7 @@
  * Based on code from LTIB:
  * Copyright (C) 2010 Freescale Semiconductor, Inc. All Rights Reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <linux/list.h>
@@ -31,7 +19,8 @@
 #include <asm/arch/clock.h>
 #include <asm/arch/imx-regs.h>
 #include <asm/arch/sys_proto.h>
-#include <asm/arch/dma.h>
+#include <asm/imx-common/dma.h>
+#include <asm/imx-common/regs-apbh.h>
 
 static struct mxs_dma_chan mxs_dma_channels[MXS_MAX_DMA_CHANNELS];
 
@@ -76,8 +65,8 @@ static unsigned int mxs_dma_cmd_address(struct mxs_dma_desc *desc)
  */
 static int mxs_dma_read_semaphore(int channel)
 {
-	struct mx28_apbh_regs *apbh_regs =
-		(struct mx28_apbh_regs *)MXS_APBH_BASE;
+	struct mxs_apbh_regs *apbh_regs =
+		(struct mxs_apbh_regs *)MXS_APBH_BASE;
 	uint32_t tmp;
 	int ret;
 
@@ -119,8 +108,8 @@ inline void mxs_dma_flush_desc(struct mxs_dma_desc *desc) {}
  */
 static int mxs_dma_enable(int channel)
 {
-	struct mx28_apbh_regs *apbh_regs =
-		(struct mx28_apbh_regs *)MXS_APBH_BASE;
+	struct mxs_apbh_regs *apbh_regs =
+		(struct mxs_apbh_regs *)MXS_APBH_BASE;
 	unsigned int sem;
 	struct mxs_dma_chan *pchan;
 	struct mxs_dma_desc *pdesc;
@@ -191,8 +180,8 @@ static int mxs_dma_enable(int channel)
 static int mxs_dma_disable(int channel)
 {
 	struct mxs_dma_chan *pchan;
-	struct mx28_apbh_regs *apbh_regs =
-		(struct mx28_apbh_regs *)MXS_APBH_BASE;
+	struct mxs_apbh_regs *apbh_regs =
+		(struct mxs_apbh_regs *)MXS_APBH_BASE;
 	int ret;
 
 	ret = mxs_dma_validate_chan(channel);
@@ -220,16 +209,22 @@ static int mxs_dma_disable(int channel)
  */
 static int mxs_dma_reset(int channel)
 {
-	struct mx28_apbh_regs *apbh_regs =
-		(struct mx28_apbh_regs *)MXS_APBH_BASE;
+	struct mxs_apbh_regs *apbh_regs =
+		(struct mxs_apbh_regs *)MXS_APBH_BASE;
 	int ret;
+#if defined(CONFIG_MX23)
+	uint32_t setreg = (uint32_t)(&apbh_regs->hw_apbh_ctrl0_set);
+	uint32_t offset = APBH_CTRL0_RESET_CHANNEL_OFFSET;
+#elif (defined(CONFIG_MX28) || defined(CONFIG_MX6))
+	uint32_t setreg = (uint32_t)(&apbh_regs->hw_apbh_channel_ctrl_set);
+	uint32_t offset = APBH_CHANNEL_CTRL_RESET_CHANNEL_OFFSET;
+#endif
 
 	ret = mxs_dma_validate_chan(channel);
 	if (ret)
 		return ret;
 
-	writel(1 << (channel + APBH_CHANNEL_CTRL_RESET_CHANNEL_OFFSET),
-		&apbh_regs->hw_apbh_channel_ctrl_set);
+	writel(1 << (channel + offset), setreg);
 
 	return 0;
 }
@@ -241,8 +236,8 @@ static int mxs_dma_reset(int channel)
  */
 static int mxs_dma_enable_irq(int channel, int enable)
 {
-	struct mx28_apbh_regs *apbh_regs =
-		(struct mx28_apbh_regs *)MXS_APBH_BASE;
+	struct mxs_apbh_regs *apbh_regs =
+		(struct mxs_apbh_regs *)MXS_APBH_BASE;
 	int ret;
 
 	ret = mxs_dma_validate_chan(channel);
@@ -267,8 +262,8 @@ static int mxs_dma_enable_irq(int channel, int enable)
  */
 static int mxs_dma_ack_irq(int channel)
 {
-	struct mx28_apbh_regs *apbh_regs =
-		(struct mx28_apbh_regs *)MXS_APBH_BASE;
+	struct mxs_apbh_regs *apbh_regs =
+		(struct mxs_apbh_regs *)MXS_APBH_BASE;
 	int ret;
 
 	ret = mxs_dma_validate_chan(channel);
@@ -504,15 +499,15 @@ static int mxs_dma_finish(int channel, struct list_head *head)
  */
 static int mxs_dma_wait_complete(uint32_t timeout, unsigned int chan)
 {
-	struct mx28_apbh_regs *apbh_regs =
-		(struct mx28_apbh_regs *)MXS_APBH_BASE;
+	struct mxs_apbh_regs *apbh_regs =
+		(struct mxs_apbh_regs *)MXS_APBH_BASE;
 	int ret;
 
 	ret = mxs_dma_validate_chan(chan);
 	if (ret)
 		return ret;
 
-	if (mx28_wait_mask_set(&apbh_regs->hw_apbh_ctrl1_reg,
+	if (mxs_wait_mask_set(&apbh_regs->hw_apbh_ctrl1_reg,
 				1 << chan, timeout)) {
 		ret = -ETIMEDOUT;
 		mxs_dma_reset(chan);
@@ -526,7 +521,7 @@ static int mxs_dma_wait_complete(uint32_t timeout, unsigned int chan)
  */
 int mxs_dma_go(int chan)
 {
-	uint32_t timeout = 10000;
+	uint32_t timeout = 10000000;
 	int ret;
 
 	LIST_HEAD(tmp_desc_list);
@@ -550,14 +545,36 @@ int mxs_dma_go(int chan)
 }
 
 /*
+ * Execute a continuously running circular DMA descriptor.
+ * NOTE: This is not intended for general use, but rather
+ *	 for the LCD driver in Smart-LCD mode. It allows
+ *	 continuous triggering of the RUN bit there.
+ */
+void mxs_dma_circ_start(int chan, struct mxs_dma_desc *pdesc)
+{
+	struct mxs_apbh_regs *apbh_regs =
+		(struct mxs_apbh_regs *)MXS_APBH_BASE;
+
+	mxs_dma_flush_desc(pdesc);
+
+	mxs_dma_enable_irq(chan, 1);
+
+	writel(mxs_dma_cmd_address(pdesc),
+		&apbh_regs->ch[chan].hw_apbh_ch_nxtcmdar);
+	writel(1, &apbh_regs->ch[chan].hw_apbh_ch_sema);
+	writel(1 << (chan + APBH_CTRL0_CLKGATE_CHANNEL_OFFSET),
+		&apbh_regs->hw_apbh_ctrl0_clr);
+}
+
+/*
  * Initialize the DMA hardware
  */
 void mxs_dma_init(void)
 {
-	struct mx28_apbh_regs *apbh_regs =
-		(struct mx28_apbh_regs *)MXS_APBH_BASE;
+	struct mxs_apbh_regs *apbh_regs =
+		(struct mxs_apbh_regs *)MXS_APBH_BASE;
 
-	mx28_reset_block(&apbh_regs->hw_apbh_ctrl0_reg);
+	mxs_reset_block(&apbh_regs->hw_apbh_ctrl0_reg);
 
 #ifdef CONFIG_APBH_DMA_BURST8
 	writel(APBH_CTRL0_AHB_BURST8_EN,

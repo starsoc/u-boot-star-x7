@@ -1,23 +1,7 @@
 /*
  * Copyright 2007-2011 Freescale Semiconductor, Inc.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -45,11 +29,7 @@ int checkboard (void)
 	u8 vboot;
 	u8 *pixis_base = (u8 *)PIXIS_BASE;
 
-	puts ("Board: MPC8572DS ");
-#ifdef CONFIG_PHYS_64BIT
-	puts ("(36-bit addrmap) ");
-#endif
-	printf ("Sys ID: 0x%02x, "
+	printf("Board: MPC8572DS Sys ID: 0x%02x, "
 		"Sys Ver: 0x%02x, FPGA Ver: 0x%02x, ",
 		in_8(pixis_base + PIXIS_ID), in_8(pixis_base + PIXIS_VER),
 		in_8(pixis_base + PIXIS_PVER));

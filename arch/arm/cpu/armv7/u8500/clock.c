@@ -1,23 +1,7 @@
 /*
  * (C) Copyright 2009 ST-Ericsson
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -53,4 +37,38 @@ void u8500_clock_enable(int periph, int cluster, int kern)
 
 	if (cluster != -1)
 		writel(1 << cluster, &clkrst->pcken);
+}
+
+void db8500_clocks_init(void)
+{
+	/*
+	 * Enable all clocks. This is u-boot, we can enable it all. There is no
+	 * powersave in u-boot.
+	 */
+
+	u8500_clock_enable(1, 9, -1); /* GPIO0 */
+	u8500_clock_enable(2, 11, -1);/* GPIO1 */
+	u8500_clock_enable(3, 8, -1); /* GPIO2 */
+	u8500_clock_enable(5, 1, -1); /* GPIO3 */
+	u8500_clock_enable(3, 6, 6);  /* UART2 */
+	u8500_clock_enable(3, 3, 3);  /* I2C0 */
+	u8500_clock_enable(1, 5, 5);  /* SDI0 */
+	u8500_clock_enable(2, 4, 2);  /* SDI4 */
+	u8500_clock_enable(6, 6, -1); /* MTU0 */
+	u8500_clock_enable(3, 4, 4);  /* SDI2 */
+
+	/*
+	 * Enabling clocks for all devices which are AMBA devices in the
+	 * kernel.  Otherwise they will not get probe()'d because the
+	 * peripheral ID register will not be powered.
+	 */
+
+	/* XXX: some of these differ between ED/V1 */
+
+	u8500_clock_enable(1, 1, 1);  /* UART1 */
+	u8500_clock_enable(1, 0, 0);  /* UART0 */
+	u8500_clock_enable(3, 2, 2);  /* SSP1 */
+	u8500_clock_enable(3, 1, 1);  /* SSP0 */
+	u8500_clock_enable(2, 8, -1); /* SPI0 */
+	u8500_clock_enable(2, 5, 3);  /* MSP2 */
 }

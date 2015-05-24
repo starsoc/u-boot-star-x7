@@ -3,20 +3,7 @@
  *
  * Loosely based on the old code and Linux's PXA MMC driver
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <config.h>
@@ -118,7 +105,7 @@ static int pxa_mmc_start_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 	int ret;
 
 	/* The card can send a "busy" response */
-	if (cmd->flags & MMC_RSP_BUSY)
+	if (cmd->resp_type & MMC_RSP_BUSY)
 		cmdat |= MMC_CMDAT_BUSY;
 
 	/* Inform the controller about response type */
@@ -181,9 +168,11 @@ static int pxa_mmc_cmd_done(struct mmc *mmc, struct mmc_cmd *cmd)
 	/* The command response didn't arrive */
 	if (stat & MMC_STAT_TIME_OUT_RESPONSE)
 		return -ETIMEDOUT;
-	else if (stat & MMC_STAT_RES_CRC_ERROR && cmd->flags & MMC_RSP_CRC) {
+	else if (stat & MMC_STAT_RES_CRC_ERROR
+			&& cmd->resp_type & MMC_RSP_CRC) {
 #ifdef	PXAMMC_CRC_SKIP
-		if (cmd->flags & MMC_RSP_136 && cmd->response[0] & (1 << 31))
+		if (cmd->resp_type & MMC_RSP_136
+				&& cmd->response[0] & (1 << 31))
 			printf("Ignoring CRC, this may be dangerous!\n");
 		else
 #endif

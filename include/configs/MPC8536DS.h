@@ -1,23 +1,7 @@
 /*
- * Copyright 2007-2009,2010-2011 Freescale Semiconductor, Inc.
+ * Copyright 2007-2009,2010-2012 Freescale Semiconductor, Inc.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -84,6 +68,7 @@
 #define CONFIG_PCIE2		1	/* PCIE controler 2 (slot 2) */
 #define CONFIG_PCIE3		1	/* PCIE controler 3 (ULI bridge) */
 #define CONFIG_FSL_PCI_INIT	1	/* Use common FSL init code */
+#define CONFIG_PCI_INDIRECT_BRIDGE 1	/* indirect PCI bridge support */
 #define CONFIG_FSL_PCIE_RESET	1	/* need PCIe reset errata */
 #define CONFIG_SYS_PCI_64BIT	1	/* enable 64-bit PCI resources */
 
@@ -217,8 +202,7 @@
 #endif
 
 #define CONFIG_FLASH_BR_PRELIM \
-		(BR_PHYS_ADDR((CONFIG_SYS_FLASH_BASE_PHYS + 0x8000000)) \
-		 | BR_PS_16 | BR_V)
+	(BR_PHYS_ADDR(CONFIG_SYS_FLASH_BASE_PHYS + 0x8000000) | BR_PS_16 | BR_V)
 #define CONFIG_FLASH_OR_PRELIM	0xf8000ff7
 
 #define CONFIG_SYS_BR1_PRELIM \
@@ -380,14 +364,14 @@
 #endif
 
 #define CONFIG_SYS_BR4_PRELIM \
-		(BR_PHYS_ADDR((CONFIG_SYS_NAND_BASE_PHYS + 0x40000)) \
+		(BR_PHYS_ADDR(CONFIG_SYS_NAND_BASE_PHYS + 0x40000) \
 		| (2<<BR_DECC_SHIFT)	/* Use HW ECC */ \
 		| BR_PS_8		/* Port Size = 8 bit */ \
 		| BR_MS_FCM		/* MSEL = FCM */ \
 		| BR_V)			/* valid */
 #define CONFIG_SYS_OR4_PRELIM	CONFIG_SYS_NAND_OR_PRELIM /* NAND Options */
 #define CONFIG_SYS_BR5_PRELIM \
-		(BR_PHYS_ADDR((CONFIG_SYS_NAND_BASE_PHYS + 0x80000)) \
+		(BR_PHYS_ADDR(CONFIG_SYS_NAND_BASE_PHYS + 0x80000) \
 		| (2<<BR_DECC_SHIFT)	/* Use HW ECC */ \
 		| BR_PS_8		/* Port Size = 8 bit */ \
 		| BR_MS_FCM		/* MSEL = FCM */ \
@@ -395,7 +379,7 @@
 #define CONFIG_SYS_OR5_PRELIM	CONFIG_SYS_NAND_OR_PRELIM /* NAND Options */
 
 #define CONFIG_SYS_BR6_PRELIM \
-		(BR_PHYS_ADDR((CONFIG_SYS_NAND_BASE_PHYS + 0xc0000)) \
+		(BR_PHYS_ADDR(CONFIG_SYS_NAND_BASE_PHYS + 0xc0000) \
 		| (2<<BR_DECC_SHIFT)	/* Use HW ECC */ \
 		| BR_PS_8		/* Port Size = 8 bit */ \
 		| BR_MS_FCM		/* MSEL = FCM */ \
@@ -423,9 +407,6 @@
 
 /* Use the HUSH parser */
 #define CONFIG_SYS_HUSH_PARSER
-#ifdef	CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2 "> "
-#endif
 
 /*
  * Pass open firmware flat tree
@@ -437,15 +418,15 @@
 /*
  * I2C
  */
-#define CONFIG_FSL_I2C		/* Use FSL common I2C driver */
-#define CONFIG_HARD_I2C		/* I2C with hardware support */
-#undef	CONFIG_SOFT_I2C		/* I2C bit-banged */
-#define CONFIG_I2C_MULTI_BUS
-#define CONFIG_SYS_I2C_SPEED		400000	/* I2C speed and slave address */
-#define CONFIG_SYS_I2C_SLAVE		0x7F
-#define CONFIG_SYS_I2C_NOPROBES	{{0, 0x29}}	/* Don't probe these addrs */
-#define CONFIG_SYS_I2C_OFFSET		0x3000
-#define CONFIG_SYS_I2C2_OFFSET		0x3100
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_I2C_FSL
+#define CONFIG_SYS_FSL_I2C_SPEED	400000
+#define CONFIG_SYS_FSL_I2C_SLAVE	0x7F
+#define CONFIG_SYS_FSL_I2C_OFFSET	0x3000
+#define CONFIG_SYS_FSL_I2C2_SPEED	400000
+#define CONFIG_SYS_FSL_I2C2_SLAVE	0x7F
+#define CONFIG_SYS_FSL_I2C2_OFFSET	0x3100
+#define CONFIG_SYS_I2C_NOPROBES		{ {0, 0x29} }
 
 /*
  * I2C2 EEPROM
@@ -714,6 +695,8 @@
 /*
  * USB
  */
+#define CONFIG_HAS_FSL_MPH_USB
+#ifdef CONFIG_HAS_FSL_MPH_USB
 #define CONFIG_USB_EHCI
 
 #ifdef CONFIG_USB_EHCI
@@ -721,6 +704,7 @@
 #define CONFIG_EHCI_HCD_INIT_AFTER_RESET
 #define CONFIG_USB_EHCI_FSL
 #define CONFIG_USB_STORAGE
+#endif
 #endif
 
 #if defined(CONFIG_MMC) || defined(CONFIG_USB_EHCI)
@@ -797,21 +781,26 @@
 #define CONFIG_BAUDRATE	115200
 
 #define	CONFIG_EXTRA_ENV_SETTINGS				\
- "netdev=eth0\0"						\
- "uboot=" MK_STR(CONFIG_UBOOTPATH) "\0"				\
- "tftpflash=tftpboot $loadaddr $uboot; "			\
-	"protect off " MK_STR(CONFIG_SYS_TEXT_BASE) " +$filesize; "	\
-	"erase " MK_STR(CONFIG_SYS_TEXT_BASE) " +$filesize; "		\
-	"cp.b $loadaddr " MK_STR(CONFIG_SYS_TEXT_BASE) " $filesize; "	\
-	"protect on " MK_STR(CONFIG_SYS_TEXT_BASE) " +$filesize; "		\
-	"cmp.b $loadaddr " MK_STR(CONFIG_SYS_TEXT_BASE) " $filesize\0"	\
- "consoledev=ttyS0\0"				\
- "ramdiskaddr=2000000\0"			\
- "ramdiskfile=8536ds/ramdisk.uboot\0"		\
- "fdtaddr=c00000\0"				\
- "fdtfile=8536ds/mpc8536ds.dtb\0"		\
- "bdev=sda3\0"					\
- "hwconfig=usb1:dr_mode=host,phy_type=ulpi\0"
+"netdev=eth0\0"						\
+"uboot=" __stringify(CONFIG_UBOOTPATH) "\0"			\
+"tftpflash=tftpboot $loadaddr $uboot; "			\
+	"protect off " __stringify(CONFIG_SYS_TEXT_BASE)	\
+		" +$filesize; "	\
+	"erase " __stringify(CONFIG_SYS_TEXT_BASE)		\
+		" +$filesize; "	\
+	"cp.b $loadaddr " __stringify(CONFIG_SYS_TEXT_BASE)	\
+		" $filesize; "	\
+	"protect on " __stringify(CONFIG_SYS_TEXT_BASE)		\
+		" +$filesize; "	\
+	"cmp.b $loadaddr " __stringify(CONFIG_SYS_TEXT_BASE)	\
+		" $filesize\0"	\
+"consoledev=ttyS0\0"				\
+"ramdiskaddr=2000000\0"			\
+"ramdiskfile=8536ds/ramdisk.uboot\0"		\
+"fdtaddr=c00000\0"				\
+"fdtfile=8536ds/mpc8536ds.dtb\0"		\
+"bdev=sda3\0"					\
+"hwconfig=usb1:dr_mode=host,phy_type=ulpi\0"
 
 #define CONFIG_HDBOOT				\
  "setenv bootargs root=/dev/$bdev rw "		\

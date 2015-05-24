@@ -3,23 +3,7 @@
  *
  * R/W (V)FAT 12/16/32 filesystem implementation by Donggeun Kim
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -28,6 +12,7 @@
 #include <fat.h>
 #include <asm/byteorder.h>
 #include <part.h>
+#include <linux/ctype.h>
 #include "fat.c"
 
 static void uppercase(char *str, int len)
@@ -35,7 +20,7 @@ static void uppercase(char *str, int len)
 	int i;
 
 	for (i = 0; i < len; i++) {
-		TOUPPER(*str);
+		*str = toupper(*str);
 		str++;
 	}
 }
@@ -119,7 +104,6 @@ static int flush_fat_buffer(fsdata *mydata)
 	__u8 *bufptr = mydata->fatbuf;
 	__u32 startblock = mydata->fatbufnum * FATBUFBLOCKS;
 
-	fatlength *= mydata->sect_size;
 	startblock += mydata->fat_sect;
 
 	if (getsize > fatlength)
@@ -173,11 +157,10 @@ static __u32 get_fatent_value(fsdata *mydata, __u32 entry)
 		/* Unsupported FAT size */
 		return ret;
 	}
-	/* delete by starsoc for debugging */
-	/* 
-		debug("FAT%d: entry: 0x%04x = %d, offset: 0x%04x = %d\n",
+
+	debug("FAT%d: entry: 0x%04x = %d, offset: 0x%04x = %d\n",
 	       mydata->fatsize, entry, entry, offset, offset);
-	*/
+
 	/* Read a new block of FAT entries into the cache. */
 	if (bufnum != mydata->fatbufnum) {
 		int getsize = FATBUFBLOCKS;
@@ -243,15 +226,12 @@ static __u32 get_fatent_value(fsdata *mydata, __u32 entry)
 		}
 		break;
 	}
-	/* delete by starsoc for debugging */
-	/* 
-		debug("FAT%d: ret: %08x, entry: %08x, offset: %04x\n",
-	       	mydata->fatsize, ret, entry, offset);
-	*/
+	debug("FAT%d: ret: %08x, entry: %08x, offset: %04x\n",
+	       mydata->fatsize, ret, entry, offset);
+
 	return ret;
 }
 
-#ifdef CONFIG_SUPPORT_VFAT
 /*
  * Set the file name information from 'name' into 'slotptr',
  */
@@ -331,14 +311,14 @@ static void flush_dir_table(fsdata *mydata, dir_entry **dentptr);
 static void
 fill_dir_slot(fsdata *mydata, dir_entry **dentptr, const char *l_name)
 {
-	dir_slot *slotptr = (dir_slot *)get_vfatname_block;
+	dir_slot *slotptr = (dir_slot *)get_contents_vfatname_block;
 	__u8 counter = 0, checksum;
 	int idx = 0, ret;
 	char s_name[16];
 
 	/* Get short file name and checksum value */
 	strncpy(s_name, (*dentptr)->name, 16);
-	checksum = mkcksum(s_name);
+	checksum = mkcksum((*dentptr)->name, (*dentptr)->ext);
 
 	do {
 		memset(slotptr, 0x00, sizeof(dir_slot));
@@ -376,7 +356,7 @@ static __u32 dir_curclust;
  * a slot) into 'l_name'. If successful also copy the real directory entry
  * into 'retdent'
  * If additional adjacent cluster for directory entries is read into memory,
- * then 'get_vfatname_block' is copied into 'get_dentfromdir_block' and
+ * then 'get_contents_vfatname_block' is copied into 'get_dentfromdir_block' and
  * the location of the real directory entry is returned by 'retdent'
  * Return 0 on success, -1 otherwise.
  */
@@ -419,13 +399,13 @@ get_long_file_name(fsdata *mydata, int curclust, __u8 *cluster,
 
 		dir_curclust = curclust;
 
-		if (get_cluster(mydata, curclust, get_vfatname_block,
+		if (get_cluster(mydata, curclust, get_contents_vfatname_block,
 				mydata->clust_size * mydata->sect_size) != 0) {
 			debug("Error: reading directory block\n");
 			return -1;
 		}
 
-		slotptr2 = (dir_slot *)get_vfatname_block;
+		slotptr2 = (dir_slot *)get_contents_vfatname_block;
 		while (counter > 0) {
 			if (((slotptr2->id & ~LAST_LONG_ENTRY_MASK)
 			    & 0xff) != counter)
@@ -436,7 +416,7 @@ get_long_file_name(fsdata *mydata, int curclust, __u8 *cluster,
 
 		/* Save the real directory entry */
 		realdent = (dir_entry *)slotptr2;
-		while ((__u8 *)slotptr2 > get_vfatname_block) {
+		while ((__u8 *)slotptr2 > get_contents_vfatname_block) {
 			slotptr2--;
 			slot2str(slotptr2, l_name, &idx);
 		}
@@ -462,16 +442,14 @@ get_long_file_name(fsdata *mydata, int curclust, __u8 *cluster,
 	*retdent = realdent;
 
 	if (slotptr2) {
-		memcpy(get_dentfromdir_block, get_vfatname_block,
+		memcpy(get_dentfromdir_block, get_contents_vfatname_block,
 			mydata->clust_size * mydata->sect_size);
-		cur_position = (__u8 *)realdent - get_vfatname_block;
+		cur_position = (__u8 *)realdent - get_contents_vfatname_block;
 		*retdent = (dir_entry *) &get_dentfromdir_block[cur_position];
 	}
 
 	return 0;
 }
-
-#endif
 
 /*
  * Set the entry at index 'entry' in a FAT (16/32) table.
@@ -574,9 +552,11 @@ set_cluster(fsdata *mydata, __u32 clustnum, __u8 *buffer,
 
 	debug("clustnum: %d, startsect: %d\n", clustnum, startsect);
 
-	if (disk_write(startsect, size / mydata->sect_size, buffer) < 0) {
-		debug("Error writing data\n");
-		return -1;
+	if ((size / mydata->sect_size) > 0) {
+		if (disk_write(startsect, size / mydata->sect_size, buffer) < 0) {
+			debug("Error writing data\n");
+			return -1;
+		}
 	}
 
 	if (size % mydata->sect_size) {
@@ -856,16 +836,14 @@ static dir_entry *find_directory_entry(fsdata *mydata, int startsect,
 				continue;
 			}
 			if ((dentptr->attr & ATTR_VOLUME)) {
-#ifdef CONFIG_SUPPORT_VFAT
-				if ((dentptr->attr & ATTR_VFAT) &&
+				if (vfat_enabled &&
+				    (dentptr->attr & ATTR_VFAT) &&
 				    (dentptr->name[0] & LAST_LONG_ENTRY_MASK)) {
 					get_long_file_name(mydata, curclust,
 						     get_dentfromdir_block,
 						     &dentptr, l_name);
 					debug("vfatname: |%s|\n", l_name);
-				} else
-#endif
-				{
+				} else {
 					/* Volume label or VFAT entry */
 					dentptr++;
 					if (is_next_clust(mydata, dentptr))
@@ -983,11 +961,11 @@ static int do_fat_write(const char *filename, void *buffer,
 	if (disk_read(cursect,
 		(mydata->fatsize == 32) ?
 		(mydata->clust_size) :
-		PREFETCH_BLOCKS, do_fat_read_block) < 0) {
+		PREFETCH_BLOCKS, do_fat_read_at_block) < 0) {
 		debug("Error: reading rootdir block\n");
 		goto exit;
 	}
-	dentptr = (dir_entry *) do_fat_read_block;
+	dentptr = (dir_entry *) do_fat_read_at_block;
 
 	name_len = strlen(filename);
 	if (name_len >= VFAT_MAXLEN_BYTES)

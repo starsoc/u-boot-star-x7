@@ -118,6 +118,7 @@
  */
 
 #define	CONFIG_PCI
+#define	CONFIG_PCI_INDIRECT_BRIDGE
 #define	CONFIG_PCI_PNP
 #undef	CONFIG_PCI_SCAN_SHOW
 
@@ -233,7 +234,7 @@
 #define CONFIG_SYS_FLASH_ERASE_TOUT	250000
 #define CONFIG_SYS_FLASH_WRITE_TOUT	5000
 #define CONFIG_SYS_MAX_FLASH_BANKS	1
-#define CONFIG_SYS_MAX_FLASH_SECT	19
+#define CONFIG_SYS_MAX_FLASH_SECT	128
 
 
 /*
@@ -368,7 +369,6 @@
 /*
  * Serial port config
  *
- * CONFIG_SYS_BAUDRATE_TABLE		- List of valid baud rates
  * CONFIG_SYS_NS16550			- Include the NS16550 driver
  * CONFIG_SYS_NS16550_SERIAL		- Include the serial (wrapper) driver
  * CONFIG_SYS_NS16550_CLK		- Frequency of reference clock
@@ -376,7 +376,6 @@
  * CONFIG_SYS_NS16550_COM1		- Base address of 1st serial port
  */
 
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 #define CONFIG_SYS_NS16550
 #define CONFIG_SYS_NS16550_SERIAL
 #define CONFIG_SYS_NS16550_CLK		3686400

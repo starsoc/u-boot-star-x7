@@ -3,23 +3,7 @@
  * Copyright 2007 Embedded Specialties, Inc.
  * Copyright 2004, 2007 Freescale Semiconductor.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -33,6 +17,7 @@
  * Top level Makefile configuration choices
  */
 #ifdef CONFIG_PCI
+#define CONFIG_PCI_INDIRECT_BRIDGE
 #define CONFIG_PCI1
 #endif
 
@@ -434,9 +419,6 @@
 
 /* Use the HUSH parser */
 #define CONFIG_SYS_HUSH_PARSER
-#ifdef	CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2 "> "
-#endif
 
 /* pass open firmware flat tree */
 #define CONFIG_OF_LIBFDT		1
@@ -446,13 +428,12 @@
 /*
  * I2C
  */
-#define CONFIG_FSL_I2C		/* Use FSL common I2C driver */
-#define CONFIG_HARD_I2C		/* I2C with hardware support*/
-#undef	CONFIG_SOFT_I2C		/* I2C bit-banged */
-#define CONFIG_SYS_I2C_SPEED		400000	/* I2C speed and slave address */
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_I2C_FSL
+#define CONFIG_SYS_FSL_I2C_SPEED	400000
+#define CONFIG_SYS_FSL_I2C_SLAVE	0x7F
+#define CONFIG_SYS_FSL_I2C_OFFSET	0x3000
 #define CONFIG_SYS_I2C_EEPROM_ADDR	0x50
-#define CONFIG_SYS_I2C_SLAVE		0x7F
-#define CONFIG_SYS_I2C_OFFSET		0x3000
 
 /*
  * General PCI
@@ -630,19 +611,19 @@
 #define CONFIG_BAUDRATE	115200
 
 #define	CONFIG_EXTRA_ENV_SETTINGS				\
- "netdev=eth0\0"						\
- "uboot=" MK_STR(CONFIG_UBOOTPATH) "\0"				\
- "tftpflash=tftpboot $loadaddr $uboot; "			\
-	"protect off " MK_STR(CONFIG_SYS_TEXT_BASE) " +$filesize; "	\
-	"erase " MK_STR(CONFIG_SYS_TEXT_BASE) " +$filesize; "		\
-	"cp.b $loadaddr " MK_STR(CONFIG_SYS_TEXT_BASE) " $filesize; "	\
-	"protect on " MK_STR(CONFIG_SYS_TEXT_BASE) " +$filesize; "		\
-	"cmp.b $loadaddr " MK_STR(CONFIG_SYS_TEXT_BASE) " $filesize\0"	\
- "consoledev=ttyS0\0"				\
- "ramdiskaddr=2000000\0"			\
- "ramdiskfile=uRamdisk\0"			\
- "fdtaddr=c00000\0"				\
- "fdtfile=sbc8548.dtb\0"
+"netdev=eth0\0"						\
+"uboot=" __stringify(CONFIG_UBOOTPATH) "\0"				\
+"tftpflash=tftpboot $loadaddr $uboot; "			\
+	"protect off " __stringify(CONFIG_SYS_TEXT_BASE) " +$filesize; " \
+	"erase " __stringify(CONFIG_SYS_TEXT_BASE) " +$filesize; "	\
+	"cp.b $loadaddr " __stringify(CONFIG_SYS_TEXT_BASE) " $filesize; " \
+	"protect on " __stringify(CONFIG_SYS_TEXT_BASE) " +$filesize; "	\
+	"cmp.b $loadaddr " __stringify(CONFIG_SYS_TEXT_BASE) " $filesize\0" \
+"consoledev=ttyS0\0"				\
+"ramdiskaddr=2000000\0"			\
+"ramdiskfile=uRamdisk\0"			\
+"fdtaddr=c00000\0"				\
+"fdtfile=sbc8548.dtb\0"
 
 #define CONFIG_NFSBOOTCOMMAND						\
    "setenv bootargs root=/dev/nfs rw "					\

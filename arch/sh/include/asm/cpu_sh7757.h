@@ -1,21 +1,7 @@
 /*
  * Copyright (C) 2011  Renesas Solutions Corp.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
- *
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _ASM_CPU_SH7757_H_
@@ -51,19 +37,7 @@ struct mmu_regs {
 #define SMR0		0xfe470000
 
 /* TMU0 */
-#define TSTR		0xFE430004
-#define TOCR		0xFE430000
-#define TSTR0		0xFE430004
-#define TCOR0		0xFE430008
-#define TCNT0		0xFE43000C
-#define TCR0		0xFE430010
-#define TCOR1		0xFE430014
-#define TCNT1		0xFE430018
-#define TCR1		0xFE43001C
-#define TCOR2		0xFE430020
-#define TCNT2		0xFE430024
-#define TCR2		0xFE430028
-#define TCPR2		0xFE43002C
+#define TMU_BASE    0xFE430000
 
 /* ETHER, GETHER MAC address */
 struct ether_mac_regs {

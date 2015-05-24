@@ -5,23 +5,7 @@
  * based on - Driver for MV64360X ethernet ports
  * Copyright (C) 2002 rabeeh@galileo.co.il
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0
  */
 
 /*
@@ -95,8 +79,6 @@ int mv64360_eth_xmit (struct eth_device *, volatile void *packet, int length);
 #ifndef  UPDATE_STATS_BY_SOFTWARE
 static void mv64360_eth_print_stat (struct eth_device *dev);
 #endif
-/* Processes a received packet */
-extern void NetReceive (volatile uchar *, int);
 
 extern unsigned int INTERNAL_REG_BASE_ADDR;
 
@@ -192,8 +174,7 @@ int db64360_eth_poll (struct eth_device *dev)
 	return mv64360_eth_receive (dev);
 }
 
-int db64360_eth_transmit (struct eth_device *dev, volatile void *packet,
-			  int length)
+int db64360_eth_transmit(struct eth_device *dev, void *packet, int length)
 {
 	mv64360_eth_xmit (dev, packet, length);
 	return 0;
@@ -1044,21 +1025,6 @@ bool db64360_eth_start (struct eth_device *dev)
  * based on Linux code
  * arch/powerpc/galileo/EVB64360/mv64360_eth.c - Driver for MV64360X ethernet ports
  * Copyright (C) 2002 rabeeh@galileo.co.il
-
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
  */
 
 /********************************************************************************

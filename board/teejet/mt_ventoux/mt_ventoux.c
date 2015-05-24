@@ -4,30 +4,22 @@
  *
  * Copyright (C) 2009 TechNexion Ltd.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc.
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
 #include <netdev.h>
+#include <malloc.h>
 #include <fpga.h>
+#include <video_fb.h>
 #include <asm/io.h>
 #include <asm/arch/mem.h>
 #include <asm/arch/mux.h>
 #include <asm/arch/sys_proto.h>
 #include <asm/omap_gpio.h>
 #include <asm/arch/mmc_host_def.h>
+#include <asm/arch/dss.h>
+#include <asm/arch/clock.h>
 #include <i2c.h>
 #include <spartan3.h>
 #include <asm/gpio.h>
@@ -39,6 +31,11 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#define BUZZER		140
+#define SPEAKER		141
+#define USB1_PWR	127
+#define USB2_PWR	149
+
 #ifndef CONFIG_FPGA
 #error "The Teejet mt_ventoux must have CONFIG_FPGA enabled"
 #endif
@@ -49,6 +46,44 @@ DECLARE_GLOBAL_DATA_PTR;
 #define FPGA_DIN	118
 #define FPGA_INIT	119
 #define FPGA_DONE	154
+
+#define LCD_PWR		138
+#define LCD_PON_PIN	139
+
+#if defined(CONFIG_VIDEO) && !defined(CONFIG_SPL_BUILD)
+static struct {
+	u32 xres;
+	u32 yres;
+} panel_resolution[] = {
+	{ 480, 272 },
+	{ 800, 480 }
+};
+
+static struct panel_config lcd_cfg[] = {
+	{
+	.timing_h       = PANEL_TIMING_H(40, 5, 2),
+	.timing_v       = PANEL_TIMING_V(8, 8, 2),
+	.pol_freq       = 0x00003000, /* Pol Freq */
+	.divisor        = 0x00010033, /* 9 Mhz Pixel Clock */
+	.panel_type     = 0x01, /* TFT */
+	.data_lines     = 0x03, /* 24 Bit RGB */
+	.load_mode      = 0x02, /* Frame Mode */
+	.panel_color	= 0,
+	.gfx_format	= GFXFORMAT_RGB24_UNPACKED,
+	},
+	{
+	.timing_h       = PANEL_TIMING_H(20, 192, 4),
+	.timing_v       = PANEL_TIMING_V(2, 20, 10),
+	.pol_freq       = 0x00004000, /* Pol Freq */
+	.divisor        = 0x0001000E, /* 36Mhz Pixel Clock */
+	.panel_type     = 0x01, /* TFT */
+	.data_lines     = 0x03, /* 24 Bit RGB */
+	.load_mode      = 0x02, /* Frame Mode */
+	.panel_color	= 0,
+	.gfx_format	= GFXFORMAT_RGB24_UNPACKED,
+	}
+};
+#endif
 
 /* Timing definitions for FPGA */
 static const u32 gpmc_fpga[] = {
@@ -67,12 +102,12 @@ static struct omap_usbhs_board_data usbhs_bdata = {
 	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
 };
 
-int ehci_hcd_init(void)
+int ehci_hcd_init(int index, struct ehci_hccr **hccr, struct ehci_hcor **hcor)
 {
-	return omap_ehci_hcd_init(&usbhs_bdata);
+	return omap_ehci_hcd_init(&usbhs_bdata, hccr, hcor);
 }
 
-int ehci_hcd_stop(void)
+int ehci_hcd_stop(int index)
 {
 	return omap_ehci_hcd_stop();
 }
@@ -132,9 +167,9 @@ int fpga_post_config_fn(int cookie)
 {
 	debug("%s:%d: FPGA post-configuration\n", __func__, __LINE__);
 
-	fpga_reset(TRUE);
+	fpga_reset(true);
 	udelay(100);
-	fpga_reset(FALSE);
+	fpga_reset(false);
 
 	return 0;
 }
@@ -193,15 +228,46 @@ int board_init(void)
 
 	mt_ventoux_init_fpga();
 
+	/* GPIO_140: speaker #mute */
+	MUX_VAL(CP(MCBSP3_DX),		(IEN | PTU | EN | M4))
+	/* GPIO_141: Buzz Hi */
+	MUX_VAL(CP(MCBSP3_DR),		(IEN  | PTU | EN | M4))
+
+	/* Turning off the buzzer */
+	gpio_request(BUZZER, "BUZZER_MUTE");
+	gpio_request(SPEAKER, "SPEAKER");
+	gpio_direction_output(BUZZER, 0);
+	gpio_direction_output(SPEAKER, 0);
+
+	/* Activate USB power */
+	gpio_request(USB1_PWR, "USB1_PWR");
+	gpio_request(USB2_PWR, "USB2_PWR");
+	gpio_direction_output(USB1_PWR, 1);
+	gpio_direction_output(USB2_PWR, 1);
+
 	return 0;
 }
 
+#ifndef CONFIG_SPL_BUILD
 int misc_init_r(void)
 {
+	char *eth_addr;
+	struct tam3517_module_info info;
+	int ret;
+
+	TAM3517_READ_EEPROM(&info, ret);
 	dieid_num_r();
 
+	if (ret)
+		return 0;
+	eth_addr = getenv("ethaddr");
+	if (!eth_addr)
+		TAM3517_READ_MAC_FROM_EEPROM(&info);
+
+	TAM3517_PRINT_SOM_INFO(&info);
 	return 0;
 }
+#endif
 
 /*
  * Routine: set_muxconf_regs
@@ -228,6 +294,49 @@ int board_eth_init(bd_t *bis)
 	!defined(CONFIG_SPL_BUILD)
 int board_mmc_init(bd_t *bis)
 {
-	return omap_mmc_init(0);
+	return omap_mmc_init(0, 0, 0, -1, -1);
+}
+#endif
+
+#if defined(CONFIG_VIDEO) && !defined(CONFIG_SPL_BUILD)
+int board_video_init(void)
+{
+	struct prcm *prcm_base = (struct prcm *)PRCM_BASE;
+	struct panel_config *panel = &lcd_cfg[0];
+	char *s;
+	u32 index = 0;
+
+	void *fb;
+
+	fb = (void *)0x88000000;
+
+	s = getenv("panel");
+	if (s) {
+		index = simple_strtoul(s, NULL, 10);
+		if (index < ARRAY_SIZE(lcd_cfg))
+			panel = &lcd_cfg[index];
+		else
+			return 0;
+	}
+
+	panel->frame_buffer = fb;
+	printf("Panel: %dx%d\n", panel_resolution[index].xres,
+		panel_resolution[index].yres);
+	panel->lcd_size = (panel_resolution[index].yres - 1) << 16 |
+		(panel_resolution[index].xres - 1);
+
+	gpio_request(LCD_PWR, "LCD Power");
+	gpio_request(LCD_PON_PIN, "LCD Pon");
+	gpio_direction_output(LCD_PWR, 0);
+	gpio_direction_output(LCD_PON_PIN, 1);
+
+
+	setbits_le32(&prcm_base->fclken_dss, FCK_DSS_ON);
+	setbits_le32(&prcm_base->iclken_dss, ICK_DSS_ON);
+
+	omap3_dss_panel_config(panel);
+	omap3_dss_enable();
+
+	return 0;
 }
 #endif

@@ -8,23 +8,7 @@
  * (C) Copyright 2002
  * Gary Jennejohn, DENX Software Engineering, <garyj@denx.de>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -95,7 +79,7 @@ void flush_dcache_all(void)
 	asm volatile("mcr p15, 0, %0, c7, c10, 4" : : "r" (0));
 }
 
-static inline int bad_cache_range(unsigned long start, unsigned long stop)
+static int check_cache_range(unsigned long start, unsigned long stop)
 {
 	int ok = 1;
 
@@ -114,7 +98,7 @@ static inline int bad_cache_range(unsigned long start, unsigned long stop)
 
 void invalidate_dcache_range(unsigned long start, unsigned long stop)
 {
-	if (bad_cache_range(start, stop))
+	if (!check_cache_range(start, stop))
 		return;
 
 	while (start < stop) {
@@ -125,7 +109,7 @@ void invalidate_dcache_range(unsigned long start, unsigned long stop)
 
 void flush_dcache_range(unsigned long start, unsigned long stop)
 {
-	if (bad_cache_range(start, stop))
+	if (!check_cache_range(start, stop))
 		return;
 
 	while (start < stop) {
@@ -139,16 +123,6 @@ void flush_dcache_range(unsigned long start, unsigned long stop)
 void flush_cache(unsigned long start, unsigned long size)
 {
 	flush_dcache_range(start, start + size);
-}
-
-void enable_caches(void)
-{
-#ifndef CONFIG_SYS_ICACHE_OFF
-	icache_enable();
-#endif
-#ifndef CONFIG_SYS_DCACHE_OFF
-	dcache_enable();
-#endif
 }
 
 #else /* #ifndef CONFIG_SYS_DCACHE_OFF */
@@ -172,3 +146,15 @@ void flush_cache(unsigned long start, unsigned long size)
 {
 }
 #endif /* #ifndef CONFIG_SYS_DCACHE_OFF */
+
+#if !defined(CONFIG_SYS_ICACHE_OFF) || !defined(CONFIG_SYS_DCACHE_OFF)
+void enable_caches(void)
+{
+#ifndef CONFIG_SYS_ICACHE_OFF
+	icache_enable();
+#endif
+#ifndef CONFIG_SYS_DCACHE_OFF
+	dcache_enable();
+#endif
+}
+#endif

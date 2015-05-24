@@ -3,20 +3,7 @@
  *
  * Dave Liu <daveliu@freescale.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include "common.h"
@@ -580,8 +567,7 @@ static void phy_change(struct eth_device *dev)
 {
 	uec_private_t	*uec = (uec_private_t *)dev->priv;
 
-#if defined(CONFIG_P1012) || defined(CONFIG_P1016) || \
-    defined(CONFIG_P1021) || defined(CONFIG_P1025)
+#if defined(CONFIG_P1012) || defined(CONFIG_P1021) || defined(CONFIG_P1025)
 	ccsr_gur_t *gur = (void *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
 
 	/* QE9 and QE12 need to be set for enabling QE MII managment signals */
@@ -592,8 +578,7 @@ static void phy_change(struct eth_device *dev)
 	/* Update the link, speed, duplex */
 	uec->mii_info->phyinfo->read_status(uec->mii_info);
 
-#if defined(CONFIG_P1012) || defined(CONFIG_P1016) || \
-    defined(CONFIG_P1021) || defined(CONFIG_P1025)
+#if defined(CONFIG_P1012) || defined(CONFIG_P1021) || defined(CONFIG_P1025)
 	/*
 	 * QE12 is muxed with LBCTL, it needs to be released for enabling
 	 * LBCTL signal for LBC usage.
@@ -1208,16 +1193,14 @@ static int uec_init(struct eth_device* dev, bd_t *bd)
 	uec_private_t		*uec;
 	int			err, i;
 	struct phy_info         *curphy;
-#if defined(CONFIG_P1012) || defined(CONFIG_P1016) || \
-    defined(CONFIG_P1021) || defined(CONFIG_P1025)
+#if defined(CONFIG_P1012) || defined(CONFIG_P1021) || defined(CONFIG_P1025)
 	ccsr_gur_t *gur = (void *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
 #endif
 
 	uec = (uec_private_t *)dev->priv;
 
 	if (uec->the_first_run == 0) {
-#if defined(CONFIG_P1012) || defined(CONFIG_P1016) || \
-    defined(CONFIG_P1021) || defined(CONFIG_P1025)
+#if defined(CONFIG_P1012) || defined(CONFIG_P1021) || defined(CONFIG_P1025)
 	/* QE9 and QE12 need to be set for enabling QE MII managment signals */
 	setbits_be32(&gur->pmuxcr, MPC85xx_PMUXCR_QE9);
 	setbits_be32(&gur->pmuxcr, MPC85xx_PMUXCR_QE12);
@@ -1249,8 +1232,7 @@ static int uec_init(struct eth_device* dev, bd_t *bd)
 			udelay(100000);
 		} while (1);
 
-#if defined(CONFIG_P1012) || defined(CONFIG_P1016) || \
-    defined(CONFIG_P1021) || defined(CONFIG_P1025)
+#if defined(CONFIG_P1012) || defined(CONFIG_P1021) || defined(CONFIG_P1025)
 		/* QE12 needs to be released for enabling LBCTL signal*/
 		clrbits_be32(&gur->pmuxcr, MPC85xx_PMUXCR_QE12);
 #endif
@@ -1288,7 +1270,7 @@ static void uec_halt(struct eth_device* dev)
 	uec_stop(uec, COMM_DIR_RX_AND_TX);
 }
 
-static int uec_send(struct eth_device* dev, volatile void *buf, int len)
+static int uec_send(struct eth_device *dev, void *buf, int len)
 {
 	uec_private_t		*uec;
 	ucc_fast_private_t	*uccf;

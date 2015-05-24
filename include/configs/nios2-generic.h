@@ -3,23 +3,7 @@
  * Scott McNutt <smcnutt@psyent.com>
  * (C) Copyright 2010, Thomas Chou <thomas@wytron.com.tw>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -68,6 +52,7 @@
 #define CONFIG_SYS_ALTERA_PIO_GPIO_NUM	LED_PIO_WIDTH
 
 #define CONFIG_STATUS_LED		/* Enable status driver */
+#define CONFIG_BOARD_SPECIFIC_LED
 #define CONFIG_GPIO_LED		/* Enable GPIO LED driver */
 #define CONFIG_GPIO			/* Enable GPIO driver */
 
@@ -117,10 +102,9 @@
 
 /*
  * MEMORY ORGANIZATION
- *	-Monitor at top of sdram.
- *	-The heap is placed below the monitor
- *	-Global data is placed below the heap.
- *	-The stack is placed below global data (&grows down).
+ * -Monitor at top of sdram.
+ * -The heap is placed below the monitor
+ * -The stack is placed below the heap (&grows down).
  */
 #define CONFIG_MONITOR_IS_IN_RAM
 #define CONFIG_SYS_MONITOR_LEN		0x40000	/* Reserve 256k */
@@ -130,10 +114,7 @@
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 0x20000)
 #define CONFIG_SYS_MALLOC_BASE		(CONFIG_SYS_MONITOR_BASE - \
 					 CONFIG_SYS_MALLOC_LEN)
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_MALLOC_BASE - \
-					 GENERATED_GBL_DATA_SIZE - \
-					 GENERATED_BD_INFO_SIZE)
-#define CONFIG_SYS_INIT_SP		CONFIG_SYS_GBL_DATA_OFFSET
+#define CONFIG_SYS_INIT_SP		CONFIG_SYS_MALLOC_BASE
 
 /*
  * MISC
@@ -152,6 +133,5 @@
 #define CONFIG_CMDLINE_EDITING
 
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 #endif /* __CONFIG_H */

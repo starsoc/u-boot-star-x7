@@ -3,20 +3,7 @@
  *
  * SH7724 Internal I/O register
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _ASM_CPU_SH7724_H_
@@ -116,16 +103,7 @@
 #define WTCNT		RWTCNT
 
 /* TMU */
-#define TSTR        0xFFD80004
-#define TCOR0       0xFFD80008
-#define TCNT0       0xFFD8000C
-#define TCR0        0xFFD80010
-#define TCOR1       0xFFD80014
-#define TCNT1       0xFFD80018
-#define TCR1        0xFFD8001C
-#define TCOR2       0xFFD80020
-#define TCNT2       0xFFD80024
-#define TCR2        0xFFD80028
+#define TMU_BASE	0xFFD80000
 
 /* TPU */
 

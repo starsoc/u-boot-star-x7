@@ -2,23 +2,7 @@
  * (C) Copyright 2007 - 2008
  * Heiko Schocher, DENX Software Engineering, hs@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -31,10 +15,7 @@
 #include <libfdt.h>
 #endif
 
-#if defined(CONFIG_HARD_I2C) || defined(CONFIG_SOFT_I2C)
 #include <i2c.h>
-#endif
-
 #include "../common/common.h"
 
 /*
@@ -261,6 +242,54 @@ static long int try_init(memctl8260_t *memctl, ulong sdmr,
 	return size;
 }
 
+#ifdef CONFIG_SYS_SDRAM_LIST
+
+/*
+ * If CONFIG_SYS_SDRAM_LIST is defined, we cycle through all SDRAM
+ * configurations therein (should be from high to lower) to find the
+ * one actually matching the current configuration.
+ * CONFIG_SYS_PSDMR and CONFIG_SYS_OR1 will contain the base values which are
+ * common among all possible configurations; values in CONFIG_SYS_SDRAM_LIST
+ * (defined as the initialization value for the array of struct sdram_conf_s)
+ * will then be ORed with such base values.
+ */
+
+struct sdram_conf_s {
+	ulong size;
+	int or1;
+	int psdmr;
+};
+
+static struct sdram_conf_s sdram_conf[] = CONFIG_SYS_SDRAM_LIST;
+
+static long probe_sdram(memctl8260_t *memctl)
+{
+	int n = 0;
+	long psize = 0;
+
+	for (n = 0; n < ARRAY_SIZE(sdram_conf); psize = 0, n++) {
+		psize = try_init(memctl,
+			CONFIG_SYS_PSDMR | sdram_conf[n].psdmr,
+			CONFIG_SYS_OR1 | sdram_conf[n].or1,
+			(uchar *) CONFIG_SYS_SDRAM_BASE);
+		debug("Probing %ld bytes returned %ld\n",
+			sdram_conf[n].size, psize);
+		if (psize == sdram_conf[n].size)
+			break;
+	}
+	return psize;
+}
+
+#else /* CONFIG_SYS_SDRAM_LIST */
+
+static long probe_sdram(memctl8260_t *memctl)
+{
+	return try_init(memctl, CONFIG_SYS_PSDMR, CONFIG_SYS_OR1,
+					(uchar *) CONFIG_SYS_SDRAM_BASE);
+}
+#endif /* CONFIG_SYS_SDRAM_LIST */
+
+
 phys_size_t initdram(int board_type)
 {
 	immap_t *immap = (immap_t *) CONFIG_SYS_IMMR;
@@ -274,8 +303,7 @@ phys_size_t initdram(int board_type)
 #ifndef CONFIG_SYS_RAMBOOT
 	/* 60x SDRAM setup:
 	 */
-	psize = try_init(memctl, CONFIG_SYS_PSDMR, CONFIG_SYS_OR1,
-				  (uchar *) CONFIG_SYS_SDRAM_BASE);
+	psize = probe_sdram(memctl);
 #endif /* CONFIG_SYS_RAMBOOT */
 
 	icache_enable();
@@ -323,7 +351,7 @@ static void set_pin(int state, unsigned long mask);
  * will toggle once what forces the mgocge3un part to restart
  * immediately.
  */
-void handle_mgcoge3un_reset(void)
+static void handle_mgcoge3un_reset(void)
 {
 	char *bobcatreset = getenv("bobcatreset");
 	if (bobcatreset) {
@@ -337,6 +365,14 @@ void handle_mgcoge3un_reset(void)
 	}
 }
 #endif
+
+int ethernet_present(void)
+{
+	struct km_bec_fpga *base =
+		(struct km_bec_fpga *)CONFIG_SYS_KMBEC_FPGA_BASE;
+
+	return in_8(&base->bprth) & PIGGY_PRESENT;
+}
 
 /*
  * Early board initalization.

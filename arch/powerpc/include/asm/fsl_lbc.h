@@ -1,13 +1,7 @@
 /*
  * Copyright (C) 2004-2008,2010-2011 Freescale Semiconductor, Inc.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __ASM_PPC_FSL_LBC_H
@@ -82,10 +76,10 @@ void lbc_sdram_init(void);
 
 /* Convert an address into the right format for the BR registers */
 #if defined(CONFIG_PHYS_64BIT) && !defined(CONFIG_FSL_ELBC)
-#define BR_PHYS_ADDR(x)	((unsigned long)((x & 0x0ffff8000ULL) | \
-					 ((x & 0x300000000ULL) >> 19)))
+#define BR_PHYS_ADDR(x)	\
+	((u32)(((x) & 0x0ffff8000ULL) | (((x) & 0x300000000ULL) >> 19)))
 #else
-#define BR_PHYS_ADDR(x) (x & 0xffff8000)
+#define BR_PHYS_ADDR(x) ((u32)(x) & 0xffff8000)
 #endif
 
 /* OR - Option Registers

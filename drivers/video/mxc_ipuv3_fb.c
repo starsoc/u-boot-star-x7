@@ -8,23 +8,7 @@
  *
  * (C) Copyright 2004-2010 Freescale Semiconductor, Inc.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -38,13 +22,14 @@
 #include "videomodes.h"
 #include "ipu.h"
 #include "mxcfb.h"
+#include "ipu_regs.h"
 
 static int mxcfb_map_video_memory(struct fb_info *fbi);
 static int mxcfb_unmap_video_memory(struct fb_info *fbi);
 
 /* graphics setup */
 static GraphicDevice panel;
-static struct fb_videomode *gmode;
+static struct fb_videomode const *gmode;
 static uint8_t gdisp;
 static uint32_t gpixfmt;
 
@@ -414,8 +399,9 @@ static int mxcfb_map_video_memory(struct fb_info *fbi)
 		fbi->fix.smem_len = fbi->var.yres_virtual *
 				    fbi->fix.line_length;
 	}
-
-	fbi->screen_base = (char *)malloc(fbi->fix.smem_len);
+	fbi->fix.smem_len = roundup(fbi->fix.smem_len, ARCH_DMA_MINALIGN);
+	fbi->screen_base = (char *)memalign(ARCH_DMA_MINALIGN,
+					    fbi->fix.smem_len);
 	fbi->fix.smem_start = (unsigned long)fbi->screen_base;
 	if (fbi->screen_base == 0) {
 		puts("Unable to allocate framebuffer memory\n");
@@ -502,7 +488,7 @@ static struct fb_info *mxcfb_init_fbinfo(void)
  * @return      Appropriate error code to the kernel common code
  */
 static int mxcfb_probe(u32 interface_pix_fmt, uint8_t disp,
-			struct fb_videomode *mode)
+			struct fb_videomode const *mode)
 {
 	struct fb_info *fbi;
 	struct mxcfb_info *mxcfbi;
@@ -576,6 +562,25 @@ err0:
 	return ret;
 }
 
+void ipuv3_fb_shutdown(void)
+{
+	int i;
+	struct ipu_stat *stat = (struct ipu_stat *)IPU_STAT;
+
+	for (i = 0; i < ARRAY_SIZE(mxcfb_info); i++) {
+		struct fb_info *fbi = mxcfb_info[i];
+		if (fbi) {
+			struct mxcfb_info *mxc_fbi = fbi->par;
+			ipu_disable_channel(mxc_fbi->ipu_ch);
+			ipu_uninit_channel(mxc_fbi->ipu_ch);
+		}
+	}
+	for (i = 0; i < ARRAY_SIZE(stat->int_stat); i++) {
+		__raw_writel(__raw_readl(&stat->int_stat[i]),
+			     &stat->int_stat[i]);
+	}
+}
+
 void *video_hw_init(void)
 {
 	int ret;
@@ -599,7 +604,9 @@ void video_set_lut(unsigned int index, /* color number */
 	return;
 }
 
-int mx51_fb_init(struct fb_videomode *mode, uint8_t disp, uint32_t pixfmt)
+int ipuv3_fb_init(struct fb_videomode const *mode,
+		  uint8_t disp,
+		  uint32_t pixfmt)
 {
 	gmode = mode;
 	gdisp = disp;

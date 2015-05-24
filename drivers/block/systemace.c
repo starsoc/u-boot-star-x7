@@ -2,20 +2,7 @@
  * Copyright (c) 2004 Picture Elements, Inc.
  *    Stephen Williams (XXXXXXXXXXXXXXXX)
  *
- *    This source code is free software; you can redistribute it
- *    and/or modify it in source code form under the terms of the GNU
- *    General Public License as published by the Free Software
- *    Foundation; either version 2 of the License, or (at your option)
- *    any later version.
- *
- *    This program is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    GNU General Public License for more details.
- *
- *    You should have received a copy of the GNU General Public License
- *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -51,27 +38,39 @@
  * to be the base address for the chip, usually in the local
  * peripheral bus.
  */
-#if (CONFIG_SYS_SYSTEMACE_WIDTH == 8)
-#if !defined(__BIG_ENDIAN)
-#define ace_readw(off) ((readb(CONFIG_SYS_SYSTEMACE_BASE+off)<<8) | \
-			(readb(CONFIG_SYS_SYSTEMACE_BASE+off+1)))
-#define ace_writew(val, off) {writeb(val>>8, CONFIG_SYS_SYSTEMACE_BASE+off); \
-			      writeb(val, CONFIG_SYS_SYSTEMACE_BASE+off+1);}
-#else
-#define ace_readw(off) ((readb(CONFIG_SYS_SYSTEMACE_BASE+off)) | \
-			(readb(CONFIG_SYS_SYSTEMACE_BASE+off+1)<<8))
-#define ace_writew(val, off) {writeb(val, CONFIG_SYS_SYSTEMACE_BASE+off); \
-			      writeb(val>>8, CONFIG_SYS_SYSTEMACE_BASE+off+1);}
-#endif
-#else
-#define ace_readw(off) (in16(CONFIG_SYS_SYSTEMACE_BASE+off))
-#define ace_writew(val, off) (out16(CONFIG_SYS_SYSTEMACE_BASE+off,val))
-#endif
 
-/* */
+static u32 base = CONFIG_SYS_SYSTEMACE_BASE;
+static u32 width = CONFIG_SYS_SYSTEMACE_WIDTH;
+
+static void ace_writew(u16 val, unsigned off)
+{
+	if (width == 8) {
+#if !defined(__BIG_ENDIAN)
+		writeb(val >> 8, base + off);
+		writeb(val, base + off + 1);
+#else
+		writeb(val, base + off);
+		writeb(val >> 8, base + off + 1);
+#endif
+	} else
+		out16(base + off, val);
+}
+
+static u16 ace_readw(unsigned off)
+{
+	if (width == 8) {
+#if !defined(__BIG_ENDIAN)
+		return (readb(base + off) << 8) | readb(base + off + 1);
+#else
+		return readb(base + off) | (readb(base + off + 1) << 8);
+#endif
+	}
+
+	return in16(base + off);
+}
 
 static unsigned long systemace_read(int dev, unsigned long start,
-				    unsigned long blkcnt, void *buffer);
+					lbaint_t blkcnt, void *buffer);
 
 static block_dev_desc_t systemace_dev = { 0 };
 
@@ -115,13 +114,14 @@ block_dev_desc_t *systemace_get_dev(int dev)
 		systemace_dev.part_type = PART_TYPE_UNKNOWN;
 		systemace_dev.type = DEV_TYPE_HARDDISK;
 		systemace_dev.blksz = 512;
+		systemace_dev.log2blksz = LOG2(systemace_dev.blksz);
 		systemace_dev.removable = 1;
 		systemace_dev.block_read = systemace_read;
 
 		/*
 		 * Ensure the correct bus mode (8/16 bits) gets enabled
 		 */
-		ace_writew(CONFIG_SYS_SYSTEMACE_WIDTH == 8 ? 0 : 0x0001, 0);
+		ace_writew(width == 8 ? 0 : 0x0001, 0);
 
 		init_part(&systemace_dev);
 
@@ -137,7 +137,7 @@ block_dev_desc_t *systemace_get_dev(int dev)
  * number of blocks read. A zero return indicates an error.
  */
 static unsigned long systemace_read(int dev, unsigned long start,
-				    unsigned long blkcnt, void *buffer)
+					lbaint_t blkcnt, void *buffer)
 {
 	int retry;
 	unsigned blk_countdown;

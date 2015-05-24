@@ -5,15 +5,7 @@
  *
  * Copyright (C) 2011, Texas Instruments, Incorporated - http://www.ti.com/
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR /PURPOSE.  See the
- * GNU General Public License for more details.
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -21,14 +13,11 @@
 #include <asm/arch/ddr_defs.h>
 #include <asm/arch/hardware.h>
 #include <asm/arch/clock.h>
+#include <asm/arch/sys_proto.h>
 #include <asm/io.h>
+#include <asm/emif.h>
 
 DECLARE_GLOBAL_DATA_PTR;
-
-struct ddr_regs *ddrregs = (struct ddr_regs *)DDR_PHY_BASE_ADDR;
-struct vtp_reg *vtpreg = (struct vtp_reg *)VTP0_CTRL_ADDR;
-struct ddr_ctrl *ddrctrl = (struct ddr_ctrl *)DDR_CTRL_ADDR;
-
 
 int dram_init(void)
 {
@@ -46,156 +35,79 @@ void dram_init_banksize(void)
 }
 
 
-#ifdef CONFIG_SPL_BUILD
-static void data_macro_config(int dataMacroNum)
+#if defined(CONFIG_SPL_BUILD) || defined(CONFIG_NOR_BOOT)
+#ifdef CONFIG_TI81XX
+static struct dmm_lisa_map_regs *hw_lisa_map_regs =
+				(struct dmm_lisa_map_regs *)DMM_BASE;
+#endif
+#ifndef CONFIG_TI816X
+static struct vtp_reg *vtpreg[2] = {
+				(struct vtp_reg *)VTP0_CTRL_ADDR,
+				(struct vtp_reg *)VTP1_CTRL_ADDR};
+#endif
+#ifdef CONFIG_AM33XX
+static struct ddr_ctrl *ddrctrl = (struct ddr_ctrl *)DDR_CTRL_ADDR;
+#endif
+
+#ifdef CONFIG_TI81XX
+void config_dmm(const struct dmm_lisa_map_regs *regs)
 {
-	struct ddr_data data;
+	enable_dmm_clocks();
 
-	data.datardsratio0 = ((DDR2_RD_DQS<<30)|(DDR2_RD_DQS<<20)
-				|(DDR2_RD_DQS<<10)|(DDR2_RD_DQS<<0));
-	data.datardsratio1 = DDR2_RD_DQS>>2;
-	data.datawdsratio0 = ((DDR2_WR_DQS<<30)|(DDR2_WR_DQS<<20)
-				|(DDR2_WR_DQS<<10)|(DDR2_WR_DQS<<0));
-	data.datawdsratio1 = DDR2_WR_DQS>>2;
-	data.datawiratio0 = ((DDR2_PHY_WRLVL<<30)|(DDR2_PHY_WRLVL<<20)
-				|(DDR2_PHY_WRLVL<<10)|(DDR2_PHY_WRLVL<<0));
-	data.datawiratio1 = DDR2_PHY_WRLVL>>2;
-	data.datagiratio0 = ((DDR2_PHY_GATELVL<<30)|(DDR2_PHY_GATELVL<<20)
-				|(DDR2_PHY_GATELVL<<10)|(DDR2_PHY_GATELVL<<0));
-	data.datagiratio1 = DDR2_PHY_GATELVL>>2;
-	data.datafwsratio0 = ((DDR2_PHY_FIFO_WE<<30)|(DDR2_PHY_FIFO_WE<<20)
-				|(DDR2_PHY_FIFO_WE<<10)|(DDR2_PHY_FIFO_WE<<0));
-	data.datafwsratio1 = DDR2_PHY_FIFO_WE>>2;
-	data.datawrsratio0 = ((DDR2_PHY_WR_DATA<<30)|(DDR2_PHY_WR_DATA<<20)
-				|(DDR2_PHY_WR_DATA<<10)|(DDR2_PHY_WR_DATA<<0));
-	data.datawrsratio1 = DDR2_PHY_WR_DATA>>2;
-	data.datadldiff0 = PHY_DLL_LOCK_DIFF;
+	writel(0, &hw_lisa_map_regs->dmm_lisa_map_3);
+	writel(0, &hw_lisa_map_regs->dmm_lisa_map_2);
+	writel(0, &hw_lisa_map_regs->dmm_lisa_map_1);
+	writel(0, &hw_lisa_map_regs->dmm_lisa_map_0);
 
-	config_ddr_data(dataMacroNum, &data);
+	writel(regs->dmm_lisa_map_3, &hw_lisa_map_regs->dmm_lisa_map_3);
+	writel(regs->dmm_lisa_map_2, &hw_lisa_map_regs->dmm_lisa_map_2);
+	writel(regs->dmm_lisa_map_1, &hw_lisa_map_regs->dmm_lisa_map_1);
+	writel(regs->dmm_lisa_map_0, &hw_lisa_map_regs->dmm_lisa_map_0);
 }
+#endif
 
-static void cmd_macro_config(void)
+#ifndef CONFIG_TI816X
+static void config_vtp(int nr)
 {
-	struct cmd_control cmd;
-
-	cmd.cmd0csratio = DDR2_RATIO;
-	cmd.cmd0csforce = CMD_FORCE;
-	cmd.cmd0csdelay = CMD_DELAY;
-	cmd.cmd0dldiff = DDR2_DLL_LOCK_DIFF;
-	cmd.cmd0iclkout = DDR2_INVERT_CLKOUT;
-
-	cmd.cmd1csratio = DDR2_RATIO;
-	cmd.cmd1csforce = CMD_FORCE;
-	cmd.cmd1csdelay = CMD_DELAY;
-	cmd.cmd1dldiff = DDR2_DLL_LOCK_DIFF;
-	cmd.cmd1iclkout = DDR2_INVERT_CLKOUT;
-
-	cmd.cmd2csratio = DDR2_RATIO;
-	cmd.cmd2csforce = CMD_FORCE;
-	cmd.cmd2csdelay = CMD_DELAY;
-	cmd.cmd2dldiff = DDR2_DLL_LOCK_DIFF;
-	cmd.cmd2iclkout = DDR2_INVERT_CLKOUT;
-
-	config_cmd_ctrl(&cmd);
-
-}
-
-static void config_vtp(void)
-{
-	writel(readl(&vtpreg->vtp0ctrlreg) | VTP_CTRL_ENABLE,
-			&vtpreg->vtp0ctrlreg);
-	writel(readl(&vtpreg->vtp0ctrlreg) & (~VTP_CTRL_START_EN),
-			&vtpreg->vtp0ctrlreg);
-	writel(readl(&vtpreg->vtp0ctrlreg) | VTP_CTRL_START_EN,
-			&vtpreg->vtp0ctrlreg);
+	writel(readl(&vtpreg[nr]->vtp0ctrlreg) | VTP_CTRL_ENABLE,
+			&vtpreg[nr]->vtp0ctrlreg);
+	writel(readl(&vtpreg[nr]->vtp0ctrlreg) & (~VTP_CTRL_START_EN),
+			&vtpreg[nr]->vtp0ctrlreg);
+	writel(readl(&vtpreg[nr]->vtp0ctrlreg) | VTP_CTRL_START_EN,
+			&vtpreg[nr]->vtp0ctrlreg);
 
 	/* Poll for READY */
-	while ((readl(&vtpreg->vtp0ctrlreg) & VTP_CTRL_READY) !=
+	while ((readl(&vtpreg[nr]->vtp0ctrlreg) & VTP_CTRL_READY) !=
 			VTP_CTRL_READY)
 		;
 }
+#endif
 
-static void config_emif_ddr2(void)
+void __weak ddr_pll_config(unsigned int ddrpll_m)
 {
-	int i;
-	int ret;
-	struct sdram_config cfg;
-	struct sdram_timing tmg;
-	struct ddr_phy_control phyc;
-
-	/*Program EMIF0 CFG Registers*/
-	phyc.reg = EMIF_READ_LATENCY;
-	phyc.reg_sh = EMIF_READ_LATENCY;
-	phyc.reg2 = EMIF_READ_LATENCY;
-
-	tmg.time1 = EMIF_TIM1;
-	tmg.time1_sh = EMIF_TIM1;
-	tmg.time2 = EMIF_TIM2;
-	tmg.time2_sh = EMIF_TIM2;
-	tmg.time3 = EMIF_TIM3;
-	tmg.time3_sh = EMIF_TIM3;
-
-	cfg.sdrcr = EMIF_SDCFG;
-	cfg.sdrcr2 = EMIF_SDCFG;
-	cfg.refresh = 0x00004650;
-	cfg.refresh_sh = 0x00004650;
-
-	/* Program EMIF instance */
-	ret = config_ddr_phy(&phyc);
-	if (ret < 0)
-		printf("Couldn't configure phyc\n");
-
-	ret = config_sdram(&cfg);
-	if (ret < 0)
-		printf("Couldn't configure SDRAM\n");
-
-	ret = set_sdram_timings(&tmg);
-	if (ret < 0)
-		printf("Couldn't configure timings\n");
-
-	/* Delay */
-	for (i = 0; i < 5000; i++)
-		;
-
-	cfg.refresh = EMIF_SDREF;
-	cfg.refresh_sh = EMIF_SDREF;
-	cfg.sdrcr = EMIF_SDCFG;
-	cfg.sdrcr2 = EMIF_SDCFG;
-
-	ret = config_sdram(&cfg);
-	if (ret < 0)
-		printf("Couldn't configure SDRAM\n");
 }
 
-void config_ddr(void)
+void config_ddr(unsigned int pll, unsigned int ioctrl,
+		const struct ddr_data *data, const struct cmd_control *ctrl,
+		const struct emif_regs *regs, int nr)
 {
-	int data_macro_0 = 0;
-	int data_macro_1 = 1;
-	struct ddr_ioctrl ioctrl;
+	ddr_pll_config(pll);
+#ifndef CONFIG_TI816X
+	config_vtp(nr);
+#endif
+	config_cmd_ctrl(ctrl, nr);
 
-	enable_emif_clocks();
+	config_ddr_data(data, nr);
+#ifdef CONFIG_AM33XX
+	config_io_ctrl(ioctrl);
 
-	config_vtp();
+	/* Set CKE to be controlled by EMIF/DDR PHY */
+	writel(DDR_CKE_CTRL_NORMAL, &ddrctrl->ddrckectrl);
+#endif
 
-	cmd_macro_config();
-
-	data_macro_config(data_macro_0);
-	data_macro_config(data_macro_1);
-
-	writel(PHY_RANK0_DELAY, &ddrregs->dt0rdelays0);
-	writel(PHY_RANK0_DELAY, &ddrregs->dt1rdelays0);
-
-	ioctrl.cmd1ctl = DDR_IOCTRL_VALUE;
-	ioctrl.cmd2ctl = DDR_IOCTRL_VALUE;
-	ioctrl.cmd3ctl = DDR_IOCTRL_VALUE;
-	ioctrl.data1ctl = DDR_IOCTRL_VALUE;
-	ioctrl.data2ctl = DDR_IOCTRL_VALUE;
-
-	config_io_ctrl(&ioctrl);
-
-	writel(readl(&ddrctrl->ddrioctrl) & 0xefffffff, &ddrctrl->ddrioctrl);
-	writel(readl(&ddrctrl->ddrckectrl) | 0x00000001, &ddrctrl->ddrckectrl);
-
-	config_emif_ddr2();
+	/* Program EMIF instance */
+	config_ddr_phy(regs, nr);
+	set_sdram_timings(regs, nr);
+	config_sdram(regs, nr);
 }
 #endif

@@ -7,19 +7,7 @@
  * Copyright (C) 2009 Nick Thompson, GE Fanuc, Ltd. <nick.thompson@gefanuc.com>
  * Copyright (C) 2007 Sergey Kubushyn <ksi@koi8.net>
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -155,34 +143,5 @@ int board_eth_init(bd_t *bis)
 void hw_watchdog_reset(void)
 {
 	davinci_hw_watchdog_reset();
-}
-#endif
-
-#if defined(CONFIG_BOOTCOUNT_LIMIT)
-void bootcount_store(ulong a)
-{
-	struct davinci_rtc *reg =
-		(struct davinci_rtc *)CONFIG_SYS_BOOTCOUNT_ADDR;
-
-	/*
-	 * write RTC kick register to enable write
-	 * for RTC Scratch registers. Scratch0 and 1 are
-	 * used for bootcount values.
-	 */
-	writel(RTC_KICK0R_WE, &reg->kick0r);
-	writel(RTC_KICK1R_WE, &reg->kick1r);
-	writel(a, &reg->scratch0);
-	writel(BOOTCOUNT_MAGIC, &reg->scratch1);
-}
-
-ulong bootcount_load(void)
-{
-	struct davinci_rtc *reg =
-		(struct davinci_rtc *)CONFIG_SYS_BOOTCOUNT_ADDR;
-
-	if (readl(&reg->scratch1) != BOOTCOUNT_MAGIC)
-		return 0;
-	else
-		return readl(&reg->scratch0);
 }
 #endif

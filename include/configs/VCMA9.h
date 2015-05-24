@@ -7,23 +7,7 @@
  *
  * Configuation settings for the MPL VCMA9 board.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -48,8 +32,6 @@
 
 /* input clock of PLL (VCMA9 has 12MHz input clock) */
 #define CONFIG_SYS_CLK_FREQ	12000000
-
-#undef CONFIG_USE_IRQ		/* we don't need IRQ/FIQ stuff */
 
 #define CONFIG_CMDLINE_TAG	/* enable passing of ATAGs */
 #define CONFIG_SETUP_MEMORY_TAGS
@@ -79,11 +61,11 @@
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_BSP
 #define CONFIG_CMD_NAND
+#define CONFIG_CMD_NAND_YAFFS
 
 #define CONFIG_BOARD_LATE_INIT
 
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2 "> "
 #define CONFIG_CMDLINE_EDITING
 
 /*
@@ -127,6 +109,7 @@
 
 /* USB support (currently only works with D-cache off) */
 #define CONFIG_USB_OHCI
+#define CONFIG_USB_OHCI_S3C24XX
 #define CONFIG_USB_KEYBOARD
 #define CONFIG_USB_STORAGE
 #define CONFIG_DOS_PARTITION
@@ -181,9 +164,6 @@
 /* we configure PWM Timer 4 to 1ms 1000Hz  */
 #define CONFIG_SYS_HZ			1000
 
-/* valid baudrates */
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
-
 /* support additional compression methods */
 #define CONFIG_BZIP2
 #define CONFIG_LZO
@@ -194,16 +174,6 @@
 #define VERSION_TAG "unstable"
 #define CONFIG_IDENT_STRING "\n(c) 2003 - 2011 by MPL AG Switzerland, " \
 			    "MEV-10080-001 " VERSION_TAG
-
-/*
- * Stack sizes
- * The stack sizes are set up in start.S using the settings below
- */
-#define CONFIG_STACKSIZE	(128 * 1024)	/* regular stack */
-#ifdef CONFIG_USE_IRQ
-#define CONFIG_STACKSIZE_IRQ	(4 * 1024)	/* IRQ stack */
-#define CONFIG_STACKSIZE_FIQ	(4 * 1024)	/* FIQ stack */
-#endif
 
 /* Physical Memory Map */
 #define CONFIG_NR_DRAM_BANKS	1		/* we have 1 bank of DRAM */

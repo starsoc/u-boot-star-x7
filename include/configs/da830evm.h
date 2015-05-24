@@ -5,20 +5,7 @@
  *
  * Copyright (C) 2007 Sergey Kubushyn <ksi@koi8.net>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -36,6 +23,7 @@
 #define CONFIG_MACH_DAVINCI_DA830_EVM
 #define CONFIG_ARM926EJS		/* arm926ejs CPU core */
 #define CONFIG_SOC_DA8XX		/* TI DA8xx SoC */
+#define CONFIG_SOC_DA830		/* TI DA830 SoC */
 #define CONFIG_SYS_CLK_FREQ		clk_get(DAVINCI_ARM_CLKID)
 #define CONFIG_SYS_OSCIN_FREQ		24000000
 #define CONFIG_SYS_TIMERBASE		DAVINCI_TIMER0_BASE
@@ -53,7 +41,6 @@
 #define CONFIG_SYS_MEMTEST_END		(CONFIG_SYS_MEMTEST_START + \
 						(32 << 20))
 #define CONFIG_NR_DRAM_BANKS	1 /* we have 1 bank of DRAM */
-#define CONFIG_STACKSIZE	(256*1024) /* regular stack */
 
 /*
  * Serial Driver info
@@ -65,7 +52,6 @@
 #define CONFIG_SYS_NS16550_CLK	clk_get(DAVINCI_UART2_CLKID)
 #define CONFIG_CONS_INDEX	1		/* use UART0 for console */
 #define CONFIG_BAUDRATE		115200		/* Default baud rate */
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 /*
  * I2C Configuration
@@ -88,7 +74,6 @@
  */
 #ifdef CONFIG_DRIVER_TI_EMAC
 #define CONFIG_MII
-#define CONFIG_BOOTP_DEFAULT
 #define CONFIG_BOOTP_DNS
 #define CONFIG_BOOTP_DNS2
 #define CONFIG_BOOTP_SEND_HOSTNAME
@@ -111,9 +96,8 @@
 #define CONFIG_SYS_NAND_CS		3
 #define CONFIG_SYS_NAND_BASE		DAVINCI_ASYNC_EMIF_DATA_CE3_BASE
 #define CONFIG_SYS_NAND_PAGE_2K
-#define CONFIG_SYS_64BIT_VSPRINTF	/* needed for nand_util.c */
-#define CONFIG_SYS_CLE_MASK		0x10
-#define CONFIG_SYS_ALE_MASK		0x8
+#define CONFIG_SYS_NAND_MASK_CLE		0x10
+#define CONFIG_SYS_NAND_MASK_ALE		0x8
 #define CONFIG_SYS_MAX_NAND_DEVICE	1 /* Max number of NAND devices */
 #endif
 
@@ -159,7 +143,6 @@
 /*
  * U-Boot general configuration
  */
-#undef CONFIG_USE_IRQ			/* No IRQ/FIQ in U-Boot */
 #undef CONFIG_MISC_INIT_R
 #undef CONFIG_BOOTDELAY
 #define CONFIG_BOOTFILE		"uImage" /* Boot file name */
@@ -172,7 +155,6 @@
 #define CONFIG_VERSION_VARIABLE
 #define CONFIG_AUTO_COMPLETE	/* Won't work with hush so far, may be later */
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_CMDLINE_EDITING
 #define CONFIG_SYS_LONGHELP
 #define CONFIG_CRC32_VERIFY
@@ -231,6 +213,28 @@
 #define CONFIG_CMD_SAVEENV
 #endif
 
+/* SD/MMC configuration */
+#ifndef CONFIG_USE_NAND
+#define CONFIG_MMC
+#define CONFIG_DAVINCI_MMC_SD1
+#define CONFIG_GENERIC_MMC
+#define CONFIG_DAVINCI_MMC
+#endif
+
+/*
+ * Enable MMC commands only when
+ * MMC support is present
+ */
+#if defined(CONFIG_MMC) || defined(CONFIG_USB_DA8XX)
+#define CONFIG_DOS_PARTITION	/* include support for FAT/storage */
+#define CONFIG_CMD_FAT		/* include support for FAT cmd */
+#endif
+
+#ifdef CONFIG_MMC
+#define CONFIG_CMD_MMC
+#define CONFIG_CMD_EXT2
+#endif
+
 #if !defined(CONFIG_USE_NAND) && \
 	!defined(CONFIG_USE_NOR) && \
 	!defined(CONFIG_USE_SPIFLASH)
@@ -249,8 +253,6 @@
 
 #define CONFIG_USB_STORAGE	/* MSC class support */
 #define CONFIG_CMD_STORAGE	/* inclue support for usb-storage cmd */
-#define CONFIG_CMD_FAT		/* inclue support for FAT/storage */
-#define CONFIG_DOS_PARTITION	/* inclue support for FAT/storage */
 
 #ifdef CONFIG_USB_KEYBOARD	/* HID class support */
 #define CONFIG_SYS_USB_EVENT_POLL

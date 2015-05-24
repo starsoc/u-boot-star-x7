@@ -4,23 +4,12 @@
  *
  * Authors: Dipen Dudhat <Dipen.Dudhat@freescale.com>
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
 #include <malloc.h>
+#include <nand.h>
 
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/nand.h>
@@ -30,6 +19,7 @@
 #include <asm/errno.h>
 #include <asm/fsl_ifc.h>
 
+#define FSL_IFC_V1_1_0	0x01010000
 #define MAX_BANKS	4
 #define ERR_BYTE	0xFF /* Value returned for read bytes
 				when read failed */
@@ -40,7 +30,6 @@ struct fsl_ifc_ctrl;
 
 /* mtd information per set */
 struct fsl_ifc_mtd {
-	struct mtd_info mtd;
 	struct nand_chip chip;
 	struct fsl_ifc_ctrl *ctrl;
 
@@ -384,19 +373,30 @@ static void fsl_ifc_cmdfunc(struct mtd_info *mtd, unsigned int command,
 
 	/* READID must read all possible bytes while CEB is active */
 	case NAND_CMD_READID:
+	case NAND_CMD_PARAM: {
+		int timing = IFC_FIR_OP_RB;
+		if (command == NAND_CMD_PARAM)
+			timing = IFC_FIR_OP_RBCD;
+
 		out_be32(&ifc->ifc_nand.nand_fir0,
-				(IFC_FIR_OP_CMD0 << IFC_NAND_FIR0_OP0_SHIFT) |
+				(IFC_FIR_OP_CW0 << IFC_NAND_FIR0_OP0_SHIFT) |
 				(IFC_FIR_OP_UA  << IFC_NAND_FIR0_OP1_SHIFT) |
-				(IFC_FIR_OP_RB << IFC_NAND_FIR0_OP2_SHIFT));
+				(timing << IFC_NAND_FIR0_OP2_SHIFT));
 		out_be32(&ifc->ifc_nand.nand_fcr0,
-				NAND_CMD_READID << IFC_NAND_FCR0_CMD0_SHIFT);
-		/* 4 bytes for manuf, device and exts */
-		out_be32(&ifc->ifc_nand.nand_fbcr, 4);
-		ctrl->read_bytes = 4;
+				command << IFC_NAND_FCR0_CMD0_SHIFT);
+		out_be32(&ifc->ifc_nand.row3, column);
+
+		/*
+		 * although currently it's 8 bytes for READID, we always read
+		 * the maximum 256 bytes(for PARAM)
+		 */
+		out_be32(&ifc->ifc_nand.nand_fbcr, 256);
+		ctrl->read_bytes = 256;
 
 		set_addr(mtd, 0, 0, 0);
 		fsl_ifc_run_command(mtd);
 		return;
+	}
 
 	/* ERASE1 stores the block and page address */
 	case NAND_CMD_ERASE1:
@@ -674,9 +674,8 @@ static int fsl_ifc_wait(struct mtd_info *mtd, struct nand_chip *chip)
 	return nand_fsr;
 }
 
-static int fsl_ifc_read_page(struct mtd_info *mtd,
-			      struct nand_chip *chip,
-			      uint8_t *buf, int page)
+static int fsl_ifc_read_page(struct mtd_info *mtd, struct nand_chip *chip,
+			     uint8_t *buf, int oob_required, int page)
 {
 	struct fsl_ifc_mtd *priv = chip->priv;
 	struct fsl_ifc_ctrl *ctrl = priv->ctrl;
@@ -693,12 +692,13 @@ static int fsl_ifc_read_page(struct mtd_info *mtd,
 /* ECC will be calculated automatically, and errors will be detected in
  * waitfunc.
  */
-static void fsl_ifc_write_page(struct mtd_info *mtd,
-				struct nand_chip *chip,
-				const uint8_t *buf)
+static int fsl_ifc_write_page(struct mtd_info *mtd, struct nand_chip *chip,
+			       const uint8_t *buf, int oob_required)
 {
 	fsl_ifc_write_buf(mtd, buf, mtd->writesize);
 	fsl_ifc_write_buf(mtd, chip->oob_poi, mtd->oobsize);
+
+	return 0;
 }
 
 static void fsl_ifc_ctrl_init(void)
@@ -727,11 +727,69 @@ static void fsl_ifc_select_chip(struct mtd_info *mtd, int chip)
 {
 }
 
-int board_nand_init(struct nand_chip *nand)
+static void fsl_ifc_sram_init(void)
 {
+	struct fsl_ifc *ifc = ifc_ctrl->regs;
+	uint32_t cs = 0, csor = 0, csor_8k = 0, csor_ext = 0;
+	long long end_tick;
+
+	cs = ifc_ctrl->cs_nand >> IFC_NAND_CSEL_SHIFT;
+
+	/* Save CSOR and CSOR_ext */
+	csor = in_be32(&ifc_ctrl->regs->csor_cs[cs].csor);
+	csor_ext = in_be32(&ifc_ctrl->regs->csor_cs[cs].csor_ext);
+
+	/* chage PageSize 8K and SpareSize 1K*/
+	csor_8k = (csor & ~(CSOR_NAND_PGS_MASK)) | 0x0018C000;
+	out_be32(&ifc_ctrl->regs->csor_cs[cs].csor, csor_8k);
+	out_be32(&ifc_ctrl->regs->csor_cs[cs].csor_ext, 0x0000400);
+
+	/* READID */
+	out_be32(&ifc->ifc_nand.nand_fir0,
+			(IFC_FIR_OP_CW0 << IFC_NAND_FIR0_OP0_SHIFT) |
+			(IFC_FIR_OP_UA  << IFC_NAND_FIR0_OP1_SHIFT) |
+			(IFC_FIR_OP_RB << IFC_NAND_FIR0_OP2_SHIFT));
+	out_be32(&ifc->ifc_nand.nand_fcr0,
+			NAND_CMD_READID << IFC_NAND_FCR0_CMD0_SHIFT);
+	out_be32(&ifc->ifc_nand.row3, 0x0);
+
+	out_be32(&ifc->ifc_nand.nand_fbcr, 0x0);
+
+	/* Program ROW0/COL0 */
+	out_be32(&ifc->ifc_nand.row0, 0x0);
+	out_be32(&ifc->ifc_nand.col0, 0x0);
+
+	/* set the chip select for NAND Transaction */
+	out_be32(&ifc->ifc_nand.nand_csel, ifc_ctrl->cs_nand);
+
+	/* start read seq */
+	out_be32(&ifc->ifc_nand.nandseq_strt, IFC_NAND_SEQ_STRT_FIR_STRT);
+
+	/* wait for NAND Machine complete flag or timeout */
+	end_tick = usec2ticks(IFC_TIMEOUT_MSECS * 1000) + get_ticks();
+
+	while (end_tick > get_ticks()) {
+		ifc_ctrl->status = in_be32(&ifc->ifc_nand.nand_evter_stat);
+
+		if (ifc_ctrl->status & IFC_NAND_EVTER_STAT_OPC)
+			break;
+	}
+
+	out_be32(&ifc->ifc_nand.nand_evter_stat, ifc_ctrl->status);
+
+	/* Restore CSOR and CSOR_ext */
+	out_be32(&ifc_ctrl->regs->csor_cs[cs].csor, csor);
+	out_be32(&ifc_ctrl->regs->csor_cs[cs].csor_ext, csor_ext);
+}
+
+static int fsl_ifc_chip_init(int devnum, u8 *addr)
+{
+	struct mtd_info *mtd = &nand_info[devnum];
+	struct nand_chip *nand;
 	struct fsl_ifc_mtd *priv;
 	struct nand_ecclayout *layout;
-	uint32_t cspr = 0, csor = 0;
+	uint32_t cspr = 0, csor = 0, ver = 0;
+	int ret;
 
 	if (!ifc_ctrl) {
 		fsl_ifc_ctrl_init();
@@ -744,18 +802,18 @@ int board_nand_init(struct nand_chip *nand)
 		return -ENOMEM;
 
 	priv->ctrl = ifc_ctrl;
-	priv->vbase = nand->IO_ADDR_R;
+	priv->vbase = addr;
 
 	/* Find which chip select it is connected to.
 	 */
 	for (priv->bank = 0; priv->bank < MAX_BANKS; priv->bank++) {
-		phys_addr_t base_addr = virt_to_phys(nand->IO_ADDR_R);
+		phys_addr_t phys_addr = virt_to_phys(addr);
 
 		cspr = in_be32(&ifc_ctrl->regs->cspr_cs[priv->bank].cspr);
 		csor = in_be32(&ifc_ctrl->regs->csor_cs[priv->bank].csor);
 
 		if ((cspr & CSPR_V) && (cspr & CSPR_MSEL) == CSPR_MSEL_NAND &&
-		    (cspr & CSPR_BA) == CSPR_PHYS_ADDR(base_addr)) {
+		    (cspr & CSPR_BA) == CSPR_PHYS_ADDR(phys_addr)) {
 			ifc_ctrl->cs_nand = priv->bank << IFC_NAND_CSEL_SHIFT;
 			break;
 		}
@@ -764,8 +822,12 @@ int board_nand_init(struct nand_chip *nand)
 	if (priv->bank >= MAX_BANKS) {
 		printf("%s: address did not match any "
 		       "chip selects\n", __func__);
+		kfree(priv);
 		return -ENODEV;
 	}
+
+	nand = &priv->chip;
+	mtd->priv = nand;
 
 	ifc_ctrl->chips[priv->bank] = priv;
 
@@ -784,8 +846,8 @@ int board_nand_init(struct nand_chip *nand)
 	nand->bbt_md = &bbt_mirror_descr;
 
 	/* set up nand options */
-	nand->options = NAND_NO_READRDY | NAND_NO_AUTOINCR |
-			NAND_USE_FLASH_BBT;
+	nand->options = NAND_NO_SUBPAGE_WRITE;
+	nand->bbt_options = NAND_BBT_USE_FLASH;
 
 	if (cspr & CSPR_PORT_SIZE_16) {
 		nand->read_byte = fsl_ifc_read_byte16;
@@ -816,11 +878,13 @@ int board_nand_init(struct nand_chip *nand)
 			bbt_mirror_descr.offs = 0;
 		}
 
+		nand->ecc.strength = 4;
 		priv->bufnum_mask = 15;
 		break;
 
 	case CSOR_NAND_PGS_2K:
 		layout = &oob_2048_ecc4;
+		nand->ecc.strength = 4;
 		priv->bufnum_mask = 3;
 		break;
 
@@ -828,8 +892,10 @@ int board_nand_init(struct nand_chip *nand)
 		if ((csor & CSOR_NAND_ECC_MODE_MASK) ==
 		    CSOR_NAND_ECC_MODE_4) {
 			layout = &oob_4096_ecc4;
+			nand->ecc.strength = 4;
 		} else {
 			layout = &oob_4096_ecc8;
+			nand->ecc.strength = 8;
 			nand->ecc.bytes = 16;
 		}
 
@@ -849,5 +915,35 @@ int board_nand_init(struct nand_chip *nand)
 		nand->ecc.mode = NAND_ECC_SOFT;
 	}
 
+	ver = in_be32(&ifc_ctrl->regs->ifc_rev);
+	if (ver == FSL_IFC_V1_1_0)
+		fsl_ifc_sram_init();
+
+	ret = nand_scan_ident(mtd, 1, NULL);
+	if (ret)
+		return ret;
+
+	ret = nand_scan_tail(mtd);
+	if (ret)
+		return ret;
+
+	ret = nand_register(devnum);
+	if (ret)
+		return ret;
 	return 0;
+}
+
+#ifndef CONFIG_SYS_NAND_BASE_LIST
+#define CONFIG_SYS_NAND_BASE_LIST { CONFIG_SYS_NAND_BASE }
+#endif
+
+static unsigned long base_address[CONFIG_SYS_MAX_NAND_DEVICE] =
+	CONFIG_SYS_NAND_BASE_LIST;
+
+void board_nand_init(void)
+{
+	int i;
+
+	for (i = 0; i < CONFIG_SYS_MAX_NAND_DEVICE; i++)
+		fsl_ifc_chip_init(i, (u8 *)base_address[i]);
 }

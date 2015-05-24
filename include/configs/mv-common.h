@@ -3,23 +3,7 @@
  * Marvell Semiconductor <www.marvell.com>
  * Written-by: Prafulla Wadaskar <prafulla@marvell.com>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -92,7 +76,7 @@
 /*
  * Size of malloc() pool
  */
-#define CONFIG_SYS_MALLOC_LEN	(1024 * 1024) /* 1MiB for malloc() */
+#define CONFIG_SYS_MALLOC_LEN	(1024 * 1024 * 4) /* 4MiB for malloc() */
 
 /*
  * Other required minimal configurations
@@ -105,7 +89,6 @@
 #define CONFIG_ARCH_MISC_INIT	/* call arch_misc_init() */
 #define CONFIG_BOARD_EARLY_INIT_F /* call board_init_f for early inits */
 #define CONFIG_DISPLAY_CPUINFO	/* Display cpu info */
-#define CONFIG_STACKSIZE	0x00100000	/* regular stack- 1M */
 #define CONFIG_SYS_LOAD_ADDR	0x00800000	/* default load adr- 8M */
 #define CONFIG_SYS_MEMTEST_START 0x00800000	/* 8M */
 #define CONFIG_SYS_MEMTEST_END	0x00ffffff	/*(_16M -1) */
@@ -132,7 +115,6 @@
  */
 #ifdef CONFIG_CMD_NAND
 #define CONFIG_SYS_MAX_NAND_DEVICE     1
-#define CONFIG_SYS_64BIT_VSPRINTF      /* needed for nand_util.c */
 #endif
 
 /*

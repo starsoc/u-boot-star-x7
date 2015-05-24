@@ -56,14 +56,14 @@ phys_size_t fixed_sdram(void)
 
 	ddr_size = (phys_size_t) CONFIG_SYS_SDRAM_SIZE * 1024 * 1024;
 	ddr_cfg_regs.ddr_cdr1 = DDR_CDR1_DHC_EN;
-	fsl_ddr_set_memctl_regs(&ddr_cfg_regs, 0);
+	fsl_ddr_set_memctl_regs(&ddr_cfg_regs, 0, 0);
 
 #if (CONFIG_NUM_DDR_CONTROLLERS == 2)
 	memcpy(&ddr_cfg_regs,
 		fixed_ddr_parm_1[i].ddr_settings,
 		sizeof(ddr_cfg_regs));
 	ddr_cfg_regs.ddr_cdr1 = DDR_CDR1_DHC_EN;
-	fsl_ddr_set_memctl_regs(&ddr_cfg_regs, 1);
+	fsl_ddr_set_memctl_regs(&ddr_cfg_regs, 1, 0);
 #endif
 
 	/*
@@ -139,8 +139,8 @@ static const struct board_specific_parameters udimm0[] = {
 	{2,  1250,    4,     6,   0xff,    2,  0},
 	{2,  1350,    5,     7,   0xff,    2,  0},
 	{2,  1666,    5,     8,   0xff,    2,  0},
-	{1,   850,    4,     5,   0xff,    2,  0},
-	{1,   950,    4,     7,   0xff,    2,  0},
+	{1,  1250,    4,     6,   0xff,    2,  0},
+	{1,  1335,    4,     7,   0xff,    2,  0},
 	{1,  1666,    4,     8,   0xff,    2,  0},
 	{}
 };

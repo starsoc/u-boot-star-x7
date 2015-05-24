@@ -5,23 +5,7 @@
  * (C) Copyright 2000-2002
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -64,7 +48,6 @@ typedef int (init_fnc_t) (void);
  ***********************************************************************/
 
 init_fnc_t *init_sequence[] = {
-
 #if defined(CONFIG_BOARD_EARLY_INIT_F)
 	board_early_init_f,	/* Call board-specific init code early.*/
 #endif
@@ -83,21 +66,19 @@ init_fnc_t *init_sequence[] = {
 
 
 /***********************************************************************/
-void board_init (void)
+void board_init(void)
 {
 	bd_t *bd;
 	init_fnc_t **init_fnc_ptr;
+	static gd_t gd_data;
+	static bd_t bd_data;
 
-	/* Pointer is writable since we allocated a register for it.
-	 * Nios treats CONFIG_SYS_GBL_DATA_OFFSET as an address.
-	 */
-	gd = (gd_t *)CONFIG_SYS_GBL_DATA_OFFSET;
+	/* Pointer is writable since we allocated a register for it. */
+	gd = &gd_data;
 	/* compiler optimization barrier needed for GCC >= 3.4 */
-	__asm__ __volatile__("": : :"memory");
+	__asm__ __volatile__("" : : : "memory");
 
-	memset( gd, 0, GENERATED_GBL_DATA_SIZE );
-
-	gd->bd = (bd_t *)(gd+1);	/* At end of global data */
+	gd->bd = &bd_data;
 	gd->baudrate = CONFIG_BAUDRATE;
 	gd->cpu_clk = CONFIG_SYS_CLK_FREQ;
 
@@ -108,25 +89,24 @@ void board_init (void)
 	bd->bi_flashstart = CONFIG_SYS_FLASH_BASE;
 #endif
 #if	defined(CONFIG_SYS_SRAM_BASE) && defined(CONFIG_SYS_SRAM_SIZE)
-	bd->bi_sramstart= CONFIG_SYS_SRAM_BASE;
+	bd->bi_sramstart = CONFIG_SYS_SRAM_BASE;
 	bd->bi_sramsize	= CONFIG_SYS_SRAM_SIZE;
 #endif
 	bd->bi_baudrate	= CONFIG_BAUDRATE;
 
 	for (init_fnc_ptr = init_sequence; *init_fnc_ptr; ++init_fnc_ptr) {
-		WATCHDOG_RESET ();
-		if ((*init_fnc_ptr) () != 0) {
-			hang ();
-		}
+		WATCHDOG_RESET();
+		if ((*init_fnc_ptr) () != 0)
+			hang();
 	}
 
-	WATCHDOG_RESET ();
+	WATCHDOG_RESET();
 
 	/* The Malloc area is immediately below the monitor copy in RAM */
 	mem_malloc_init(CONFIG_SYS_MALLOC_BASE, CONFIG_SYS_MALLOC_LEN);
 
 #ifndef CONFIG_SYS_NO_FLASH
-	WATCHDOG_RESET ();
+	WATCHDOG_RESET();
 	bd->bi_flashsize = flash_init();
 #endif
 
@@ -140,41 +120,29 @@ void board_init (void)
 	mmc_initialize(bd);
 #endif
 
-	WATCHDOG_RESET ();
+	WATCHDOG_RESET();
 	env_relocate();
 
-	bd->bi_ip_addr = getenv_IPaddr ("ipaddr");
-
-	WATCHDOG_RESET ();
+	WATCHDOG_RESET();
 	stdio_init();
 	jumptable_init();
 	console_init_r();
 
-	WATCHDOG_RESET ();
-	interrupt_init ();
+	WATCHDOG_RESET();
+	interrupt_init();
 
 #if defined(CONFIG_BOARD_LATE_INIT)
-	board_late_init ();
+	board_late_init();
 #endif
 
 #if defined(CONFIG_CMD_NET)
-	puts ("Net:   ");
-	eth_initialize (bd);
+	puts("Net:   ");
+	eth_initialize(bd);
 #endif
 
 	/* main_loop */
 	for (;;) {
-		WATCHDOG_RESET ();
-		main_loop ();
+		WATCHDOG_RESET();
+		main_loop();
 	}
-}
-
-
-/***********************************************************************/
-
-void hang (void)
-{
-	disable_interrupts ();
-	puts("### ERROR ### Please reset board ###\n");
-	for (;;);
 }

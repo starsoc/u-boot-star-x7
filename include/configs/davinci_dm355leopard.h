@@ -1,20 +1,7 @@
 /*
  * Copyright (C) 2009 Texas Instruments Incorporated
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -44,7 +31,6 @@
 #define CONFIG_SYS_NS16550_REG_SIZE	-4
 #define CONFIG_SYS_NS16550_COM1		0x01c20000
 #define CONFIG_SYS_NS16550_CLK		CONFIG_SYS_HZ_CLOCK
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 #define CONFIG_CONS_INDEX		1
 #define CONFIG_BAUDRATE			115200
 
@@ -100,7 +86,6 @@
 #define CONFIG_MX_CYCLIC
 
 /* U-Boot general configuration */
-#undef CONFIG_USE_IRQ				/* No IRQ/FIQ in U-Boot */
 #define CONFIG_BOOTFILE		"uImage"	/* Boot file name */
 #define CONFIG_SYS_PROMPT	"DM355 LEOPARD # "
 #define CONFIG_SYS_CBSIZE	1024		/* Console I/O Buffer Size  */
@@ -108,7 +93,6 @@
 		(CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) + 16)
 #define CONFIG_SYS_MAXARGS	16		/* max number of command args */
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_SYS_LONGHELP
 
 #ifdef CONFIG_NAND_DAVINCI
@@ -132,7 +116,6 @@
 #define CONFIG_NET_RETRY_COUNT 10
 
 /* U-Boot memory configuration */
-#define CONFIG_STACKSIZE		(256 << 10)	/* 256 KiB */
 #define CONFIG_SYS_MALLOC_LEN		(1 << 20)	/* 1 MiB */
 #define CONFIG_SYS_MEMTEST_START	0x87000000	/* physical address */
 #define CONFIG_SYS_MEMTEST_END		0x88000000	/* test 16MB RAM */

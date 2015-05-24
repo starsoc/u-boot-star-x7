@@ -4,18 +4,7 @@
  * Copyright (C) 2011 Marek Vasut <marek.vasut@gmail.com>
  * on behalf of DENX Software Engineering GmbH
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -26,9 +15,11 @@
 #include <asm/arch/sys_proto.h>
 
 #define	MUX_CONFIG_SSP0	(MXS_PAD_3V3 | MXS_PAD_8MA | MXS_PAD_PULLUP)
+#define	MUX_CONFIG_GPMI	(MXS_PAD_3V3 | MXS_PAD_4MA | MXS_PAD_NOPULL)
 #define	MUX_CONFIG_ENET	(MXS_PAD_3V3 | MXS_PAD_8MA | MXS_PAD_PULLUP)
 #define	MUX_CONFIG_EMI	(MXS_PAD_3V3 | MXS_PAD_12MA | MXS_PAD_NOPULL)
 #define	MUX_CONFIG_SSP2	(MXS_PAD_3V3 | MXS_PAD_4MA | MXS_PAD_PULLUP)
+#define	MUX_CONFIG_LCD	(MXS_PAD_3V3 | MXS_PAD_4MA | MXS_PAD_NOPULL)
 
 const iomux_cfg_t iomux_setup[] = {
 	/* DUART */
@@ -54,6 +45,26 @@ const iomux_cfg_t iomux_setup[] = {
 	/* MMC0 slot power enable */
 	MX28_PAD_PWM3__GPIO_3_28 |
 		(MXS_PAD_12MA | MXS_PAD_3V3 | MXS_PAD_PULLUP),
+
+#ifdef CONFIG_NAND_MXS
+	/* GPMI NAND */
+	MX28_PAD_GPMI_D00__GPMI_D0 | MUX_CONFIG_GPMI,
+	MX28_PAD_GPMI_D01__GPMI_D1 | MUX_CONFIG_GPMI,
+	MX28_PAD_GPMI_D02__GPMI_D2 | MUX_CONFIG_GPMI,
+	MX28_PAD_GPMI_D03__GPMI_D3 | MUX_CONFIG_GPMI,
+	MX28_PAD_GPMI_D04__GPMI_D4 | MUX_CONFIG_GPMI,
+	MX28_PAD_GPMI_D05__GPMI_D5 | MUX_CONFIG_GPMI,
+	MX28_PAD_GPMI_D06__GPMI_D6 | MUX_CONFIG_GPMI,
+	MX28_PAD_GPMI_D07__GPMI_D7 | MUX_CONFIG_GPMI,
+	MX28_PAD_GPMI_CE0N__GPMI_CE0N | MUX_CONFIG_GPMI,
+	MX28_PAD_GPMI_RDY0__GPMI_READY0 | MUX_CONFIG_GPMI,
+	MX28_PAD_GPMI_RDN__GPMI_RDN |
+		(MXS_PAD_3V3 | MXS_PAD_8MA | MXS_PAD_PULLUP),
+	MX28_PAD_GPMI_WRN__GPMI_WRN | MUX_CONFIG_GPMI,
+	MX28_PAD_GPMI_ALE__GPMI_ALE | MUX_CONFIG_GPMI,
+	MX28_PAD_GPMI_CLE__GPMI_CLE | MUX_CONFIG_GPMI,
+	MX28_PAD_GPMI_RESETN__GPMI_RESETN | MUX_CONFIG_GPMI,
+#endif
 
 	/* FEC0 */
 	MX28_PAD_ENET0_MDC__ENET0_MDC | MUX_CONFIG_ENET,
@@ -138,9 +149,58 @@ const iomux_cfg_t iomux_setup[] = {
 	MX28_PAD_SSP2_MISO__SSP2_D0 | MUX_CONFIG_SSP2,
 	MX28_PAD_SSP2_SS0__SSP2_D3 |
 		(MXS_PAD_3V3 | MXS_PAD_8MA | MXS_PAD_PULLUP),
+	/* I2C */
+	MX28_PAD_I2C0_SCL__I2C0_SCL,
+	MX28_PAD_I2C0_SDA__I2C0_SDA,
+
+	/* LCD */
+	MX28_PAD_LCD_D00__LCD_D0 | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_D01__LCD_D1 | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_D02__LCD_D2 | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_D03__LCD_D3 | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_D04__LCD_D4 | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_D05__LCD_D5 | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_D06__LCD_D6 | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_D07__LCD_D7 | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_D08__LCD_D8 | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_D09__LCD_D9 | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_D10__LCD_D10 | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_D11__LCD_D11 | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_D12__LCD_D12 | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_D13__LCD_D13 | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_D14__LCD_D14 | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_D15__LCD_D15 | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_D16__LCD_D16 | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_D17__LCD_D17 | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_D18__LCD_D18 | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_D19__LCD_D19 | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_D20__LCD_D20 | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_D21__LCD_D21 | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_D22__LCD_D22 | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_D23__LCD_D23 | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_RD_E__LCD_VSYNC | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_WR_RWN__LCD_HSYNC | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_RS__LCD_DOTCLK | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_CS__LCD_ENABLE | MUX_CONFIG_LCD,
+	MX28_PAD_LCD_RESET__GPIO_3_30 | MUX_CONFIG_LCD, /* LCD power */
+	MX28_PAD_PWM2__GPIO_3_18 | MUX_CONFIG_LCD, /* LCD contrast */
 };
 
-void board_init_ll(void)
+#define HW_DRAM_CTL29	(0x74 >> 2)
+#define CS_MAP		0xf
+#define COLUMN_SIZE	0x2
+#define ADDR_PINS	0x1
+#define APREBIT		0xa
+
+#define HW_DRAM_CTL29_CONFIG	(CS_MAP << 24 | COLUMN_SIZE << 16 | \
+					ADDR_PINS << 8 | APREBIT)
+
+void mxs_adjust_memory_params(uint32_t *dram_vals)
 {
-	mx28_common_spl_init(iomux_setup, ARRAY_SIZE(iomux_setup));
+	dram_vals[HW_DRAM_CTL29] = HW_DRAM_CTL29_CONFIG;
+}
+
+void board_init_ll(const uint32_t arg, const uint32_t *resptr)
+{
+	mxs_common_spl_init(arg, resptr, iomux_setup, ARRAY_SIZE(iomux_setup));
 }

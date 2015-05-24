@@ -4,23 +4,7 @@
  * Copyright (C) 2011 Marek Vasut <marek.vasut@gmail.com>
  * on behalf of DENX Software Engineering GmbH
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -73,8 +57,8 @@ int gpio_get_value(unsigned gpio)
 {
 	uint32_t bank = PAD_BANK(gpio);
 	uint32_t offset = PINCTRL_DIN(bank);
-	struct mx28_register_32 *reg =
-		(struct mx28_register_32 *)(MXS_PINCTRL_BASE + offset);
+	struct mxs_register_32 *reg =
+		(struct mxs_register_32 *)(MXS_PINCTRL_BASE + offset);
 
 	return (readl(&reg->reg) >> PAD_PIN(gpio)) & 1;
 }
@@ -83,8 +67,8 @@ void gpio_set_value(unsigned gpio, int value)
 {
 	uint32_t bank = PAD_BANK(gpio);
 	uint32_t offset = PINCTRL_DOUT(bank);
-	struct mx28_register_32 *reg =
-		(struct mx28_register_32 *)(MXS_PINCTRL_BASE + offset);
+	struct mxs_register_32 *reg =
+		(struct mxs_register_32 *)(MXS_PINCTRL_BASE + offset);
 
 	if (value)
 		writel(1 << PAD_PIN(gpio), &reg->reg_set);
@@ -96,8 +80,8 @@ int gpio_direction_input(unsigned gpio)
 {
 	uint32_t bank = PAD_BANK(gpio);
 	uint32_t offset = PINCTRL_DOE(bank);
-	struct mx28_register_32 *reg =
-		(struct mx28_register_32 *)(MXS_PINCTRL_BASE + offset);
+	struct mxs_register_32 *reg =
+		(struct mxs_register_32 *)(MXS_PINCTRL_BASE + offset);
 
 	writel(1 << PAD_PIN(gpio), &reg->reg_clr);
 
@@ -108,8 +92,8 @@ int gpio_direction_output(unsigned gpio, int value)
 {
 	uint32_t bank = PAD_BANK(gpio);
 	uint32_t offset = PINCTRL_DOE(bank);
-	struct mx28_register_32 *reg =
-		(struct mx28_register_32 *)(MXS_PINCTRL_BASE + offset);
+	struct mxs_register_32 *reg =
+		(struct mxs_register_32 *)(MXS_PINCTRL_BASE + offset);
 
 	writel(1 << PAD_PIN(gpio), &reg->reg_set);
 

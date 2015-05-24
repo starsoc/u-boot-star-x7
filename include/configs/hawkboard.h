@@ -5,19 +5,7 @@
  *
  * Copyright (C) 2007 Sergey Kubushyn <ksi@koi8.net>
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -43,6 +31,7 @@
 #define CONFIG_SYS_HZ			1000
 #define CONFIG_SKIP_LOWLEVEL_INIT
 #define CONFIG_BOARD_EARLY_INIT_F
+#define CONFIG_AIS_CONFIG_FILE		"board/$(BOARDDIR)/hawkboard-ais-nand.cfg"
 
 #define CONFIG_SYS_DA850_SYSCFG_SUSPSRC (	\
 	DAVINCI_SYSCFG_SUSPSRC_EMAC |		\
@@ -59,9 +48,13 @@
 
 /* Spl */
 #define CONFIG_SPL
+#define CONFIG_SPL_FRAMEWORK
+#define CONFIG_SPL_BOARD_INIT
 #define CONFIG_SPL_NAND_SUPPORT
+#define CONFIG_SPL_NAND_BASE
+#define CONFIG_SPL_NAND_DRIVERS
+#define CONFIG_SPL_NAND_ECC
 #define CONFIG_SPL_NAND_SIMPLE
-#define CONFIG_SPL_NAND_LOAD
 #define CONFIG_SPL_LIBGENERIC_SUPPORT	/* for udelay and __div64_32 for NAND */
 #define CONFIG_SPL_SERIAL_SUPPORT
 #define CONFIG_SPL_LDSCRIPT		"board/$(BOARDDIR)/u-boot-spl-hawk.lds"
@@ -78,6 +71,7 @@
 #define CONFIG_MAX_RAM_BANK_SIZE	(512 << 20)
 #define CONFIG_SYS_INIT_SP_ADDR		(CONFIG_SYS_SDRAM_BASE + 0x1000 -\
 					GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_MONITOR_LEN		0x60000
 
 /* memtest start addr */
 #define CONFIG_SYS_MEMTEST_START	(PHYS_SDRAM_1)
@@ -86,7 +80,6 @@
 #define CONFIG_SYS_MEMTEST_END		(PHYS_SDRAM_1 + 16*1024*1024)
 
 #define CONFIG_NR_DRAM_BANKS		1 /* we have 1 bank of DRAM */
-#define CONFIG_STACKSIZE		(256*1024) /* regular stack */
 
 /*
  * Serial Driver info
@@ -98,14 +91,12 @@
 #define CONFIG_SYS_NS16550_CLK		clk_get(DAVINCI_UART2_CLKID)
 #define CONFIG_CONS_INDEX		1
 #define CONFIG_BAUDRATE			115200
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 /*
  * Network & Ethernet Configuration
  */
 #define CONFIG_DRIVER_TI_EMAC
 #define CONFIG_MII
-#define CONFIG_BOOTP_DEFAULT
 #define CONFIG_BOOTP_DNS
 #define CONFIG_BOOTP_DNS2
 #define CONFIG_BOOTP_SEND_HOSTNAME
@@ -124,10 +115,10 @@
 #define CONFIG_SYS_NAND_USE_FLASH_BBT
 #define CONFIG_NAND_DAVINCI
 #define CONFIG_SYS_NAND_4BIT_HW_ECC_OOBFIRST
+#define CONFIG_SYS_NAND_HW_ECC_OOBFIRST /* SPL nand driver configuration */
 #define CFG_DAVINCI_STD_NAND_LAYOUT
 #define CONFIG_SYS_NAND_CS		3
 #define CONFIG_SYS_NAND_PAGE_2K
-#define CONFIG_SYS_64BIT_VSPRINTF	/* needed for nand_util.c */
 /* Max number of NAND devices */
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
 #define CONFIG_SYS_NAND_BASE_LIST	{ 0x62000000, }
@@ -137,7 +128,6 @@
 #define CONFIG_SYS_NAND_PAGE_SIZE	(2 << 10)
 #define CONFIG_SYS_NAND_BLOCK_SIZE	(128 << 10)
 #define CONFIG_SYS_NAND_U_BOOT_OFFS	0xe0000
-#define CONFIG_SYS_NAND_U_BOOT_SIZE	0x40000
 #define CONFIG_SYS_NAND_U_BOOT_DST	0xc1180000
 #define CONFIG_SYS_NAND_U_BOOT_START	CONFIG_SYS_NAND_U_BOOT_DST
 #define CONFIG_SYS_NAND_U_BOOT_RELOC_SP	(CONFIG_SYS_NAND_U_BOOT_DST - \
@@ -158,6 +148,16 @@
 
 #endif /* CONFIG_SYS_USE_NAND */
 
+/* USB Configs */
+#define CONFIG_SYS_USB_OHCI_CPU_INIT
+#define CONFIG_USB_OHCI_NEW
+#define CONFIG_USB_OHCI_DA8XX
+#define CONFIG_USB_STORAGE
+#define CONFIG_DOS_PARTITION
+#define CONFIG_SYS_USB_OHCI_REGS_BASE		0x01E25000
+#define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	15
+#define CONFIG_SYS_USB_OHCI_SLOT_NAME		"hawkboard"
+
 /*
  * U-Boot general configuration
  */
@@ -172,7 +172,6 @@
 #define CONFIG_VERSION_VARIABLE
 #define CONFIG_AUTO_COMPLETE
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_CMDLINE_EDITING
 #define CONFIG_SYS_LONGHELP
 #define CONFIG_CRC32_VERIFY
@@ -201,6 +200,8 @@
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_SAVES
 #define CONFIG_CMD_MEMORY
+#define CONFIG_CMD_USB
+#define CONFIG_CMD_EXT2
 
 #ifdef CONFIG_CMD_BDI
 #define CONFIG_CLOCKS

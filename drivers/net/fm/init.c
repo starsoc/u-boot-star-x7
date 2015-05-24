@@ -1,20 +1,7 @@
 /*
  * Copyright 2011 Freescale Semiconductor, Inc.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 #include <common.h>
 #include <asm/io.h>
@@ -38,6 +25,15 @@ struct fm_eth_info fm_info[] = {
 #if (CONFIG_SYS_NUM_FM1_DTSEC >= 5)
 	FM_DTSEC_INFO_INITIALIZER(1, 5),
 #endif
+#if (CONFIG_SYS_NUM_FM1_DTSEC >= 6)
+	FM_DTSEC_INFO_INITIALIZER(1, 6),
+#endif
+#if (CONFIG_SYS_NUM_FM1_DTSEC >= 7)
+	FM_DTSEC_INFO_INITIALIZER(1, 9),
+#endif
+#if (CONFIG_SYS_NUM_FM1_DTSEC >= 8)
+	FM_DTSEC_INFO_INITIALIZER(1, 10),
+#endif
 #if (CONFIG_SYS_NUM_FM2_DTSEC >= 1)
 	FM_DTSEC_INFO_INITIALIZER(2, 1),
 #endif
@@ -50,11 +46,29 @@ struct fm_eth_info fm_info[] = {
 #if (CONFIG_SYS_NUM_FM2_DTSEC >= 4)
 	FM_DTSEC_INFO_INITIALIZER(2, 4),
 #endif
+#if (CONFIG_SYS_NUM_FM2_DTSEC >= 5)
+	FM_DTSEC_INFO_INITIALIZER(2, 5),
+#endif
+#if (CONFIG_SYS_NUM_FM2_DTSEC >= 6)
+	FM_DTSEC_INFO_INITIALIZER(2, 6),
+#endif
+#if (CONFIG_SYS_NUM_FM2_DTSEC >= 7)
+	FM_DTSEC_INFO_INITIALIZER(2, 9),
+#endif
+#if (CONFIG_SYS_NUM_FM2_DTSEC >= 8)
+	FM_DTSEC_INFO_INITIALIZER(2, 10),
+#endif
 #if (CONFIG_SYS_NUM_FM1_10GEC >= 1)
 	FM_TGEC_INFO_INITIALIZER(1, 1),
 #endif
+#if (CONFIG_SYS_NUM_FM1_10GEC >= 2)
+	FM_TGEC_INFO_INITIALIZER(1, 2),
+#endif
 #if (CONFIG_SYS_NUM_FM2_10GEC >= 1)
 	FM_TGEC_INFO_INITIALIZER(2, 1),
+#endif
+#if (CONFIG_SYS_NUM_FM2_10GEC >= 2)
+	FM_TGEC_INFO_INITIALIZER(2, 2),
 #endif
 };
 
@@ -152,6 +166,22 @@ void fm_info_set_phy_address(enum fm_port port, int address)
 }
 
 /*
+ * Returns the PHY address for a given Fman port
+ *
+ * The port must be set via a prior call to fm_info_set_phy_address().
+ * A negative error code is returned if the port is invalid.
+ */
+int fm_info_get_phy_address(enum fm_port port)
+{
+	int i = fm_port_to_index(port);
+
+	if (i == -1)
+		return -1;
+
+	return fm_info[i].phy_addr;
+}
+
+/*
  * Returns the type of the data interface between the given MAC and its PHY.
  * This is typically determined by the RCW.
  */
@@ -181,7 +211,8 @@ void board_ft_fman_fixup_port(void *blob, char * prop, phys_addr_t pa,
 
 static void ft_fixup_port(void *blob, struct fm_eth_info *info, char *prop)
 {
-	int off, ph;
+	int off;
+	uint32_t ph;
 	phys_addr_t paddr = CONFIG_SYS_CCSRBAR_PHYS + info->compat_offset;
 	u64 dtsec1_addr = (u64)CONFIG_SYS_CCSRBAR_PHYS +
 				CONFIG_SYS_FSL_FM1_DTSEC1_OFFSET;
@@ -194,16 +225,34 @@ static void ft_fixup_port(void *blob, struct fm_eth_info *info, char *prop)
 		return ;
 	}
 
+#ifdef CONFIG_SYS_FMAN_V3
+	/*
+	 * Physically FM1_DTSEC9 and FM1_10GEC1 use the same dual-role MAC, when
+	 * FM1_10GEC1 is enabled and  FM1_DTSEC9 is disabled, ensure that the
+	 * dual-role MAC is not disabled, ditto for other dual-role MACs.
+	 */
+	if (((info->port == FM1_DTSEC9) && (PORT_IS_ENABLED(FM1_10GEC1)))	||
+	    ((info->port == FM1_DTSEC10) && (PORT_IS_ENABLED(FM1_10GEC2)))	||
+	    ((info->port == FM1_10GEC1) && (PORT_IS_ENABLED(FM1_DTSEC9)))	||
+	    ((info->port == FM1_10GEC2) && (PORT_IS_ENABLED(FM1_DTSEC10)))
+#if (CONFIG_SYS_NUM_FMAN == 2)
+										||
+	    ((info->port == FM2_DTSEC9) && (PORT_IS_ENABLED(FM2_10GEC1)))	||
+	    ((info->port == FM2_DTSEC10) && (PORT_IS_ENABLED(FM2_10GEC2)))	||
+	    ((info->port == FM2_10GEC1) && (PORT_IS_ENABLED(FM2_DTSEC9)))	||
+	    ((info->port == FM2_10GEC2) && (PORT_IS_ENABLED(FM2_DTSEC10)))
+#endif
+	)
+		return;
+#endif
 	/* board code might have caused offset to change */
 	off = fdt_node_offset_by_compat_reg(blob, prop, paddr);
 
 	/* Don't disable FM1-DTSEC1 MAC as its used for MDIO */
-	if (paddr != dtsec1_addr) {
-		/* disable the mac node */
-		fdt_setprop_string(blob, off, "status", "disabled");
-	}
+	if (paddr != dtsec1_addr)
+		fdt_status_disabled(blob, off); /* disable the MAC node */
 
-	/* disable the node point to the mac */
+	/* disable the fsl,dpa-ethernet node that points to the MAC */
 	ph = fdt_get_phandle(blob, off);
 	do_fixup_by_prop(blob, "fsl,fman-mac", &ph, sizeof(ph),
 		"status", "disabled", strlen("disabled") + 1, 1);
@@ -213,10 +262,15 @@ void fdt_fixup_fman_ethernet(void *blob)
 {
 	int i;
 
+#ifdef CONFIG_SYS_FMAN_V3
+	for (i = 0; i < ARRAY_SIZE(fm_info); i++)
+		ft_fixup_port(blob, &fm_info[i], "fsl,fman-memac");
+#else
 	for (i = 0; i < ARRAY_SIZE(fm_info); i++) {
 		if (fm_info[i].type == FM_ETH_1G_E)
 			ft_fixup_port(blob, &fm_info[i], "fsl,fman-1g-mac");
 		else
 			ft_fixup_port(blob, &fm_info[i], "fsl,fman-10g-mac");
 	}
+#endif
 }

@@ -1,26 +1,10 @@
 /*
  * IO header file
  *
- * Copyright (C) 2004-2007 Freescale Semiconductor, Inc.
+ * Copyright (C) 2004-2007, 2012 Freescale Semiconductor, Inc.
  * TsiChung Liew (Tsi-Chung.Liew@freescale.com)
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __ASM_M68K_IO_H__
@@ -224,6 +208,42 @@ extern inline void out_be32(volatile unsigned *addr, int val)
 {
 	*addr = val;
 }
+
+/* Clear and set bits in one shot. These macros can be used to clear and
+ * set multiple bits in a register using a single call. These macros can
+ * also be used to set a multiple-bit bit pattern using a mask, by
+ * specifying the mask in the 'clear' parameter and the new bit pattern
+ * in the 'set' parameter.
+ */
+
+#define clrbits(type, addr, clear) \
+	out_##type((addr), in_##type(addr) & ~(clear))
+
+#define setbits(type, addr, set) \
+	out_##type((addr), in_##type(addr) | (set))
+
+#define clrsetbits(type, addr, clear, set) \
+	out_##type((addr), (in_##type(addr) & ~(clear)) | (set))
+
+#define clrbits_be32(addr, clear) clrbits(be32, addr, clear)
+#define setbits_be32(addr, set) setbits(be32, addr, set)
+#define clrsetbits_be32(addr, clear, set) clrsetbits(be32, addr, clear, set)
+
+#define clrbits_le32(addr, clear) clrbits(le32, addr, clear)
+#define setbits_le32(addr, set) setbits(le32, addr, set)
+#define clrsetbits_le32(addr, clear, set) clrsetbits(le32, addr, clear, set)
+
+#define clrbits_be16(addr, clear) clrbits(be16, addr, clear)
+#define setbits_be16(addr, set) setbits(be16, addr, set)
+#define clrsetbits_be16(addr, clear, set) clrsetbits(be16, addr, clear, set)
+
+#define clrbits_le16(addr, clear) clrbits(le16, addr, clear)
+#define setbits_le16(addr, set) setbits(le16, addr, set)
+#define clrsetbits_le16(addr, clear, set) clrsetbits(le16, addr, clear, set)
+
+#define clrbits_8(addr, clear) clrbits(8, addr, clear)
+#define setbits_8(addr, set) setbits(8, addr, set)
+#define clrsetbits_8(addr, clear, set) clrsetbits(8, addr, clear, set)
 
 static inline void sync(void)
 {

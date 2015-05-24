@@ -105,10 +105,7 @@ XGpio_Config *XGpio_LookupConfig(u16 DeviceId)
 			break;
 		}
 	}
-	
-	printf("######XGpio_LookupConfig(), index:%d, base_addr:0x%x, device_id:%d\r\n", 
-		Index, XGpio_ConfigTable[Index].BaseAddress, XGpio_ConfigTable[Index].DeviceId);
-	
+
 	return CfgPtr;
 }
 

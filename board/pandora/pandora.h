@@ -2,23 +2,7 @@
  * (C) Copyright 2008
  * Grazvydas Ignotas <notasas@gmail.com>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 #ifndef _PANDORA_H_
 #define _PANDORA_H_
@@ -398,5 +382,11 @@ const omap3_sysinfo sysinfo = {
 	MUX_VAL(CP(D2D_SBUSFLAG),	(IEN  | PTD | DIS | M0)) /*d2d_sbusflag*/\
 	MUX_VAL(CP(SDRC_CKE0),		(IDIS | PTU | EN  | M0)) /*sdrc_cke0*/\
 	MUX_VAL(CP(SDRC_CKE1),		(IDIS | PTU | EN  | M0)) /*sdrc_cke1*/
+
+#define MUX_PANDORA_3730() \
+	MUX_VAL(CP(GPIO126),		(IEN  | PTD | DIS | M4)) /*GPIO_126 - MMC1_WP*/\
+	MUX_VAL(CP(GPIO127),		(IEN  | PTD | DIS | M4)) /*GPIO_127 - MMC2_WP*/\
+	MUX_VAL(CP(GPIO128),		(IDIS | PTD | DIS | M4)) /*GPIO_128 - LED_MMC1*/\
+	MUX_VAL(CP(GPIO129),		(IDIS | PTD | DIS | M4)) /*GPIO_129 - LED_MMC2*/
 
 #endif

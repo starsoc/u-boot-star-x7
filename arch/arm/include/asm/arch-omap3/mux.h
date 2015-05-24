@@ -3,20 +3,7 @@
  * Texas Instruments, <www.ti.com>
  * Syed Mohammed Khasim <x0khasim@ti.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 #ifndef _MUX_H_
 #define _MUX_H_
@@ -444,6 +431,17 @@
 #define CONTROL_PADCONF_STRBEN_DLY0	0x0222
 #define CONTROL_PADCONF_STRBEN_DLY1	0x0224
 #define CONTROL_PADCONF_SYS_BOOT8	0x0226
+
+/* AM/DM37xx specific */
+#define CONTROL_PADCONF_GPIO127		0x0A54
+#define CONTROL_PADCONF_GPIO126		0x0A56
+#define CONTROL_PADCONF_GPIO128		0x0A58
+#define CONTROL_PADCONF_GPIO129		0x0A5A
+
+/* AM/DM37xx specific: gpio_127, gpio_127 and gpio_129 require configuration
+ * of the extended drain cells */
+#define OMAP34XX_CTRL_WKUP_CTRL		(OMAP34XX_CTRL_BASE + 0x0A5C)
+#define OMAP34XX_CTRL_WKUP_CTRL_GPIO_IO_PWRDNZ	(1<<6)
 
 #define MUX_VAL(OFFSET,VALUE)\
 	writew((VALUE), OMAP34XX_CTRL_BASE + (OFFSET));

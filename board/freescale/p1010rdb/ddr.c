@@ -1,23 +1,7 @@
 /*
  * Copyright 2010-2011 Freescale Semiconductor, Inc.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -31,7 +15,7 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#ifndef CONFIG_DDR_RAW_TIMING
+#ifndef CONFIG_SYS_DDR_RAW_TIMING
 #define CONFIG_SYS_DRAM_SIZE	1024
 
 fsl_ddr_cfg_regs_t ddr_cfg_regs_800 = {
@@ -99,9 +83,9 @@ unsigned long get_sdram_size(void)
 	struct cpu_type *cpu;
 	phys_size_t ddr_size;
 
-	cpu = gd->cpu;
+	cpu = gd->arch.cpu;
 	/* P1014 and it's derivatives support max 16it DDR width */
-	if (cpu->soc_ver == SVR_P1014 || cpu->soc_ver == SVR_P1014_E)
+	if (cpu->soc_ver == SVR_P1014)
 		ddr_size = (CONFIG_SYS_DRAM_SIZE / 2);
 	else
 		ddr_size = CONFIG_SYS_DRAM_SIZE;
@@ -144,17 +128,18 @@ phys_size_t fixed_sdram(void)
 		panic("Unsupported DDR data rate %s MT/s data rate\n",
 					strmhz(buf, ddr_freq));
 
-	cpu = gd->cpu;
+	cpu = gd->arch.cpu;
 	/* P1014 and it's derivatives support max 16bit DDR width */
-	if (cpu->soc_ver == SVR_P1014 || cpu->soc_ver == SVR_P1014_E) {
+	if (cpu->soc_ver == SVR_P1014) {
+		ddr_cfg_regs.ddr_sdram_cfg &= ~SDRAM_CFG_DBW_MASK;
 		ddr_cfg_regs.ddr_sdram_cfg |= SDRAM_CFG_16_BE;
-		ddr_cfg_regs.cs[0].bnds = CONFIG_SYS_DDR_CS0_BNDS >> 1;
-		ddr_cfg_regs.ddr_sdram_cfg &= ~0x00180000;
-		ddr_cfg_regs.ddr_sdram_cfg |= 0x001080000;
+		/* divide SA and EA by two and then mask the rest so we don't
+		 * write to reserved fields */
+		ddr_cfg_regs.cs[0].bnds = (CONFIG_SYS_DDR_CS0_BNDS >> 1) & 0x0fff0fff;
 	}
 
 	ddr_size = (phys_size_t) CONFIG_SYS_SDRAM_SIZE * 1024 * 1024;
-	fsl_ddr_set_memctl_regs(&ddr_cfg_regs, 0);
+	fsl_ddr_set_memctl_regs(&ddr_cfg_regs, 0, 0);
 
 	if (set_ddr_laws(CONFIG_SYS_DDR_SDRAM_BASE, ddr_size,
 					LAW_TRGT_IF_DDR_1) < 0) {
@@ -165,7 +150,7 @@ phys_size_t fixed_sdram(void)
 	return ddr_size;
 }
 
-#else /* CONFIG_DDR_RAW_TIMING */
+#else /* CONFIG_SYS_DDR_RAW_TIMING */
 /*
  * Samsung K4B2G0846C-HCF8
  * The following timing are for "downshift"
@@ -236,9 +221,9 @@ void fsl_ddr_board_options(memctl_options_t *popts,
 	popts->trwt_override = 1;
 	popts->trwt = 0;
 
-	cpu = gd->cpu;
+	cpu = gd->arch.cpu;
 	/* P1014 and it's derivatives support max 16it DDR width */
-	if (cpu->soc_ver == SVR_P1014 || cpu->soc_ver == SVR_P1014_E)
+	if (cpu->soc_ver == SVR_P1014)
 		popts->data_bus_width = DDR_DATA_BUS_WIDTH_16;
 
 	for (i = 0; i < CONFIG_CHIP_SELECTS_PER_CTRL; i++) {
@@ -247,4 +232,4 @@ void fsl_ddr_board_options(memctl_options_t *popts,
 	}
 }
 
-#endif /* CONFIG_DDR_RAW_TIMING */
+#endif /* CONFIG_SYS_DDR_RAW_TIMING */

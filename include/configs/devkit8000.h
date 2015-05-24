@@ -9,23 +9,7 @@
  *
  * Configuration settings for the DevKit8000 board.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -36,6 +20,9 @@
 #define CONFIG_OMAP34XX		1	/* which is a 34XX */
 #define CONFIG_OMAP3_DEVKIT8000	1	/* working with DevKit8000 */
 #define CONFIG_MACH_TYPE	MACH_TYPE_DEVKIT8000
+#define CONFIG_OMAP_GPIO
+#define CONFIG_OMAP_COMMON
+
 /*
  * 1MB into the SDRAM to allow for SPL's bss at the beginning of SDRAM
  * 64 bytes before this address should be set aside for u-boot.img's
@@ -57,7 +44,6 @@
 #define V_OSCK				26000000	/* Clock output from T2 */
 #define V_SCLK				(V_OSCK >> 1)
 
-#undef CONFIG_USE_IRQ			/* no support for IRQs */
 #define CONFIG_MISC_INIT_R
 
 #define CONFIG_CMDLINE_TAG		1	/* enable passing of ATAGs */
@@ -107,8 +93,6 @@
 #define CONFIG_HARD_I2C			1
 #define CONFIG_SYS_I2C_SPEED		100000
 #define CONFIG_SYS_I2C_SLAVE		1
-#define CONFIG_SYS_I2C_BUS		0
-#define CONFIG_SYS_I2C_BUS_SELECT	1
 #define CONFIG_DRIVER_OMAP34XX_I2C	1
 
 /* TWL4030 */
@@ -197,6 +181,7 @@
 		"run commonargs; " \
 		"setenv bootargs ${bootargs} " \
 		"root=/dev/mmcblk0p2 " \
+		"rootwait " \
 		"${kernelopts}\0" \
 	"nandargs=" \
 		"run commonargs; " \
@@ -231,7 +216,7 @@
 		"dhcp ${loadaddr}; " \
 		"run netargs; " \
 		"bootm ${loadaddr}\0" \
-	"autoboot=if mmc rescan ${mmcdev}; then " \
+	"autoboot=mmc dev ${mmcdev}; if mmc rescan; then " \
 			"if run loadbootscript; then " \
 				"run bootscript; " \
 			"else " \
@@ -249,7 +234,6 @@
 #define CONFIG_SYS_LONGHELP		/* undef to save memory */
 #define CONFIG_SYS_HUSH_PARSER		/* use "hush" command parser */
 #define CONFIG_AUTO_COMPLETE		1
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_SYS_PROMPT		"OMAP3 DevKit8000 # "
 #define CONFIG_SYS_CBSIZE		512	/* Console I/O Buffer Size */
 /* Print Buffer Size */
@@ -275,9 +259,6 @@
 #define CONFIG_SYS_PTV			2 /* Divisor: 2^(PTV+1) => 8 */
 #define CONFIG_SYS_HZ			1000
 
-/* The stack sizes are set up in start.S using the settings below */
-#define CONFIG_STACKSIZE	(128 << 10)	/* regular stack 128 KiB */
-
 /*  Physical Memory Map  */
 #define CONFIG_NR_DRAM_BANKS		2 /* CS1 may or may not be populated */
 #define PHYS_SDRAM_1			OMAP34XX_SDRC_CS0
@@ -297,8 +278,8 @@
 #define CONFIG_SYS_INIT_RAM_ADDR        0x4020f800
 #define CONFIG_SYS_INIT_RAM_SIZE        0x800
 #define CONFIG_SYS_INIT_SP_ADDR         (CONFIG_SYS_INIT_RAM_ADDR + \
-		                                         CONFIG_SYS_INIT_RAM_SIZE - \
-		                                         GENERATED_GBL_DATA_SIZE)
+							 CONFIG_SYS_INIT_RAM_SIZE - \
+							 GENERATED_GBL_DATA_SIZE)
 
 /* SRAM config */
 #define CONFIG_SYS_SRAM_START              0x40200000
@@ -306,6 +287,7 @@
 
 /* Defines for SPL */
 #define CONFIG_SPL
+#define CONFIG_SPL_FRAMEWORK
 #define CONFIG_SPL_NAND_SIMPLE
 
 #define CONFIG_SPL_LIBCOMMON_SUPPORT
@@ -314,8 +296,12 @@
 #define CONFIG_SPL_I2C_SUPPORT
 #define CONFIG_SPL_LIBGENERIC_SUPPORT
 #define CONFIG_SPL_SERIAL_SUPPORT
+#define CONFIG_SPL_GPIO_SUPPORT
 #define CONFIG_SPL_POWER_SUPPORT
 #define CONFIG_SPL_NAND_SUPPORT
+#define CONFIG_SPL_NAND_BASE
+#define CONFIG_SPL_NAND_DRIVERS
+#define CONFIG_SPL_NAND_ECC
 #define CONFIG_SPL_MMC_SUPPORT
 #define CONFIG_SPL_FAT_SUPPORT
 #define CONFIG_SPL_LDSCRIPT		"$(CPUDIR)/omap-common/u-boot-spl.lds"
@@ -324,7 +310,7 @@
 #define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR 0x300 /* address 0x60000 */
 
 #define CONFIG_SPL_TEXT_BASE		0x40200000 /*CONFIG_SYS_SRAM_START*/
-#define CONFIG_SPL_MAX_SIZE		0xB400  /* 45 K */
+#define CONFIG_SPL_MAX_SIZE		(54 * 1024)	/* 8 KB for stack */
 #define CONFIG_SPL_STACK		LOW_LEVEL_SRAM_STACK
 
 #define CONFIG_SPL_BSS_START_ADDR       0x80000500 /* leave space for bootargs*/
@@ -353,13 +339,20 @@
 
 /* SPL OS boot options */
 #define CONFIG_SPL_OS_BOOT
-#define CONFIG_SPL_OS_BOOT_KEY	26
 
 #define CONFIG_CMD_SPL
 #define CONFIG_CMD_SPL_WRITE_SIZE       0x400 /* 1024 byte */
 #define CONFIG_CMD_SPL_NAND_OFS (CONFIG_SYS_NAND_SPL_KERNEL_OFFS+\
 					0x400000)
 #define CONFIG_SYS_NAND_SPL_KERNEL_OFFS 0x280000
+
+#define CONFIG_SPL_FAT_LOAD_KERNEL_NAME		"uImage"
+#define CONFIG_SPL_FAT_LOAD_ARGS_NAME		"args"
+
+#define CONFIG_SYS_MMCSD_RAW_MODE_KERNEL_SECTOR	0x500 /* address 0xa0000 */
+#define CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTOR	0x8   /* address 0x1000 */
+#define CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTORS	8     /* 4KB */
+
 #define CONFIG_SYS_SPL_ARGS_ADDR        (PHYS_SDRAM_1 + 0x100)
 
 #endif /* __CONFIG_H */

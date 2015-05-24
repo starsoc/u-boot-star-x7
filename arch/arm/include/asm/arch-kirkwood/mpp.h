@@ -3,23 +3,7 @@
  *
  * Copyright 2009: Marvell Technology Group Ltd.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __KIRKWOOD_MPP_H
@@ -85,7 +69,7 @@
 #define MPP7_SPI_SCn		MPP(  7, 0x2, 0, 1, 1,   1,   1,   1    )
 #define MPP7_PTP_TRIG_GEN	MPP(  7, 0x3, 0, 1, 1,   1,   1,   1    )
 
-#define MPP8_GPIO		MPP(  8, 0x0, 1, 1, 1,    1,  1,   1    )
+#define MPP8_GPIO		MPP(  8, 0x0, 1, 1, 1,   1,   1,   1    )
 #define MPP8_TW_SDA		MPP(  8, 0x1, 1, 1, 1,   1,   1,   1    )
 #define MPP8_UART0_RTS		MPP(  8, 0x2, 0, 1, 1,   1,   1,   1    )
 #define MPP8_UART1_RTS		MPP(  8, 0x3, 0, 1, 1,   1,   1,   1    )
@@ -312,6 +296,6 @@
 
 #define MPP_MAX			49
 
-void kirkwood_mpp_conf(unsigned int *mpp_list);
+void kirkwood_mpp_conf(const u32 *mpp_list, u32 *mpp_save);
 
 #endif

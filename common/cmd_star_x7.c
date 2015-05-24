@@ -69,6 +69,7 @@ enum {
 	PS_GMAC_TEST,
 	PS_I2C_EEPROM_TEST,
 	PS_I2C_RTC_TEST,
+	PS_I2C_TEMP_TEST,
 	/* PL part */
     PL_GPIO_LED_TEST = 100,
     PL_GPIO_KEY_TEST,
@@ -124,7 +125,9 @@ char *opnum2opstr(int op_num)
     case PS_I2C_RTC_TEST:        
         strncpy(tmp_op, "PS_I2C_RTC_Test", 100);
         break;
-
+	case PS_I2C_TEMP_TEST:		 
+		strncpy(tmp_op, "PS_I2C_TEMP_Test", 100);
+		break;
     /* PL partion */
     case PL_GPIO_LED_TEST:        
         strncpy(tmp_op, "PL_GPIO_LED_Test", 100);
@@ -281,7 +284,7 @@ struct memory_range_s memory_ranges[] = {
 
 int n_memory_ranges = 15;
 
-
+#if 0
 void test_memory_range(struct memory_range_s *range) {
     XStatus status;
 
@@ -447,7 +450,7 @@ int zynq_ps_qspi_test()
     
     argc = 4;    
     /* probe 0 0 0 */
-    Status = spi_op(argc, arg_probe);   
+    Status = do_spi_flash(argc, arg_probe);   
     if (Status == 0) 
     {
         printf("---QSPI Probe Test Application Complete---\n\r\r\n");
@@ -458,7 +461,7 @@ int zynq_ps_qspi_test()
     }
     /* probe erase 0x01FFF000 0x001000  erase the last 1KB */
     argc = 3;
-    Status = spi_op(argc, arg_erase);   
+    Status = do_spi_flash(argc, arg_erase);   
     if (Status == 0) 
     {
         printf("---QSPI Erase Test Application Complete---\n\r\r\n");
@@ -475,7 +478,7 @@ int zynq_ps_qspi_test()
         Xil_Out32((ddr_wr_baseaddr+(i*4)), (i+1));
     }
     argc = 4;
-    Status = spi_op(argc, arg_write);   
+    Status = do_spi_flash(argc, arg_write);   
     if (Status == 0) 
     {
         printf("---QSPI Write Test Application Complete---\n\r\r\n");
@@ -487,7 +490,7 @@ int zynq_ps_qspi_test()
     
     /* sf read 0x00300000 0x01FFF000 0x001000 */
     argc = 4;
-    Status = spi_op(argc, arg_read);   
+    Status = do_spi_flash(argc, arg_read);   
     if (Status == 0)
     {
         printf("---QSPI Read Test Application Complete---\n\r\r\n");
@@ -525,12 +528,17 @@ int zynq_ps_usb_test()
     return 0;
 }
 
+
 int zynq_ps_gmac_test()
 {
     int Status;
     char *server_ip;
     printf("---Starting GMAC Test Application---\n\r");
+    
+    #if 0
     Status = Xgmac_init(NULL, NULL);
+    #endif
+    
     if (Status == 0 || Status == 1) 
     {
         printf("---GMAC Test Application Complete---\n\r\r\n");
@@ -635,6 +643,7 @@ int ScuGicIntSetup()
         printf("ScuGic Interrupt Setup FAILED\r\n");
     } 
 }
+#endif
 
 #if 0
 int EmacPsIntrTest()
@@ -679,7 +688,18 @@ int IICPS_SelfTest(int device_id)
 }
 #endif
 
+void zynq_pl_hdmi_test()
+{
+    printf("--Starting HDMI Test Application--\n\r");
+    HDMI_init();
+    printf("--HDMI Test Application Complete--\n\r");
+    printf("\r\n");
+    return;
+}
 
+
+
+#if 0
 int QspiPS_SelfTest()
 {
     int Status;
@@ -698,7 +718,6 @@ int QspiPS_SelfTest()
     }
     return 0;
 }
-#if 0
 int Dcfg_Self_Test()
 {
     int Status;
@@ -717,7 +736,6 @@ int Dcfg_Self_Test()
     }
     return 0;
 }
-#endif
 
 
 int ScuTimer_Poll_Test()
@@ -748,15 +766,6 @@ void PL_OLED_Test()
     return;
 }
 
-
-void zynq_pl_hdmi_test()
-{
-    printf("--Starting HDMI Test Application--\n\r");
-    HDMI_init();
-    printf("--HDMI Test Application Complete--\n\r");
-    printf("\r\n");
-    return;
-}
 
 
 void zynq_pl_vga_test()
@@ -861,6 +870,40 @@ int zynq_ps_i2c_eeprom_test(int sub_opt_num)
     }
 	return XST_SUCCESS;
 }
+#endif
+
+#define IIC_STLM75_ADDR 0x49
+/*********************
+ *	Register define  *
+ *********************/
+#define REG_TEMP	0x0
+#define REG_CON		0x1
+#define REG_TOS		0x2
+#define REG_THYS	0x3
+
+int zynq_ps_i2c_tmp_test()
+{
+	int Status;
+    u8 reg_tmp = 0;
+    
+    printf("######zynq_ps_i2c_tmp_test() begin\r\n");
+    
+    Status = IicPsMasterPolled_Init(XPAR_XIICPS_0_DEVICE_ID);
+    if (Status != XST_SUCCESS)
+        printf("I2c init rts error\r\n");
+    
+    printf("######zynq_ps_i2c_tmp_test() i2c init success\r\n");
+    
+    
+    Status = IicPsRtcPolled_Read(IIC_STLM75_ADDR, REG_TEMP, &reg_tmp);
+    printf("stlm75 reg tmp:0x%x\r\n", reg_tmp);
+    
+	/*
+	 * Run the Iic EEPROM Polled Mode example.
+	 */
+    
+	return XST_SUCCESS;
+}
 
 
 
@@ -900,6 +943,29 @@ int do_star_x7_example (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv
     
 	switch (op_num) 
     {
+    case PS_I2C_TEMP_TEST:
+        zynq_ps_i2c_tmp_test();
+        break;
+        
+    case PL_HDMI_TEST:
+        zynq_pl_hdmi_test();
+        break;
+#if 0
+    case SCU_GIC_SELF_TEST:
+        ScuGicSelfTest();
+        break;
+    case SCU_GIC_INT_SETUP:
+        ScuGicIntSetup();
+        break;
+
+    /* PL test */
+    case PL_GPIO_LED_TEST:
+        zynq_pl_gpio_led_test();
+        break;
+    case PL_GPIO_KEY_TEST:
+        zynq_pl_gpio_key_test();
+        break;
+
     /* PS test */
     case PS_GPIO_TEST:
         zynq_ps_gpio_led_test();
@@ -922,36 +988,21 @@ int do_star_x7_example (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv
     case PS_GMAC_TEST:
         zynq_ps_gmac_test();
         break;
+
+
     case PS_I2C_EEPROM_TEST:
         zynq_ps_i2c_eeprom_test(sub_op_num);
         break;
     case PS_I2C_RTC_TEST:
         zynq_ps_i2c_rtc_test();
         break;
-    /* PL test */
-    case PL_GPIO_LED_TEST:
-        zynq_pl_gpio_led_test();
-        break;
-    case PL_GPIO_KEY_TEST:
-        zynq_pl_gpio_key_test();
-        break;
+
     case PL_AUDIO_TEST:
         zynq_pl_audio_test();
         break;
     case PL_VGA_TEST:
         zynq_pl_vga_test();
         break;
-    case PL_HDMI_TEST:
-        zynq_pl_hdmi_test();
-        break;
-        
-    case SCU_GIC_SELF_TEST:
-        ScuGicSelfTest();
-        break;
-    case SCU_GIC_INT_SETUP:
-        ScuGicIntSetup();
-        break;
-#if 0
 
     case PL_OLED_TEST:
         PL_OLED_Test();
@@ -963,7 +1014,6 @@ int do_star_x7_example (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv
     case IIC1_PS_SELF_TEST:
         IICPS_SelfTest(1);
         break;
-#endif
     
     case QSPI_PS_SELF_TEST:
         QspiPS_SelfTest();
@@ -971,6 +1021,9 @@ int do_star_x7_example (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv
     case SCU_TIMER_POLL_TEST:
         ScuTimer_Poll_Test();
         break;
+#endif
+
+		
     default:
         printf("invalid parameter, no zynq verification\n");        
         printf("***************************************\n");   
@@ -995,6 +1048,7 @@ U_BOOT_CMD (star_x7_example, 3, 1, do_star_x7_example,
 	"  7\t  	PS GMAC test\n"
 	"  8\t  	PS I2C EEPROM test\n"
 	"  9\t  	PS I2C RTC test\n"
+	"  10\t  	PS I2C TEMP test\n"
 	"  100\t	PL GPIO LED test\n"
 	"  101\t  	PL GPIO KEY test\n"
     "  102\t  	PL Audio test\n"

@@ -11,19 +11,7 @@
  * Copyright (C) 2009 Nick Thompson, GE Fanuc, Ltd. <nick.thompson@gefanuc.com>
  * Copyright (C) 2007 Sergey Kubushyn <ksi@koi8.net>
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -36,7 +24,7 @@
 #include <asm/io.h>
 #include <asm/arch/davinci_misc.h>
 #include <asm/gpio.h>
-#include <asm/arch/da8xx-fb.h>
+#include "../../../drivers/video/da8xx-fb.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -53,6 +41,30 @@ static const struct da8xx_panel lcd_panel = {
 	.vsw = 3,
 	.pxl_clk = 25000000,
 	.invert_pxl_clk = 0,
+};
+
+static const struct display_panel disp_panel = {
+	QVGA,
+	16,
+	16,
+	COLOR_ACTIVE,
+};
+
+static const struct lcd_ctrl_config lcd_cfg = {
+	&disp_panel,
+	.ac_bias		= 255,
+	.ac_bias_intrpt		= 0,
+	.dma_burst_sz		= 16,
+	.bpp			= 16,
+	.fdd			= 255,
+	.tft_alt_mode		= 0,
+	.stn_565_mode		= 0,
+	.mono_8bit_mode		= 0,
+	.invert_line_clock	= 1,
+	.invert_frm_clock	= 1,
+	.sync_edge		= 0,
+	.sync_ctrl		= 1,
+	.raster_order		= 0,
 };
 
 /* SPI0 pin muxer settings */
@@ -176,6 +188,9 @@ int board_early_init_f(void)
 	if (davinci_configure_pin_mux(gpio_pins, ARRAY_SIZE(gpio_pins)) != 0)
 		return 1;
 
+	/* Set DISP_ON high to enable LCD output*/
+	gpio_direction_output(97, 1);
+
 	/* Set the RESETOUTn low */
 	gpio_direction_output(111, 0);
 
@@ -187,9 +202,6 @@ int board_early_init_f(void)
 
 	/* Set LCD_B_PWR low to power down LCD Backlight*/
 	gpio_direction_output(102, 0);
-
-	/* Set DISP_ON low to disable LCD output*/
-	gpio_direction_output(97, 0);
 
 #ifndef CONFIG_USE_IRQ
 	irq_init();
@@ -250,13 +262,17 @@ int board_early_init_f(void)
 	writel(readl(&davinci_syscfg_regs->mstpri[2]) & 0x0fffffff,
 	       &davinci_syscfg_regs->mstpri[2]);
 
-	/* Set LCD_B_PWR low to power up LCD Backlight*/
-	gpio_set_value(102, 1);
-
-	/* Set DISP_ON low to disable LCD output*/
-	gpio_set_value(97, 1);
 
 	return 0;
+}
+
+/*
+ * Do not overwrite the console
+ * Use always serial for U-Boot console
+ */
+int overwrite_console(void)
+{
+	return 1;
 }
 
 int board_init(void)
@@ -267,15 +283,18 @@ int board_init(void)
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = LINUX_BOOT_PARAM_ADDR;
 
-	da8xx_video_init(&lcd_panel, 16);
+	da8xx_video_init(&lcd_panel, &lcd_cfg, 16);
 
 	return 0;
 }
 
-#ifdef BOARD_LATE_INIT
+#ifdef CONFIG_BOARD_LATE_INIT
 
 int board_late_init(void)
 {
+	unsigned char buf[2];
+	int ret;
+
 	/* PinMux for HALTEN */
 	if (davinci_configure_pin_mux(halten_pin, ARRAY_SIZE(halten_pin)) != 0)
 		return 1;
@@ -283,11 +302,18 @@ int board_late_init(void)
 	/* Set HALTEN to high */
 	gpio_direction_output(134, 1);
 
-	setenv("stdout", "serial");
+	/* Set fixed contrast settings for LCD via I2C potentiometer */
+	buf[0] = 0x00;
+	buf[1] = 0xd7;
+	ret = i2c_write(0x2e, 6, 1, buf, 2);
+	if (ret)
+		puts("\nContrast Settings FAILED\n");
 
+	/* Set LCD_B_PWR high to power up LCD Backlight*/
+	gpio_set_value(102, 1);
 	return 0;
 }
-#endif /* BOARD_LATE_INIT */
+#endif /* CONFIG_BOARD_LATE_INIT */
 
 #ifdef CONFIG_DRIVER_TI_EMAC
 

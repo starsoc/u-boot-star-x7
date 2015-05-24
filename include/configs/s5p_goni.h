@@ -5,23 +5,7 @@
  *
  * Configuation settings for the SAMSUNG Universal (s5pc100) board.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -45,6 +29,9 @@
 /* DRAM Base */
 #define CONFIG_SYS_SDRAM_BASE		0x30000000
 
+/* Text Base */
+#define CONFIG_SYS_TEXT_BASE		0x34800000
+
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_CMDLINE_TAG
 #define CONFIG_INITRD_TAG
@@ -59,13 +46,13 @@
  * select serial console configuration
  */
 #define CONFIG_SERIAL2			1	/* use SERIAL2 */
-#define CONFIG_SERIAL_MULTI		1
 #define CONFIG_BAUDRATE			115200
 
 /* MMC */
-#define CONFIG_GENERIC_MMC		1
-#define CONFIG_MMC			1
-#define CONFIG_S5P_MMC			1
+#define CONFIG_GENERIC_MMC
+#define CONFIG_MMC
+#define CONFIG_SDHCI
+#define CONFIG_S5P_SDHCI
 
 /* PWM */
 #define CONFIG_PWM			1
@@ -175,7 +162,6 @@
 /* Miscellaneous configurable options */
 #define CONFIG_SYS_LONGHELP		/* undef to save memory */
 #define CONFIG_SYS_HUSH_PARSER		/* use "hush" command parser	*/
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_SYS_PROMPT	"Goni # "
 #define CONFIG_SYS_CBSIZE	256	/* Console I/O Buffer Size */
 #define CONFIG_SYS_PBSIZE	384	/* Print Buffer Size */
@@ -188,12 +174,6 @@
 #define CONFIG_SYS_LOAD_ADDR		(CONFIG_SYS_SDRAM_BASE + 0x4000000)
 
 #define CONFIG_SYS_HZ			1000
-
-/* valid baudrates */
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
-
-/* Stack sizes */
-#define CONFIG_STACKSIZE	(256 << 10)	/* 256 KiB */
 
 /* Goni has 3 banks of DRAM, but swap the bank */
 #define CONFIG_NR_DRAM_BANKS	3
@@ -222,9 +202,9 @@
 
 #define CONFIG_SYS_CACHELINE_SIZE       64
 
-#define CONFIG_PMIC
-#define CONFIG_PMIC_I2C
-#define CONFIG_PMIC_MAX8998
+#define CONFIG_POWER
+#define CONFIG_POWER_I2C
+#define CONFIG_POWER_MAX8998
 
 #include <asm/arch/gpio.h>
 /*
@@ -233,8 +213,10 @@
 #define CONFIG_SOFT_I2C_GPIO_SCL s5pc110_gpio_get_nr(j4, 3)
 #define CONFIG_SOFT_I2C_GPIO_SDA s5pc110_gpio_get_nr(j4, 0)
 
-#define CONFIG_SOFT_I2C	1
-#define CONFIG_SYS_I2C_SPEED	50000
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_I2C_SOFT		/* I2C bit-banged */
+#define CONFIG_SYS_I2C_SOFT_SPEED	50000
+#define CONFIG_SYS_I2C_SOFT_SLAVE	0x7F
 #define CONFIG_I2C_MULTI_BUS
 #define CONFIG_SYS_MAX_I2C_BUS	7
 #define CONFIG_USB_GADGET

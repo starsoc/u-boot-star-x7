@@ -2,23 +2,7 @@
  * (C) Copyright 2011 Freescale Semiconductor, Inc
  * Andy Fleming
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -57,9 +41,9 @@ static int extract_range(char *input, int *plo, int *phi)
 	return 0;
 }
 
-int mdio_write_ranges(struct mii_dev *bus, int addrlo,
-			int addrhi, int devadlo, int devadhi,
-			int reglo, int reghi, unsigned short data)
+static int mdio_write_ranges(struct mii_dev *bus, int addrlo,
+			     int addrhi, int devadlo, int devadhi,
+			     int reglo, int reghi, unsigned short data)
 {
 	int addr, devad, reg;
 	int err = 0;
@@ -79,9 +63,9 @@ err_out:
 	return err;
 }
 
-int mdio_read_ranges(struct mii_dev *bus, int addrlo,
-			int addrhi, int devadlo, int devadhi,
-			int reglo, int reghi)
+static int mdio_read_ranges(struct mii_dev *bus, int addrlo,
+			    int addrhi, int devadlo, int devadhi,
+			    int reglo, int reghi)
 {
 	int addr, devad, reg;
 
@@ -112,8 +96,8 @@ int mdio_read_ranges(struct mii_dev *bus, int addrlo,
 }
 
 /* The register will be in the form [a[-b].]x[-y] */
-int extract_reg_range(char *input, int *devadlo, int *devadhi,
-		int *reglo, int *reghi)
+static int extract_reg_range(char *input, int *devadlo, int *devadhi,
+			     int *reglo, int *reghi)
 {
 	char *regstr;
 
@@ -141,8 +125,8 @@ int extract_reg_range(char *input, int *devadlo, int *devadhi,
 	return extract_range(regstr, reglo, reghi);
 }
 
-int extract_phy_range(char *const argv[], int argc, struct mii_dev **bus,
-		int *addrlo, int *addrhi)
+static int extract_phy_range(char *const argv[], int argc, struct mii_dev **bus,
+			     int *addrlo, int *addrhi)
 {
 	struct phy_device *phydev;
 

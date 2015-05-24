@@ -7,20 +7,7 @@
  * Copyright (c) 2008 Freescale Semiconductor, Inc.
  * Author: Scott Wood <scottwood@freescale.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -66,39 +53,42 @@ static void nand_load(unsigned int offs, int uboot_size, uchar *dst)
 
 	if (large) {
 		fmr |= FMR_ECCM;
-		out_be32(&regs->fcr, (NAND_CMD_READ0 << FCR_CMD0_SHIFT) |
-		                     (NAND_CMD_READSTART << FCR_CMD1_SHIFT));
-		out_be32(&regs->fir,
-		         (FIR_OP_CW0 << FIR_OP0_SHIFT) |
-		         (FIR_OP_CA  << FIR_OP1_SHIFT) |
-		         (FIR_OP_PA  << FIR_OP2_SHIFT) |
-		         (FIR_OP_CW1 << FIR_OP3_SHIFT) |
-		         (FIR_OP_RBW << FIR_OP4_SHIFT));
+		__raw_writel((NAND_CMD_READ0 << FCR_CMD0_SHIFT) |
+			(NAND_CMD_READSTART << FCR_CMD1_SHIFT),
+			&regs->fcr);
+		__raw_writel(
+			(FIR_OP_CW0 << FIR_OP0_SHIFT) |
+			(FIR_OP_CA  << FIR_OP1_SHIFT) |
+			(FIR_OP_PA  << FIR_OP2_SHIFT) |
+			(FIR_OP_CW1 << FIR_OP3_SHIFT) |
+			(FIR_OP_RBW << FIR_OP4_SHIFT),
+			&regs->fir);
 	} else {
-		out_be32(&regs->fcr, NAND_CMD_READ0 << FCR_CMD0_SHIFT);
-		out_be32(&regs->fir,
-		         (FIR_OP_CW0 << FIR_OP0_SHIFT) |
-		         (FIR_OP_CA  << FIR_OP1_SHIFT) |
-		         (FIR_OP_PA  << FIR_OP2_SHIFT) |
-		         (FIR_OP_RBW << FIR_OP3_SHIFT));
+		__raw_writel(NAND_CMD_READ0 << FCR_CMD0_SHIFT, &regs->fcr);
+		__raw_writel(
+			(FIR_OP_CW0 << FIR_OP0_SHIFT) |
+			(FIR_OP_CA  << FIR_OP1_SHIFT) |
+			(FIR_OP_PA  << FIR_OP2_SHIFT) |
+			(FIR_OP_RBW << FIR_OP3_SHIFT),
+			&regs->fir);
 	}
 
-	out_be32(&regs->fbcr, 0);
-	clrsetbits_be32(&regs->bank[0].br, BR_DECC, BR_DECC_CHK_GEN);
+	__raw_writel(0, &regs->fbcr);
 
 	while (pos < uboot_size) {
 		int i = 0;
-		out_be32(&regs->fbar, offs >> block_shift);
+		__raw_writel(offs >> block_shift, &regs->fbar);
 
 		do {
 			int j;
 			unsigned int page_offs = (offs & (block_size - 1)) << 1;
 
-			out_be32(&regs->ltesr, ~0);
-			out_be32(&regs->lteatr, 0);
-			out_be32(&regs->fpar, page_offs);
-			out_be32(&regs->fmr, fmr);
-			out_be32(&regs->lsor, 0);
+			__raw_writel(~0, &regs->ltesr);
+			__raw_writel(0, &regs->lteatr);
+			__raw_writel(page_offs, &regs->fpar);
+			__raw_writel(fmr, &regs->fmr);
+			sync();
+			__raw_writel(0, &regs->lsor);
 			nand_wait();
 
 			page_offs %= WINDOW_SIZE;
@@ -136,7 +126,7 @@ void nand_boot(void)
 	 * Load U-Boot image from NAND into RAM
 	 */
 	nand_load(CONFIG_SYS_NAND_U_BOOT_OFFS, CONFIG_SYS_NAND_U_BOOT_SIZE,
-	          (uchar *)CONFIG_SYS_NAND_U_BOOT_DST);
+		  (uchar *)CONFIG_SYS_NAND_U_BOOT_DST);
 
 	/*
 	 * Jump to U-Boot image

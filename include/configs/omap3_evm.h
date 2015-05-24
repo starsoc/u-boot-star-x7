@@ -11,23 +11,7 @@
  *
  * Manikandan Pillai <mani.pillai@ti.com>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __OMAP3EVM_CONFIG_H
@@ -41,6 +25,8 @@
  * ----------------------------------------------------------------------------
  */
 #include <config_cmd_default.h>
+
+#define CONFIG_CMD_ASKENV
 
 #define CONFIG_CMD_EXT2
 #define CONFIG_CMD_FAT
@@ -93,10 +79,7 @@
 #define CONFIG_SPL_FAT_LOAD_PAYLOAD_NAME	"u-boot.img"
 
 /* Partition tables */
-/* Only need DOS partition support for SPL, currently */
-#ifndef CONFIG_SPL_BUILD
 #define CONFIG_EFI_PARTITION
-#endif
 #define CONFIG_DOS_PARTITION
 
 /* USB
@@ -111,6 +94,9 @@
 /* NAND SPL */
 #define CONFIG_SPL_NAND_SIMPLE
 #define CONFIG_SPL_NAND_SUPPORT
+#define CONFIG_SPL_NAND_BASE
+#define CONFIG_SPL_NAND_DRIVERS
+#define CONFIG_SPL_NAND_ECC
 #define CONFIG_SYS_NAND_5_ADDR_CYCLE
 #define CONFIG_SYS_NAND_PAGE_COUNT	64
 #define CONFIG_SYS_NAND_PAGE_SIZE	2048
@@ -134,7 +120,7 @@
  * Default environment
  * -----------------------------------------------------------------------------
  */
-#define CONFIG_BOOTDELAY	10
+#define CONFIG_BOOTDELAY	3
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"loadaddr=0x82000000\0" \
@@ -160,7 +146,7 @@
 		"bootm ${loadaddr}\0" \
 
 #define CONFIG_BOOTCOMMAND \
-	"if mmc rescan ${mmcdev}; then " \
+	"mmc dev ${mmcdev}; if mmc rescan; then " \
 		"if run loadbootscript; then " \
 			"run bootscript; " \
 		"else " \

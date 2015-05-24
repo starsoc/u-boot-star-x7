@@ -4,20 +4,7 @@
  * Copyright (C) 2011 Matrix Vision GmbH
  * Andre Schwarz <andre.schwarz@matrix-vision.de>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -36,6 +23,7 @@
 #define CONFIG_SYS_TEXT_BASE	0xFC000000
 
 #define CONFIG_PCI	1
+#define CONFIG_PCI_INDIRECT_BRIDGE 1
 
 #define	CONFIG_MASK_AER_AO
 #define CONFIG_DISPLAY_AER_FULL
@@ -216,7 +204,6 @@
 
 /* Use the HUSH parser */
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2 "> "
 
 /* Pass open firmware flat tree */
 #define CONFIG_OF_LIBFDT	1
@@ -224,13 +211,14 @@
 #define CONFIG_OF_STDOUT_VIA_ALIAS 1
 
 /* I2C */
-#define CONFIG_HARD_I2C
-#define CONFIG_FSL_I2C
-#define CONFIG_I2C_MULTI_BUS
-#define CONFIG_SYS_I2C_SPEED		120000
-#define CONFIG_SYS_I2C_SLAVE		0x7F
-#define CONFIG_SYS_I2C_OFFSET		0x3000
-#define CONFIG_SYS_I2C2_OFFSET		0x3100
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_I2C_FSL
+#define CONFIG_SYS_FSL_I2C_SPEED	400000
+#define CONFIG_SYS_FSL_I2C_SLAVE	0x7F
+#define CONFIG_SYS_FSL_I2C_OFFSET	0x3000
+#define CONFIG_SYS_FSL_I2C2_SPEED	400000
+#define CONFIG_SYS_FSL_I2C2_SLAVE	0x7F
+#define CONFIG_SYS_FSL_I2C2_OFFSET	0x3100
 
 /*
  * General PCI
@@ -549,9 +537,6 @@
 				"then; run fitboot;else;run ubiboot;fi;"
 #define CONFIG_BOOTARGS		"console=ttyS0,115200n8"
 
-#define XMK_STR(x)	#x
-#define MK_STR(x)	XMK_STR(x)
-
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"console_nr=0\0"\
 	"stdin=serial\0"\
@@ -560,15 +545,15 @@
 	"boot_sqfs=1\0"\
 	"usb_dr_mode=host\0"\
 	"bootfile=MergerBox.fit\0"\
-	"baudrate=" MK_STR(CONFIG_BAUDRATE) "\0"\
+	"baudrate=" __stringify(CONFIG_BAUDRATE) "\0"\
 	"fpga=0\0"\
-	"fpgadata=" MK_STR(MV_FPGA_DATA) "\0"\
-	"fpgadatasize=" MK_STR(MV_FPGA_SIZE) "\0"\
-	"mv_kernel_ram=" MK_STR(MV_KERNEL_ADDR_RAM) "\0"\
-	"mv_initrd_ram=" MK_STR(MV_INITRD_ADDR_RAM) "\0"\
-	"mv_dtb_ram=" MK_STR(MV_DTB_ADDR_RAM) "\0"\
-	"uboota=" MK_STR(CONFIG_SYS_TEXT_BASE) "\0"\
-	"fitaddr=" MK_STR(MV_FITADDR) "\0"\
+	"fpgadata=" __stringify(MV_FPGA_DATA) "\0"\
+	"fpgadatasize=" __stringify(MV_FPGA_SIZE) "\0"\
+	"mv_kernel_ram=" __stringify(MV_KERNEL_ADDR_RAM) "\0"\
+	"mv_initrd_ram=" __stringify(MV_INITRD_ADDR_RAM) "\0"\
+	"mv_dtb_ram=" __stringify(MV_DTB_ADDR_RAM) "\0"\
+	"uboota=" __stringify(CONFIG_SYS_TEXT_BASE) "\0"\
+	"fitaddr=" __stringify(MV_FITADDR) "\0"\
 	"mv_version=" U_BOOT_VERSION "\0"\
 	"mtdids=" MTDIDS_DEFAULT "\0"\
 	"mtdparts=" MTDPARTS_DEFAULT "\0"\
@@ -603,17 +588,14 @@
 	"i2c_speed=i2c dev 0;i2c speed 300000;i2c dev 1;i2c speed 120000\0"\
 	"init_sdi_tx=i2c mw 21 6 0;i2c mw 21 2 0;i2c mw 21 3 0;sleep 1;"\
 		"i2c mw 21 2 ff;i2c mw 21 3 3c\0"\
-	"splashimage=" MK_STR(MV_SPLAH_ADDR) "\0"\
+	"splashimage=" __stringify(MV_SPLAH_ADDR) "\0"\
 	""
-
-#undef MK_STR
-#undef XMK_STR
 
 /*
  * FPGA
  */
 #define CONFIG_FPGA_COUNT	1
-#define CONFIG_FPGA		CONFIG_SYS_ALTERA_CYCLON2
+#define CONFIG_FPGA
 #define CONFIG_FPGA_ALTERA
 #define CONFIG_FPGA_CYCLON2
 

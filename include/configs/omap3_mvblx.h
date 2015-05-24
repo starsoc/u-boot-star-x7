@@ -9,23 +9,7 @@
  *
  * Configuration settings for the TI OMAP3530 Beagle board.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -39,6 +23,8 @@
 #define CONFIG_OMAP34XX		1	/* which is a 34XX */
 #define CONFIG_MVBLX		1	/* working with mvBlueLYNX-X */
 #define CONFIG_MACH_TYPE	MACH_TYPE_MVBLX
+#define CONFIG_OMAP_GPIO
+#define CONFIG_OMAP_COMMON
 
 #define CONFIG_SDRC	/* The chip has SDRC controller */
 
@@ -55,7 +41,6 @@
 #define V_OSCK			26000000	/* Clock output from T2 */
 #define V_SCLK			(V_OSCK >> 1)
 
-#undef CONFIG_USE_IRQ				/* no support for IRQs */
 #define CONFIG_MISC_INIT_R
 
 #define CONFIG_OF_LIBFDT		1
@@ -90,9 +75,9 @@
 /*
  * select serial console configuration
  */
-#define CONFIG_CONS_INDEX		3
-#define CONFIG_SYS_NS16550_COM3		OMAP34XX_UART3
-#define CONFIG_SERIAL3			3	/* UART3 */
+#define CONFIG_CONS_INDEX		1
+#define CONFIG_SYS_NS16550_COM1		OMAP34XX_UART1
+#define CONFIG_SERIAL1			1	/* UART1 */
 
 #define CONFIG_BAUDRATE			115200
 #define CONFIG_SYS_BAUDRATE_TABLE	{4800, 9600, 19200, 38400, 57600,\
@@ -101,6 +86,10 @@
 #define CONFIG_MMC			1
 #define CONFIG_OMAP_HSMMC		1
 #define CONFIG_DOS_PARTITION		1
+
+/* silent console by default */
+#define CONFIG_SYS_DEVICE_NULLDEV	1
+#define CONFIG_SILENT_CONSOLE		1
 
 /* USB */
 #define CONFIG_MUSB_UDC			1
@@ -142,8 +131,6 @@
 #define CONFIG_HARD_I2C			1
 #define CONFIG_SYS_I2C_SPEED		100000
 #define CONFIG_SYS_I2C_SLAVE		0
-#define CONFIG_SYS_I2C_BUS		0 /* This isn't used anywhere ?? */
-#define CONFIG_SYS_I2C_BUS_SELECT	1 /* This isn't used anywhere ?? */
 #define CONFIG_DRIVER_OMAP34XX_I2C	1
 #define CONFIG_I2C_MULTI_BUS		1
 
@@ -154,19 +141,23 @@
 
 /* Environment information */
 #undef CONFIG_ENV_OVERWRITE	/* disallow overwriting serial# and ethaddr */
-#define CONFIG_BOOTDELAY		3
+#define CONFIG_BOOTDELAY		0
+#define CONFIG_ZERO_BOOTDELAY_CHECK
+#define CONFIG_AUTOBOOT_KEYED
+#define CONFIG_AUTOBOOT_STOP_STR "S"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
+	"silent=true\0" \
 	"loadaddr=0x82000000\0" \
 	"usbtty=cdc_acm\0" \
-	"console=ttyO2,115200n8\0" \
+	"console=ttyO0,115200n8\0" \
 	"mpurate=600\0" \
 	"vram=12M\0" \
 	"dvimode=1024x768-24@60\0" \
 	"defaultdisplay=dvi\0" \
-	"fpgafilename=mvbluelynx_x.rbf\0" \
-	"loadfpga=if fatload mmc ${mmcdev} ${loadaddr} ${fpgafilename}; then " \
-		"fpga load 0 ${loadaddr} ${filesize}; " \
+	"loadfpga=if ext2load mmc ${mmcdev}:2 ${loadaddr} "\
+		"/lib/firmware/mvblx/${fpgafilename}; then " \
+			"fpga load 0 ${loadaddr} ${filesize}; " \
 		"fi;\0" \
 	"mmcdev=0\0" \
 	"mmcroot=/dev/mmcblk0p2 rw\0" \
@@ -179,6 +170,7 @@
 		"omapdss.def_disp=${defaultdisplay} " \
 		"root=${mmcroot} " \
 		"rootfstype=${mmcrootfstype} " \
+		"mvfw.fpgavers=${fpgavers} " \
 		"${cmdline_suffix}\0" \
 	"loadbootenv=fatload mmc ${mmcdev} ${loadaddr} uEnv.txt\0" \
 	"importbootenv=echo Importing environment from mmc ...; " \
@@ -220,7 +212,6 @@
  */
 #define CONFIG_SYS_LONGHELP		/* undef to save memory */
 #define CONFIG_SYS_HUSH_PARSER		/* use "hush" command parser */
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_SYS_PROMPT		"mvblx # "
 #define CONFIG_SYS_CBSIZE		256	/* Console I/O Buffer Size */
 /* Print Buffer Size */
@@ -248,18 +239,10 @@
 #define CONFIG_SYS_HZ			1000
 
 /*-----------------------------------------------------------------------
- * Stack sizes
- *
- * The stack sizes are set up in start.S using the settings below
- */
-#define CONFIG_STACKSIZE	(128 << 10)	/* regular stack 128 KiB */
-
-/*-----------------------------------------------------------------------
  * Physical Memory Map
  */
 #define CONFIG_NR_DRAM_BANKS	1
 #define PHYS_SDRAM_1		OMAP34XX_SDRC_CS0
-#define PHYS_SDRAM_1_SIZE	(32 << 20)	/* at least 32 MiB */
 #define PHYS_SDRAM_2		OMAP34XX_SDRC_CS1
 
 #define CONFIG_ENV_IS_NOWHERE	1
@@ -275,7 +258,7 @@
 #endif /* (CONFIG_CMD_NET) */
 
 #define CONFIG_FPGA_COUNT	1
-#define CONFIG_FPGA          CONFIG_SYS_ALTERA_CYCLON2
+#define CONFIG_FPGA
 #define CONFIG_FPGA_ALTERA
 #define CONFIG_FPGA_CYCLON2
 #define CONFIG_SYS_FPGA_PROG_FEEDBACK

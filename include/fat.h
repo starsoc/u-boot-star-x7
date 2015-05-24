@@ -4,24 +4,7 @@
  * 2002-07-28 - rjones@nexus-tech.net - ported to ppcboot v1.1.6
  * 2003-03-10 - kharris@nexus-tech.net - ported to u-boot
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
- *
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _FAT_H_
@@ -98,9 +81,6 @@
 #endif
 #endif
 
-#define TOLOWER(c)	if((c) >= 'A' && (c) <= 'Z'){(c)+=('a' - 'A');}
-#define TOUPPER(c)	if ((c) >= 'a' && (c) <= 'z') \
-				(c) -= ('a' - 'A');
 #define START(dent)	(FAT2CPU16((dent)->start) \
 			+ (mydata->fatsize != 32 ? 0 : \
 			  (FAT2CPU16((dent)->starthi) << 16)))
@@ -178,12 +158,12 @@ typedef struct dir_slot {
 typedef struct {
 	__u8	*fatbuf;	/* Current FAT buffer */
 	int	fatsize;	/* Size of FAT in bits */
-	__u16	fatlength;	/* Length of FAT in sectors */
+	__u32	fatlength;	/* Length of FAT in sectors */
 	__u16	fat_sect;	/* Starting sector of the FAT */
-	__u16	rootdir_sect;	/* Start sector of root directory */
+	__u32	rootdir_sect;	/* Start sector of root directory */
 	__u16	sect_size;	/* Size of sectors in bytes */
 	__u16	clust_size;	/* Size of clusters in sectors */
-	short	data_begin;	/* The sector of the first cluster, can be negative */
+	int	data_begin;	/* The sector of the first cluster, can be negative */
 	int	fatbufnum;	/* Used by get_fatent, init to -1 */
 } fsdata;
 
@@ -208,9 +188,14 @@ file_read_func		file_fat_read;
 int file_cd(const char *path);
 int file_fat_detectfs(void);
 int file_fat_ls(const char *dir);
+long file_fat_read_at(const char *filename, unsigned long pos, void *buffer,
+		      unsigned long maxsize);
 long file_fat_read(const char *filename, void *buffer, unsigned long maxsize);
 const char *file_getfsname(int idx);
+int fat_set_blk_dev(block_dev_desc_t *rbdd, disk_partition_t *info);
 int fat_register_device(block_dev_desc_t *dev_desc, int part_no);
 
 int file_fat_write(const char *filename, void *buffer, unsigned long maxsize);
+int fat_read_file(const char *filename, void *buf, int offset, int len);
+void fat_close(void);
 #endif /* _FAT_H_ */

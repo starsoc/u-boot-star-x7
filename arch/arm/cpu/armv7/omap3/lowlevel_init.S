@@ -8,45 +8,29 @@
  * Richard Woodruff <r-woodruff2@ti.com>
  * Syed Mohammed Khasim <khasim@ti.com>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <config.h>
 #include <version.h>
 #include <asm/arch/mem.h>
 #include <asm/arch/clocks_omap3.h>
+#include <linux/linkage.h>
 
 _TEXT_BASE:
 	.word	CONFIG_SYS_TEXT_BASE	/* sdram load addr from config.mk */
 
 #ifdef CONFIG_SPL_BUILD
-.global save_boot_params
-save_boot_params:
+ENTRY(save_boot_params)
 	ldr	r4, =omap3_boot_device
 	ldr	r5, [r0, #0x4]
 	and	r5, r5, #0xff
 	str	r5, [r4]
 	bx	lr
+ENDPROC(save_boot_params)
 #endif
 
-.global omap3_gp_romcode_call
-omap3_gp_romcode_call:
+ENTRY(omap3_gp_romcode_call)
 	PUSH {r4-r12, lr} @ Save all registers from ROM code!
 	MOV r12, r0	@ Copy the Service ID in R12
 	MOV r0, r1	@ Copy parameter to R0
@@ -55,6 +39,7 @@ omap3_gp_romcode_call:
 	.word	0xe1600070	@ SMC #0 to enter monitor - hand assembled
 				@ because we use -march=armv5
 	POP {r4-r12, pc}
+ENDPROC(omap3_gp_romcode_call)
 
 /*
  * Funtion for making PPA HAL API calls in secure devices
@@ -62,8 +47,7 @@ omap3_gp_romcode_call:
  *	R0 - Service ID
  *	R1 - paramer list
  */
-.global do_omap3_emu_romcode_call
-do_omap3_emu_romcode_call:
+ENTRY(do_omap3_emu_romcode_call)
 	PUSH {r4-r12, lr} @ Save all registers from ROM code!
 	MOV r12, r0	@ Copy the Secure Service ID in R12
 	MOV r3, r1	@ Copy the pointer to va_list in R3
@@ -76,25 +60,24 @@ do_omap3_emu_romcode_call:
 	.word	0xe1600071	@ SMC #1 to call PPA service - hand assembled
 				@ because we use -march=armv5
 	POP {r4-r12, pc}
+ENDPROC(do_omap3_emu_romcode_call)
 
 #if !defined(CONFIG_SYS_NAND_BOOT) && !defined(CONFIG_SYS_NAND_BOOT)
 /**************************************************************************
  * cpy_clk_code: relocates clock code into SRAM where its safer to execute
  * R1 = SRAM destination address.
  *************************************************************************/
-.global cpy_clk_code
- cpy_clk_code:
+ENTRY(cpy_clk_code)
 	/* Copy DPLL code into SRAM */
-	adr	r0, go_to_speed		/* get addr of clock setting code */
-	mov	r2, #384		/* r2 size to copy (div by 32 bytes) */
-	mov	r1, r1			/* r1 <- dest address (passed in) */
-	add	r2, r2, r0		/* r2 <- source end address */
+	adr	r0, go_to_speed		/* copy from start of go_to_speed... */
+	adr	r2, lowlevel_init	/* ... up to start of low_level_init */
 next2:
 	ldmia	r0!, {r3 - r10}		/* copy from source address [r0] */
 	stmia	r1!, {r3 - r10}		/* copy to   target address [r1] */
 	cmp	r0, r2			/* until source end address [r2] */
-	bne	next2
+	blo	next2
 	mov	pc, lr			/* back to caller */
+ENDPROC(cpy_clk_code)
 
 /* ***************************************************************************
  *  go_to_speed: -Moves to bypass, -Commits clock dividers, -puts dpll at speed
@@ -109,8 +92,7 @@ next2:
  *        L3 when its not in self refresh seems bad for it.  Normally, this
  *	  code runs from flash before SDR is init so that should be ok.
  ****************************************************************************/
-.global go_to_speed
- go_to_speed:
+ENTRY(go_to_speed)
 	stmfd sp!, {r4 - r6}
 
 	/* move into fast relock bypass */
@@ -171,6 +153,7 @@ wait2:
 	nop
 	ldmfd	sp!, {r4 - r6}
 	mov	pc, lr		/* back to caller, locked */
+ENDPROC(go_to_speed)
 
 _go_to_speed: .word go_to_speed
 
@@ -211,10 +194,9 @@ pll_div_val5:
 
 #endif
 
-.globl lowlevel_init
-lowlevel_init:
+ENTRY(lowlevel_init)
 	ldr	sp, SRAM_STACK
-	str	ip, [sp]	/* stash old link register */
+	str	ip, [sp]	/* stash ip register */
 	mov	ip, lr		/* save link reg across call */
 #if !defined(CONFIG_SYS_NAND_BOOT) && !defined(CONFIG_SYS_ONENAND_BOOT)
 /*
@@ -224,12 +206,12 @@ lowlevel_init:
 	ldr	r1, =SRAM_CLK_CODE
 	bl	cpy_clk_code
 #endif /* NAND Boot */
-	bl	s_init		/* go setup pll, mux, memory */
-	ldr	ip, [sp]	/* restore save ip */
 	mov	lr, ip		/* restore link reg */
+	ldr	ip, [sp]	/* restore save ip */
+	/* tail-call s_init to setup pll, mux, memory */
+	b	s_init
 
-	/* back to arch calling code */
-	mov	pc, lr
+ENDPROC(lowlevel_init)
 
 	/* the literal pools origin */
 	.ltorg
@@ -480,22 +462,40 @@ per_36x_dpll_param:
 .word 26000,    432,   12,     9,      16,     9,     4,      3,      1
 .word 38400,    360,   15,     9,      16,     5,     4,      3,      1
 
-.globl get_36x_mpu_dpll_param
-get_36x_mpu_dpll_param:
+per2_36x_dpll_param:
+/* 12MHz */
+.word PER2_36XX_M_12, PER2_36XX_N_12, 0, PER2_36XX_M2_12
+/* 13MHz */
+.word PER2_36XX_M_13, PER2_36XX_N_13, 0, PER2_36XX_M2_13
+/* 19.2MHz */
+.word PER2_36XX_M_19P2, PER2_36XX_N_19P2, 0, PER2_36XX_M2_19P2
+/* 26MHz */
+.word PER2_36XX_M_26, PER2_36XX_N_26, 0, PER2_36XX_M2_26
+/* 38.4MHz */
+.word PER2_36XX_M_38P4, PER2_36XX_N_38P4, 0, PER2_36XX_M2_38P4
+
+
+ENTRY(get_36x_mpu_dpll_param)
 	adr	r0, mpu_36x_dpll_param
 	mov	pc, lr
+ENDPROC(get_36x_mpu_dpll_param)
 
-.globl get_36x_iva_dpll_param
-get_36x_iva_dpll_param:
+ENTRY(get_36x_iva_dpll_param)
 	adr	r0, iva_36x_dpll_param
 	mov	pc, lr
+ENDPROC(get_36x_iva_dpll_param)
 
-.globl get_36x_core_dpll_param
-get_36x_core_dpll_param:
+ENTRY(get_36x_core_dpll_param)
 	adr	r0, core_36x_dpll_param
 	mov	pc, lr
+ENDPROC(get_36x_core_dpll_param)
 
-.globl get_36x_per_dpll_param
-get_36x_per_dpll_param:
+ENTRY(get_36x_per_dpll_param)
 	adr	r0, per_36x_dpll_param
 	mov	pc, lr
+ENDPROC(get_36x_per_dpll_param)
+
+ENTRY(get_36x_per2_dpll_param)
+	adr	r0, per2_36x_dpll_param
+	mov	pc, lr
+ENDPROC(get_36x_per2_dpll_param)

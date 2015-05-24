@@ -5,23 +5,7 @@
  * (C) Copyright 2007
  * Daniel Hellstrom, Gaisler Research, daniel@gaisler.com
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /* #define DEBUG */
@@ -403,7 +387,7 @@ void greth_halt(struct eth_device *dev)
 	}
 }
 
-int greth_send(struct eth_device *dev, volatile void *eth_data, int data_length)
+int greth_send(struct eth_device *dev, void *eth_data, int data_length)
 {
 	greth_priv *greth = dev->priv;
 	greth_regs *regs = greth->regs;
@@ -483,7 +467,7 @@ int greth_recv(struct eth_device *dev)
 	greth_regs *regs = greth->regs;
 	greth_bd *rxbd;
 	unsigned int status, len = 0, bad;
-	unsigned char *d;
+	char *d;
 	int enable = 0;
 	int i;
 
@@ -504,7 +488,7 @@ int greth_recv(struct eth_device *dev)
 			goto done;
 		}
 
-		debug("greth_recv: packet 0x%lx, 0x%lx, len: %d\n",
+		debug("greth_recv: packet 0x%x, 0x%x, len: %d\n",
 		       (unsigned int)rxbd, status, status & GRETH_BD_LEN);
 
 		/* Check status for errors.
@@ -620,7 +604,7 @@ int greth_initialize(bd_t * bis)
 
 	greth->regs = (greth_regs *) apbdev.address;
 	greth->irq = apbdev.irq;
-	debug("Found GRETH at 0x%lx, irq %d\n", greth->regs, greth->irq);
+	debug("Found GRETH at %p, irq %d\n", greth->regs, greth->irq);
 	dev->priv = (void *)greth;
 	dev->iobase = (unsigned int)greth->regs;
 	dev->init = greth_init;
@@ -652,7 +636,7 @@ int greth_initialize(bd_t * bis)
 	/* initiate PHY, select speed/duplex depending on connected PHY */
 	if (greth_init_phy(greth, bis)) {
 		/* Failed to init PHY (timedout) */
-		debug("GRETH[0x%08x]: Failed to init PHY\n", greth->regs);
+		debug("GRETH[%p]: Failed to init PHY\n", greth->regs);
 		return -1;
 	}
 
@@ -681,6 +665,6 @@ int greth_initialize(bd_t * bis)
 	/* set and remember MAC address */
 	greth_set_hwaddr(greth, addr);
 
-	debug("GRETH[0x%08x]: Initialized successfully\n", greth->regs);
+	debug("GRETH[%p]: Initialized successfully\n", greth->regs);
 	return 0;
 }

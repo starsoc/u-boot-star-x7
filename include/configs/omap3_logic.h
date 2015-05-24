@@ -5,23 +5,7 @@
  * Configuration settings for the Logic OMAP35x/DM37x SOM LV/Torpedo
  * reference boards.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -33,8 +17,8 @@
 #define CONFIG_OMAP			/* in a TI OMAP core */
 #define CONFIG_OMAP34XX			/* which is a 34XX */
 #define CONFIG_OMAP3_LOGIC		/* working with Logic OMAP boards */
-
-#undef CONFIG_USE_IRQ			/* no support for IRQs */
+#define CONFIG_OMAP_GPIO
+#define CONFIG_OMAP_COMMON
 
 #define CONFIG_SYS_TEXT_BASE	0x80400000
 
@@ -122,7 +106,7 @@
 #define CONFIG_CMD_NET      /* bootp, tftpboot, rarpboot    */
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_DHCP
-#define CONFIG_CMD_SETECPR	/* Evaluate expressions		*/
+#define CONFIG_CMD_SETEXPR	/* Evaluate expressions		*/
 
 #undef CONFIG_CMD_FLASH		/* flinfo, erase, protect	*/
 #undef CONFIG_CMD_FPGA		/* FPGA configuration Support	*/
@@ -139,8 +123,6 @@
 
 #define CONFIG_SYS_I2C_SPEED		100000
 #define CONFIG_SYS_I2C_SLAVE		1
-#define CONFIG_SYS_I2C_BUS		0
-#define CONFIG_SYS_I2C_BUS_SELECT	1
 #define CONFIG_I2C_MULTI_BUS
 
 /*
@@ -203,7 +185,7 @@
 	"mtdids=" MTDIDS_DEFAULT "\0"	\
 	"mtdparts=" MTDPARTS_DEFAULT "\0" \
 	"mmcdev=0\0" \
-	"autoboot=if mmc rescan ${mmcdev}; then " \
+	"autoboot=mmc dev ${mmcdev}; if mmc rescan; then " \
 			"if run loadbootscript; then " \
 				"run bootscript; " \
 			"else " \
@@ -260,7 +242,6 @@
  */
 #define CONFIG_SYS_LONGHELP		/* undef to save memory */
 #define CONFIG_SYS_HUSH_PARSER		/* use "hush" command parser */
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_SYS_PROMPT		"OMAP Logic # "
 #define CONFIG_SYS_CBSIZE		512	/* Console I/O Buffer Size */
 /* Print Buffer Size */
@@ -285,13 +266,6 @@
 #define CONFIG_SYS_TIMERBASE		(OMAP34XX_GPT2)
 #define CONFIG_SYS_PTV			2	/* Divisor: 2^(PTV+1) => 8 */
 #define CONFIG_SYS_HZ			1000
-
-/*
- * Stack sizes
- *
- * The stack sizes are set up in start.S using the settings below
- */
-#define CONFIG_STACKSIZE	(128 << 10)	/* regular stack 128 KiB */
 
 /*
  * Physical Memory Map
