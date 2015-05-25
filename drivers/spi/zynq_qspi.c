@@ -663,15 +663,19 @@ static int zynq_qspi_start_transfer(struct spi_device *qspi,
 	zqspi->rxbuf = transfer->rx_buf;
 	zqspi->bytes_to_transfer = transfer->len;
 	zqspi->bytes_to_receive = transfer->len;
-
+	
 	if (zqspi->txbuf)
 		instruction = *(u8 *)zqspi->txbuf;
+	
+	// add by starsoc
+	printf("######%s, instruction:%d\r\n", __func__, instruction);
 
 	if (instruction && zqspi->is_inst) {
 		for (index = 0; index < ARRAY_SIZE(flash_inst); index++)
 			if (instruction == flash_inst[index].opcode)
 				break;
-
+		// add by starsoc
+		printf("######%s, find instruction:%d, index\r\n", __func__, instruction, index);
 		/*
 		 * Instruction might have already been transmitted. This is a
 		 * 'data only' transfer

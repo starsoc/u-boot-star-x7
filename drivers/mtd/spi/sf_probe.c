@@ -372,6 +372,8 @@ struct spi_flash *spi_flash_probe(unsigned int bus, unsigned int cs,
 		debug("SF: Failed to claim SPI bus: %d\n", ret);
 		goto err_claim_bus;
 	}
+	
+	printf("######%s\r\n", __func__);
 
 	/* Read the ID codes */
 	ret = spi_flash_cmd(spi, CMD_READ_ID, idcode, sizeof(idcode));
@@ -384,7 +386,7 @@ struct spi_flash *spi_flash_probe(unsigned int bus, unsigned int cs,
 	printf("SF: Got idcodes\n");
 	print_buffer(0, idcode, 1, sizeof(idcode), 0);
 #endif
-
+	
 	/* Validate params from spi_flash_params table */
 	flash = spi_flash_validate_params(spi, idcode);
 	if (!flash)
