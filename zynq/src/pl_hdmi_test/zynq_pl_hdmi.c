@@ -85,7 +85,7 @@
 #define DATA_READ_ADDR DDR_BASEADDR + 0x03000000;
 
 //#define SII9022_I2C_ADDR        0x3b			 zturn board
-#define SII9022_I2C_ADDR        0x39		
+#define SII9022_I2C_ADDR        0x39		     // star-x7 board
 
 
 XIicPs Iic1Instance;		/* The instance of the IIC device. */

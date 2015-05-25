@@ -16,6 +16,11 @@
 #include <asm/arch/sys_proto.h>
 #include <asm/arch/clk.h>
 
+// add by starsoc
+#undef debug
+#define debug(fmt, args...)			printf(fmt, ##args);
+
+
 /* QSPI Transmit Data Register */
 #define ZYNQ_QSPI_TXD_00_00_OFFSET	0x1C /* Transmit 4-byte inst, WO */
 #define ZYNQ_QSPI_TXD_00_01_OFFSET	0x80 /* Transmit 1-byte inst, WO */
