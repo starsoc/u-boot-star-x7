@@ -23,19 +23,24 @@ static int spi_flash_read_write(struct spi_slave *spi,
 		flags |= SPI_FLASH_U_PAGE;
 	if (data_len == 0)
 		flags |= SPI_XFER_END;
-
-	ret = spi_xfer(spi, cmd_len * 8, cmd, NULL, flags);
-	if (ret) {
+    
+    printf("######spi_flash_read_write(), data_len:%d cmd_len:%d\r\n", data_len, cmd_len);
+    
+    ret = spi_xfer(spi, cmd_len * 8, cmd, NULL, flags);
+	if (ret) 
+    {
 		debug("SF: Failed to send command (%zu bytes): %d\n",
 		      cmd_len, ret);
-	} else if (data_len != 0) {
+	}
+    else if (data_len != 0) 
+    {
 		ret = spi_xfer(spi, data_len * 8, data_out, data_in,
 					SPI_XFER_END);
 		if (ret)
 			debug("SF: Failed to transfer %zu bytes of data: %d\n",
 			      data_len, ret);
 	}
-
+    
 	return ret;
 }
 

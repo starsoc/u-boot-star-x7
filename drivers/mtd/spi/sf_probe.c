@@ -184,7 +184,7 @@ static struct spi_flash *spi_flash_validate_params(struct spi_slave *spi,
 	u8 qeb_status, cmd, data[2];
 	u16 jedec = idcode[1] << 8 | idcode[2];
 	u16 ext_jedec = idcode[3] << 8 | idcode[4];
-
+    
 	/* Get the flash id (jedec = manuf_id + dev_id, ext_jedec) */
 	for (i = 0; i < ARRAY_SIZE(spi_flash_params_table); i++) {
 		params = &spi_flash_params_table[i];

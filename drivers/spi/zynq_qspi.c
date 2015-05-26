@@ -675,14 +675,14 @@ static int zynq_qspi_start_transfer(struct spi_device *qspi,
 			if (instruction == flash_inst[index].opcode)
 				break;
 		// add by starsoc
-		printf("######%s, find instruction:%d, index\r\n", __func__, instruction, index);
+		printf("######%s, find instruction:0x%x, index:%d\r\n", __func__, instruction, index);
 		/*
 		 * Instruction might have already been transmitted. This is a
 		 * 'data only' transfer
 		 */
 		if (index == ARRAY_SIZE(flash_inst))
 			goto xfer_data;
-
+        
 		zqspi->curr_inst = &flash_inst[index];
 		zqspi->inst_response = 1;
 
@@ -815,9 +815,9 @@ static int zynq_qspi_transfer(struct spi_device *qspi,
 
 		break;
 	}
-
+    
 	zynq_qspi_setup_transfer(qspi, NULL);
-
+    
 	return 0;
 }
 
@@ -964,7 +964,7 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 	transfer.tx_buf = dout;
 	transfer.rx_buf = din;
 	transfer.len = bitlen / 8;
-
+    
 	/*
 	 * Festering sore.
 	 * Assume that the beginning of a transfer with bits to
