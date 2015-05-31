@@ -86,6 +86,8 @@ static ulong bytes_per_second(unsigned int len, ulong start_ms)
 		return 1024 * len / max(get_timer(start_ms), 1);
 }
 
+
+
 static int do_spi_flash_probe(int argc, char * const argv[])
 {
 	unsigned int bus = CONFIG_SF_DEFAULT_BUS;
@@ -120,9 +122,10 @@ static int do_spi_flash_probe(int argc, char * const argv[])
 		if (*argv[3] == 0 || *endp != 0)
 			return -1;
 	}
-
+    
 	new = spi_flash_probe(bus, cs, speed, mode);
-	if (!new) {
+	if (!new) 
+    {
 		printf("Failed to initialize SPI flash at %u:%u\n", bus, cs);
 		return 1;
 	}
@@ -130,7 +133,7 @@ static int do_spi_flash_probe(int argc, char * const argv[])
 	if (flash)
 		spi_flash_free(flash);
 	flash = new;
-
+    
 	return 0;
 }
 
@@ -305,7 +308,7 @@ static int do_spi_flash_erase(int argc, char * const argv[])
 
 	if (argc < 3)
 		return -1;
-
+	
 	offset = simple_strtoul(argv[1], &endp, 16);
 	if (*argv[1] == 0 || *endp != 0)
 		return -1;
@@ -534,6 +537,43 @@ usage:
 #else
 #define SF_TEST_HELP
 #endif
+
+
+int spi_op(int argc, char * const argv[])
+{
+    const char *op_cmd;
+    int ret;
+    
+    op_cmd = argv[0];
+	if (strcmp(op_cmd, "probe") == 0) 
+    {
+		ret = do_spi_flash_probe(argc, argv);
+		goto done;
+	}
+	
+    #if 0
+    /* The remaining commands require a selected device */
+    if (!flash) {
+        puts("No SPI flash selected. Please run `sf probe'\n");
+        return 1;
+    }
+    #endif
+    
+    if (strcmp(op_cmd, "read") == 0 || strcmp(op_cmd, "write") == 0 ||
+        strcmp(op_cmd, "update") == 0)
+        ret = do_spi_flash_read_write(argc, argv);
+    else if (strcmp(op_cmd, "erase") == 0)
+        ret = do_spi_flash_erase(argc, argv);
+    else
+        ret = -1;
+    
+done:
+    if (ret != -1)
+        return ret;
+    
+}
+
+
 
 U_BOOT_CMD(
 	sf,	5,	1,	do_spi_flash,

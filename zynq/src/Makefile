@@ -62,6 +62,17 @@ COBJS-y += ps_i2c_test/xiicps_polled_master_example.o
 COBJS-y += ps_i2c_test/xiicps_rtc.o
 COBJS-y += ps_i2c_test/xiicps_selftest.o
 
+
+#COBJS-y += ps_qspi_test/xqspips_selftest_example.o
+#COBJS-y += ps_qspi_test/xqspips_sinit.o
+COBJS-y += ps_qspi_test/xqspips.o
+#COBJS-y += ps_qspi_test/xqspips_g.o
+COBJS-y += ps_qspi_test/xqspips_hw.o
+COBJS-y += ps_qspi_test/xqspips_options.o
+COBJS-y += ps_qspi_test/xqspips_selftest.o
+
+
+
 COBJS-y += pl_hdmi_test/zynq_pl_hdmi.o
 
 COBJS	:= $(COBJS-y)

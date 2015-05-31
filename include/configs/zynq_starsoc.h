@@ -29,6 +29,11 @@
 #define CONFIG_IPADDR	192.168.1.253
 #define CONFIG_SERVERIP	192.168.1.7
 
+/* modify by starsoc, using winbond QSPI instead of spansion */
+/* #define CONFIG_SPI_FLASH_SPANSION */
+#define CONFIG_SPI_FLASH_WINBOND
+
+
 #define CONFIG_EXTRA_ENV_SETTINGS	\
 	"ethaddr=00:0a:35:00:01:22\0"	\
 	"kernel_image=uImage\0"	\

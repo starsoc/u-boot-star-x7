@@ -83,6 +83,9 @@ struct spi_flash {
 	u8 bank_write_cmd;
 	u8 bank_curr;
 #endif
+	/* To find whether single/dual spi device */
+	u8		addr_width;
+
 	/* Poll cmd - for flash erase/program */
 	u8		poll_cmd;
 	/* Read command */
@@ -105,18 +108,21 @@ void spi_flash_free(struct spi_flash *flash);
 static inline int spi_flash_read(struct spi_flash *flash, u32 offset,
 		size_t len, void *buf)
 {
+    /* spi_flash_cmd_read_fast */
 	return flash->read(flash, offset, len, buf);
 }
 
 static inline int spi_flash_write(struct spi_flash *flash, u32 offset,
 		size_t len, const void *buf)
 {
+    /* spi_flash_cmd_write_multi */
 	return flash->write(flash, offset, len, buf);
 }
 
 static inline int spi_flash_erase(struct spi_flash *flash, u32 offset,
 		size_t len)
 {
+	/* winbond_erase */
 	return flash->erase(flash, offset, len);
 }
 

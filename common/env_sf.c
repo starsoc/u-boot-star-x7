@@ -51,7 +51,7 @@ int saveenv(void)
 	char	*res, *saved_buffer = NULL, flag = OBSOLETE_FLAG;
 	u32	saved_size, saved_offset, sector = 1;
 	int	ret;
-
+    printf("######%s\r\n", __func__);
 	if (!env_flash) {
 		env_flash = spi_flash_probe(CONFIG_ENV_SPI_BUS,
 			CONFIG_ENV_SPI_CS,
@@ -153,7 +153,7 @@ void env_relocate_spec(void)
 		set_default_env("!malloc() failed");
 		goto out;
 	}
-
+    printf("######%s, line:%d\r\n", __func__, __LINE__);
 	env_flash = spi_flash_probe(CONFIG_ENV_SPI_BUS, CONFIG_ENV_SPI_CS,
 			CONFIG_ENV_SPI_MAX_HZ, CONFIG_ENV_SPI_MODE);
 	if (!env_flash) {
@@ -229,6 +229,7 @@ int saveenv(void)
 	int	ret = 1;
 	env_t	env_new;
 	ssize_t	len;
+    printf("######%s\r\n", __func__);
 
 	if (!env_flash) {
 		env_flash = spi_flash_probe(CONFIG_ENV_SPI_BUS,
@@ -301,27 +302,28 @@ void env_relocate_spec(void)
 {
 	char buf[CONFIG_ENV_SIZE];
 	int ret;
-
+	#if 0
+	printf("######%s, line:%d\r\n", __func__, __LINE__);
 	env_flash = spi_flash_probe(CONFIG_ENV_SPI_BUS, CONFIG_ENV_SPI_CS,
 			CONFIG_ENV_SPI_MAX_HZ, CONFIG_ENV_SPI_MODE);
 	if (!env_flash) {
 		set_default_env("!spi_flash_probe() failed");
 		return;
 	}
-
+    
 	ret = spi_flash_read(env_flash,
 		CONFIG_ENV_OFFSET, CONFIG_ENV_SIZE, buf);
 	if (ret) {
 		set_default_env("!spi_flash_read() failed");
 		goto out;
 	}
-
-	ret = env_import(buf, 1);
-	if (ret)
-		gd->env_valid = 1;
 out:
 	spi_flash_free(env_flash);
 	env_flash = NULL;
+#endif
+	ret = env_import(buf, 1);
+	if (ret)
+		gd->env_valid = 1;
 }
 #endif
 

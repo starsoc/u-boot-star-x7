@@ -558,8 +558,8 @@ static int zynq_qspi_irq_poll(struct zynq_qspi *zqspi)
 	u32 rxindex = 0;
 	u32 rxcount;
 
-	debug("%s: zqspi: 0x%08x\n", __func__, (u32)zqspi);
-
+	// debug("%s: zqspi: 0x%08x\n", __func__, (u32)zqspi);
+    
 	/* Poll until any of the interrupt status bits are set */
 	max_loop = 0;
 	do {
@@ -669,7 +669,7 @@ static int zynq_qspi_start_transfer(struct spi_device *qspi,
 	
 	// add by starsoc
 	printf("######%s, instruction:%d\r\n", __func__, instruction);
-
+	
 	if (instruction && zqspi->is_inst) {
 		for (index = 0; index < ARRAY_SIZE(flash_inst); index++)
 			if (instruction == flash_inst[index].opcode)

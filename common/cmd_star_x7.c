@@ -906,6 +906,83 @@ int zynq_ps_i2c_tmp_test()
 }
 
 
+int zynq_ps_qspi_test()
+{
+    int Status;
+    int argc;
+    int i;
+    int ddr_wr_baseaddr = 0x00200000;
+    int ddr_rd_baseaddr = 0x00300000;
+    
+	static const char *const arg_probe[] = { "probe", "0", "0", "0"};
+	static const char *const arg_erase[] = { "erase", "0x01FFF000", "0x001000"};
+	static const char *const arg_write[] = { "write", "0x00200000", "0x01FFF000", "0x001000"};
+	static const char *const arg_read[] = { "read", "0x00300000", "0x01FFF000", "0x001000"};
+    
+    printf("---Starting QSPI Test Application---\n\r");
+    
+    argc = 4;    
+    /* probe 0 0 0 */
+    Status = spi_op(argc, arg_probe);       
+    if (Status == 0) 
+    {
+        printf("---QSPI Probe Test Application Complete---\n\r\r\n");
+    }
+    else 
+    {
+        printf("---QSPI Probe Test Application Failed---\n\r\r\n");
+    }
+    /* probe erase 0x01FFF000 0x001000  erase the last 1KB */
+    argc = 3;
+    Status = spi_op(argc, arg_erase);   
+    if (Status == 0) 
+    {
+        printf("---QSPI Erase Test Application Complete---\n\r\r\n");
+    }
+    else 
+    {
+        printf("---QSPI Erase Test Application Failed---\n\r\r\n");
+    }
+    
+    /* sf write 0x00200000 0x01FFF000 0x001000 */
+    
+    for (i = 0; i < 0x1000; i++) 
+    {
+        Xil_Out32((ddr_wr_baseaddr+(i*4)), (i+1));
+    }
+    argc = 4;
+    Status = spi_op(argc, arg_write);   
+    if (Status == 0) 
+    {
+        printf("---QSPI Write Test Application Complete---\n\r\r\n");
+    }
+    else 
+    {
+        printf("---QSPI Write Test Application Failed---\n\r\r\n");
+    }
+    
+    /* sf read 0x00300000 0x01FFF000 0x001000 */
+    argc = 4;
+    Status = spi_op(argc, arg_read);   
+    if (Status == 0)
+    {
+        printf("---QSPI Read Test Application Complete---\n\r\r\n");
+    }
+    else 
+    {
+        printf("---QSPI Read Test Application Failed---\n\r\r\n");
+    }
+    if (memcmp(ddr_wr_baseaddr, ddr_rd_baseaddr, 0x1000) == 0) 
+    {
+        printf("---QSPI Test Complete---\n\r\r\n");
+    }
+    else
+    {
+        printf("---QSPI Test Failed ---\n\r\r\n");
+    }
+    return 0;
+}
+
 
 /* ------------------------------------------------------------------------- */
 /* command form:
@@ -946,6 +1023,12 @@ int do_star_x7_example (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv
     case PS_I2C_TEMP_TEST:
         zynq_ps_i2c_tmp_test();
         break;
+
+    case PS_QSPI_TEST:
+        zynq_ps_qspi_test();
+        break;
+        
+        
         
     case PL_HDMI_TEST:
         zynq_pl_hdmi_test();
@@ -978,9 +1061,6 @@ int do_star_x7_example (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv
         break;
     case PS_SD_TEST:
         zynq_ps_sd_test();
-        break;
-    case PS_QSPI_TEST:
-        zynq_ps_qspi_test();
         break;
     case PS_USB_TEST:
         zynq_ps_usb_test();
