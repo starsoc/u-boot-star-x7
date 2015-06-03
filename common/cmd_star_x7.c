@@ -90,7 +90,9 @@ enum {
 
 #define GPIO_LED_PIN        7                           /* Pin connected to LED/Output */
 #define GPIO_DEVICE_ID		XPAR_XGPIOPS_0_DEVICE_ID
-
+#define GPIO_DIRECTION_OUTPUT       1
+#define GPIO_DIRECTION_INPUT        0
+#define GPIO_LED_NUM    3
 
 char *opnum2opstr(int op_num)
 {
@@ -284,6 +286,57 @@ struct memory_range_s memory_ranges[] = {
 
 int n_memory_ranges = 15;
 
+
+int zynq_ps_gpio_led_test()
+{
+    int i;
+    XGpioPs_Config *ConfigPtr;
+    int Status, ret;
+    XGpioPs Gpio;
+
+    printf("---Starting PS GPIO LED Test Application---\n\r");
+
+    /*
+        * Initialize the GPIO driver.
+       */
+    ConfigPtr = XGpioPs_LookupConfig(GPIO_DEVICE_ID);
+    Status = XGpioPs_CfgInitialize(&Gpio, ConfigPtr, ConfigPtr->BaseAddr);
+    if (Status != XST_SUCCESS) 
+    {
+        return XST_FAILURE;
+    }
+
+    /* set GPIO_LED_PIN*/
+    /* set for Output Direction */
+    XGpioPs_SetDirectionPin(&Gpio, GPIO_LED_PIN, GPIO_DIRECTION_OUTPUT);
+    /* Enabling Output Enable */
+    XGpioPs_SetOutputEnablePin(&Gpio, GPIO_LED_PIN, 1);
+    
+    /* led off-> on three times */
+    for (i = 0; i < 3; i++)
+    {
+        /* Set the GPIO output to be hign, led off */
+        XGpioPs_WritePin(&Gpio, GPIO_LED_PIN, 0x1);
+        mdelay(500);
+        ret = XGpioPs_ReadPin(&Gpio, GPIO_LED_PIN);
+        printf("---After setting GPIO HIGH, read %i time, value:%d\r\n", ret);
+        /* Set the GPIO output to be hign, led on */
+        XGpioPs_WritePin(&Gpio, GPIO_LED_PIN, 0x0);
+        ret = XGpioPs_ReadPin(&Gpio, GPIO_LED_PIN);
+        printf("---After setting GPIO LOW, read %i time, value:%d\r\n", ret);
+        /* delay 500ms */
+        printf("GPIO LED On %i times\r\n", i+1);
+        mdelay(500);
+    }    
+    
+    printf("---PS GPIO LED Test Application Complete---\n\r");
+    printf("\r\n");
+
+    return 0;
+}
+
+
+
 #if 0
 void test_memory_range(struct memory_range_s *range) {
     XStatus status;
@@ -327,50 +380,7 @@ void test_memory_range(struct memory_range_s *range) {
 }
 
 
-int zynq_ps_gpio_led_test()
-{
-    int i;
-	XGpioPs_Config *ConfigPtr;
-    int Status;
-    XGpioPs Gpio;
-    
-    printf("---Starting PS GPIO LED Test Application---\n\r");
-    
-	/*
-	 * Initialize the GPIO driver.
-	 */
-	ConfigPtr = XGpioPs_LookupConfig(GPIO_DEVICE_ID);
-	Status = XGpioPs_CfgInitialize(&Gpio, ConfigPtr,
-					ConfigPtr->BaseAddr);
-	if (Status != XST_SUCCESS) {
-		return XST_FAILURE;
-	}
-    
-    /* set GPIO_LED_PIN*/
-    /* set for Output Direction */
-	XGpioPs_SetDirectionPin(&Gpio, GPIO_LED_PIN, 1);
 
-    /* Enabling Output Enable */
-	XGpioPs_SetOutputEnablePin(&Gpio, GPIO_LED_PIN, 1);
-    
-    /* led off-> on three times */
-    for (i = 0; i < 3; i++)
-    {
-        /* Set the GPIO output to be hign, led off */
-        XGpioPs_WritePin(&Gpio, 0, 0x1);
-        mdelay(500);
-        /* Set the GPIO output to be hign, led on */
-        XGpioPs_WritePin(&Gpio, 0, 0x0);
-        /* delay 1s */
-        printf("GPIO LED On %i times\r\n", i+1);
-        mdelay(500);
-    }    
-    
-    printf("---PS GPIO LED Test Application Complete---\n\r");
-    printf("\r\n");
-      
-    return 0;
-}
 
 
 int zynq_ps_memory_test()
@@ -1020,6 +1030,13 @@ int do_star_x7_example (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv
     
 	switch (op_num) 
     {
+
+    /* PS test */
+    case PS_GPIO_TEST:
+        zynq_ps_gpio_led_test();
+        break;
+
+    
     case PS_I2C_TEMP_TEST:
         zynq_ps_i2c_tmp_test();
         break;
@@ -1049,10 +1066,6 @@ int do_star_x7_example (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv
         zynq_pl_gpio_key_test();
         break;
 
-    /* PS test */
-    case PS_GPIO_TEST:
-        zynq_ps_gpio_led_test();
-        break;
 	case PS_MEMORY_TEST: 
         zynq_ps_memory_test();
 		break;

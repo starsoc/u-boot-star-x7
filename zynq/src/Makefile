@@ -73,6 +73,11 @@ COBJS-y += ps_qspi_test/xqspips_selftest.o
 
 
 
+COBJS-y += ps_gpio_test/xgpiops.o
+COBJS-y += ps_gpio_test/xgpiops_g.o
+COBJS-y += ps_gpio_test/xgpiops_hw.o
+COBJS-y += ps_gpio_test/xgpiops_intr.o
+COBJS-y += ps_gpio_test/xgpiops_sinit.o
 COBJS-y += pl_hdmi_test/zynq_pl_hdmi.o
 
 COBJS	:= $(COBJS-y)
