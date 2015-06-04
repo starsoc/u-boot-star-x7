@@ -319,11 +319,11 @@ int zynq_ps_gpio_led_test()
         XGpioPs_WritePin(&Gpio, GPIO_LED_PIN, 0x1);
         mdelay(500);
         ret = XGpioPs_ReadPin(&Gpio, GPIO_LED_PIN);
-        printf("---After setting GPIO HIGH, read %i time, value:%d\r\n", ret);
+        printf("---After setting GPIO HIGH, read %i time, value:%d\r\n", i, ret);
         /* Set the GPIO output to be hign, led on */
         XGpioPs_WritePin(&Gpio, GPIO_LED_PIN, 0x0);
         ret = XGpioPs_ReadPin(&Gpio, GPIO_LED_PIN);
-        printf("---After setting GPIO LOW, read %i time, value:%d\r\n", ret);
+        printf("---After setting GPIO LOW, read %i time, value:%d\r\n", i, ret);
         /* delay 500ms */
         printf("GPIO LED On %i times\r\n", i+1);
         mdelay(500);
@@ -337,8 +337,8 @@ int zynq_ps_gpio_led_test()
 
 
 
-#if 0
-void test_memory_range(struct memory_range_s *range) {
+void test_memory_range(struct memory_range_s *range) 
+{
     XStatus status;
 
     /* This application uses print statements instead of xil_printf/printf
@@ -365,7 +365,7 @@ void test_memory_range(struct memory_range_s *range) {
     
     status = Xil_TestMem8((u8*)range->base, 4096, 0xA5, XIL_TESTMEM_ALLMEMTESTS);
     printf("          8-bit test: %s\r\n", status == XST_SUCCESS? "PASSED!":"FAILED!");
-
+	
     #if 0
     status = Xil_TestMem32((u32*)range->base, range->size, 0xAAAA5555, XIL_TESTMEM_ALLMEMTESTS);
     printf("          32-bit test: %s\r\n", status == XST_SUCCESS? "PASSED!":"FAILED!");
@@ -378,8 +378,6 @@ void test_memory_range(struct memory_range_s *range) {
     printf("          8-bit test: %s\r\n", status == XST_SUCCESS? "PASSED!":"FAILED!");
     #endif
 }
-
-
 
 
 
@@ -400,6 +398,7 @@ int zynq_ps_memory_test()
     return 0;
 }
 
+
 int zynq_ps_uart_test()
 {
     
@@ -416,6 +415,101 @@ int zynq_ps_uart_test()
         printf("---PS UARTTest Application Failed---\n\r\r\n");
     }
     
+    return 0;
+}
+
+
+int zynq_ps_usb_test()
+{
+    int Status;
+
+    printf("---Starting USB Test Application---\n\r");
+    Status = ulpi_phy_init();
+    if (Status == 0) 
+    {
+        printf("---USB Test Application Complete---\n\r\r\n");
+    }
+    else 
+    {
+        printf("---USB Test Application Failed---\n\r\r\n");
+    }
+    return 0;
+}
+
+int zynq_ps_qspi_test()
+{
+    int Status;
+    int argc;
+    int i;
+    int ddr_wr_baseaddr = 0x00200000;
+    int ddr_rd_baseaddr = 0x00300000;
+    
+	static const char *const arg_probe[] = { "probe", "0", "0", "0"};
+	static const char *const arg_erase[] = { "erase", "0x01FFF000", "0x001000"};
+	static const char *const arg_write[] = { "write", "0x00200000", "0x01FFF000", "0x001000"};
+	static const char *const arg_read[] = { "read", "0x00300000", "0x01FFF000", "0x001000"};
+    
+    printf("---Starting QSPI Test Application---\n\r");
+    
+    argc = 4;    
+    /* probe 0 0 0 */
+    Status = spi_op(argc, arg_probe);       
+    if (Status == 0) 
+    {
+        printf("---QSPI Probe Test Application Complete---\n\r\r\n");
+    }
+    else 
+    {
+        printf("---QSPI Probe Test Application Failed---\n\r\r\n");
+    }
+    /* probe erase 0x01FFF000 0x001000  erase the last 1KB */
+    argc = 3;
+    Status = spi_op(argc, arg_erase);   
+    if (Status == 0) 
+    {
+        printf("---QSPI Erase Test Application Complete---\n\r\r\n");
+    }
+    else 
+    {
+        printf("---QSPI Erase Test Application Failed---\n\r\r\n");
+    }
+    
+    /* sf write 0x00200000 0x01FFF000 0x001000 */
+    
+    for (i = 0; i < 0x1000; i++) 
+    {
+        Xil_Out32((ddr_wr_baseaddr+(i*4)), (i+1));
+    }
+    argc = 4;
+    Status = spi_op(argc, arg_write);   
+    if (Status == 0) 
+    {
+        printf("---QSPI Write Test Application Complete---\n\r\r\n");
+    }
+    else 
+    {
+        printf("---QSPI Write Test Application Failed---\n\r\r\n");
+    }
+    
+    /* sf read 0x00300000 0x01FFF000 0x001000 */
+    argc = 4;
+    Status = spi_op(argc, arg_read);   
+    if (Status == 0)
+    {
+        printf("---QSPI Read Test Application Complete---\n\r\r\n");
+    }
+    else 
+    {
+        printf("---QSPI Read Test Application Failed---\n\r\r\n");
+    }
+    if (memcmp(ddr_wr_baseaddr, ddr_rd_baseaddr, 0x1000) == 0) 
+    {
+        printf("---QSPI Test Complete---\n\r\r\n");
+    }
+    else
+    {
+        printf("---QSPI Test Failed ---\n\r\r\n");
+    }
     return 0;
 }
 
@@ -442,103 +536,7 @@ int zynq_ps_sd_test()
 }
 
 
-
-int zynq_ps_qspi_test()
-{
-    int Status;
-    int argc;
-    int i;
-    int ddr_wr_baseaddr = 0x00200000;
-    int ddr_rd_baseaddr = 0x00300000;
-    
-	static const char *const arg_probe[] = { "probe", "0", "0", "0"};
-	static const char *const arg_erase[] = { "erase", "0x01FFF000", "0x001000"};
-	static const char *const arg_write[] = { "write", "0x00200000", "0x01FFF000", "0x001000"};
-	static const char *const arg_read[] = { "read", "0x00300000", "0x01FFF000", "0x001000"};
-    
-    printf("---Starting QSPI Test Application---\n\r");
-    
-    argc = 4;    
-    /* probe 0 0 0 */
-    Status = do_spi_flash(argc, arg_probe);   
-    if (Status == 0) 
-    {
-        printf("---QSPI Probe Test Application Complete---\n\r\r\n");
-    }
-    else 
-    {
-        printf("---QSPI Probe Test Application Failed---\n\r\r\n");
-    }
-    /* probe erase 0x01FFF000 0x001000  erase the last 1KB */
-    argc = 3;
-    Status = do_spi_flash(argc, arg_erase);   
-    if (Status == 0) 
-    {
-        printf("---QSPI Erase Test Application Complete---\n\r\r\n");
-    }
-    else 
-    {
-        printf("---QSPI Erase Test Application Failed---\n\r\r\n");
-    }
-    
-    /* sf write 0x00200000 0x01FFF000 0x001000 */
-    
-    for (i = 0; i < 0x1000; i++) 
-    {
-        Xil_Out32((ddr_wr_baseaddr+(i*4)), (i+1));
-    }
-    argc = 4;
-    Status = do_spi_flash(argc, arg_write);   
-    if (Status == 0) 
-    {
-        printf("---QSPI Write Test Application Complete---\n\r\r\n");
-    }
-    else 
-    {
-        printf("---QSPI Write Test Application Failed---\n\r\r\n");
-    }
-    
-    /* sf read 0x00300000 0x01FFF000 0x001000 */
-    argc = 4;
-    Status = do_spi_flash(argc, arg_read);   
-    if (Status == 0)
-    {
-        printf("---QSPI Read Test Application Complete---\n\r\r\n");
-    }
-    else 
-    {
-        printf("---QSPI Read Test Application Failed---\n\r\r\n");
-    }
-    if (memcmp(ddr_wr_baseaddr, ddr_rd_baseaddr, 0x1000) == 0) 
-    {
-        printf("---QSPI Test Complete---\n\r\r\n");
-    }
-    else
-    {
-        printf("---QSPI Test Failed ---\n\r\r\n");
-    }
-    return 0;
-}
-
-
-int zynq_ps_usb_test()
-{
-    int Status;
-
-    printf("---Starting USB Test Application---\n\r");
-    Status = ulpi_phy_init();
-    if (Status == 0) 
-    {
-        printf("---USB Test Application Complete---\n\r\r\n");
-    }
-    else 
-    {
-        printf("---USB Test Application Failed---\n\r\r\n");
-    }
-    return 0;
-}
-
-
+#if 0
 int zynq_ps_gmac_test()
 {
     int Status;
@@ -579,7 +577,6 @@ int zynq_ps_gmac_test()
     }
     return 0;
 }
-
 
 
 int zynq_pl_gpio_led_test(void)
@@ -655,7 +652,20 @@ int ScuGicIntSetup()
 }
 #endif
 
+
+
+void zynq_pl_hdmi_test()
+{
+    printf("--Starting HDMI Test Application--\n\r");
+    HDMI_init();
+    printf("--HDMI Test Application Complete--\n\r");
+    printf("\r\n");
+    return;
+}
+
+
 #if 0
+
 int EmacPsIntrTest()
 {
     int Status;    
@@ -679,6 +689,90 @@ int EmacPsIntrTest()
 
 }
 
+/*****************************************************************************/
+/**
+* Main function to call the Iic EEPROM polled example.
+*
+* @param	None.
+*
+* @return	XST_SUCCESS if successful else XST_FAILURE.
+*
+* @note		None.
+*
+******************************************************************************/
+int zynq_ps_i2c_eeprom_test(int sub_opt_num)
+{
+	int Status;
+    
+    u8 writebuf[9] = {0x00, 0xC0, 0xFD, 0x03, 0x0F, 0x00, 0x00, 0x00, 0x00};
+	u8 readbuf[8] = {0};
+    
+	IicPsEepromPolledInit();
+	/*
+	 * Run the Iic EEPROM Polled Mode example.
+	 */
+	switch (sub_opt_num)
+    {
+		case -1:
+            
+            printf("---Starting EEPROM Test Application---\n\r");
+            Status = IicPsEepromPolledExample();
+            if (Status != XST_SUCCESS) 
+            {
+                printf("IIC EEPROM Polled Mode Example Test Failed\r\n");
+                return XST_FAILURE;
+            }
+            printf("--EEPROM Test Application Complete--\n\r");
+        break;
+        case 1:
+            /* erase the EEPROM */
+            Status = IicPsEepromErase();
+            if (Status != XST_SUCCESS) 
+            {
+                printf("IIC EEPROM Erase Failed\r\n");
+                return XST_FAILURE;
+            }
+            Status = IicPsCheckEepromData();
+            if (Status != XST_SUCCESS) 
+            {
+                printf("IIC EEPROM Check data Failed\r\n");
+                return XST_FAILURE;
+            }
+            break;
+        case 2:
+            printf("EEPROM write data......\r\n");
+            Status = IicPsEepromWrite(writebuf, 9);
+			if (Status != XST_SUCCESS) 
+			{
+			  printf("IIC EEPROM Check data Failed\r\n");
+			  return XST_FAILURE;
+			}
+            printf("EEPROM write data complete\r\n");
+            break;
+        case 3:
+            printf("EEPROM read data:");
+            Status = IicPsEepromRead(readbuf, writebuf, 8);
+			if (Status != XST_SUCCESS) 
+			{
+			  printf("IIC EEPROM Check data Failed\r\n");
+			  return XST_FAILURE;
+			}
+            break;
+        case 4:
+            Status = IicPsCheckEepromData();
+            if (Status != XST_SUCCESS) 
+            {
+                printf("IIC EEPROM Check data Failed\r\n");
+                return XST_FAILURE;
+            }
+            break;
+        default:
+            printf("input para error\r\n");
+            break;        
+    }
+	return XST_SUCCESS;
+}
+
 
 int IICPS_SelfTest(int device_id)
 {
@@ -696,20 +790,8 @@ int IICPS_SelfTest(int device_id)
       }
       return 0;
 }
-#endif
-
-void zynq_pl_hdmi_test()
-{
-    printf("--Starting HDMI Test Application--\n\r");
-    HDMI_init();
-    printf("--HDMI Test Application Complete--\n\r");
-    printf("\r\n");
-    return;
-}
 
 
-
-#if 0
 int QspiPS_SelfTest()
 {
     int Status;
@@ -797,89 +879,7 @@ void PL_Sil9134_config()
 }
 
 
-/*****************************************************************************/
-/**
-* Main function to call the Iic EEPROM polled example.
-*
-* @param	None.
-*
-* @return	XST_SUCCESS if successful else XST_FAILURE.
-*
-* @note		None.
-*
-******************************************************************************/
-int zynq_ps_i2c_eeprom_test(int sub_opt_num)
-{
-	int Status;
-    
-    u8 writebuf[9] = {0x00, 0xC0, 0xFD, 0x03, 0x0F, 0x00, 0x00, 0x00, 0x00};
-	u8 readbuf[8] = {0};
-    
-	IicPsEepromPolledInit();
-	/*
-	 * Run the Iic EEPROM Polled Mode example.
-	 */
-	switch (sub_opt_num)
-    {
-		case -1:
-            
-            printf("---Starting EEPROM Test Application---\n\r");
-            Status = IicPsEepromPolledExample();
-            if (Status != XST_SUCCESS) 
-            {
-                printf("IIC EEPROM Polled Mode Example Test Failed\r\n");
-                return XST_FAILURE;
-            }
-            printf("--EEPROM Test Application Complete--\n\r");
-        break;
-        case 1:
-            /* erase the EEPROM */
-            Status = IicPsEepromErase();
-            if (Status != XST_SUCCESS) 
-            {
-                printf("IIC EEPROM Erase Failed\r\n");
-                return XST_FAILURE;
-            }
-            Status = IicPsCheckEepromData();
-            if (Status != XST_SUCCESS) 
-            {
-                printf("IIC EEPROM Check data Failed\r\n");
-                return XST_FAILURE;
-            }
-            break;
-        case 2:
-            printf("EEPROM write data......\r\n");
-            Status = IicPsEepromWrite(writebuf, 9);
-			if (Status != XST_SUCCESS) 
-			{
-			  printf("IIC EEPROM Check data Failed\r\n");
-			  return XST_FAILURE;
-			}
-            printf("EEPROM write data complete\r\n");
-            break;
-        case 3:
-            printf("EEPROM read data:");
-            Status = IicPsEepromRead(readbuf, writebuf, 8);
-			if (Status != XST_SUCCESS) 
-			{
-			  printf("IIC EEPROM Check data Failed\r\n");
-			  return XST_FAILURE;
-			}
-            break;
-        case 4:
-            Status = IicPsCheckEepromData();
-            if (Status != XST_SUCCESS) 
-            {
-                printf("IIC EEPROM Check data Failed\r\n");
-                return XST_FAILURE;
-            }
-            break;
-        default:
-            printf("input para error\r\n");
-            break;        
-    }
-	return XST_SUCCESS;
-}
+
 #endif
 
 #define IIC_STLM75_ADDR 0x49
@@ -913,84 +913,6 @@ int zynq_ps_i2c_tmp_test()
 	 */
     
 	return XST_SUCCESS;
-}
-
-
-int zynq_ps_qspi_test()
-{
-    int Status;
-    int argc;
-    int i;
-    int ddr_wr_baseaddr = 0x00200000;
-    int ddr_rd_baseaddr = 0x00300000;
-    
-	static const char *const arg_probe[] = { "probe", "0", "0", "0"};
-	static const char *const arg_erase[] = { "erase", "0x01FFF000", "0x001000"};
-	static const char *const arg_write[] = { "write", "0x00200000", "0x01FFF000", "0x001000"};
-	static const char *const arg_read[] = { "read", "0x00300000", "0x01FFF000", "0x001000"};
-    
-    printf("---Starting QSPI Test Application---\n\r");
-    
-    argc = 4;    
-    /* probe 0 0 0 */
-    Status = spi_op(argc, arg_probe);       
-    if (Status == 0) 
-    {
-        printf("---QSPI Probe Test Application Complete---\n\r\r\n");
-    }
-    else 
-    {
-        printf("---QSPI Probe Test Application Failed---\n\r\r\n");
-    }
-    /* probe erase 0x01FFF000 0x001000  erase the last 1KB */
-    argc = 3;
-    Status = spi_op(argc, arg_erase);   
-    if (Status == 0) 
-    {
-        printf("---QSPI Erase Test Application Complete---\n\r\r\n");
-    }
-    else 
-    {
-        printf("---QSPI Erase Test Application Failed---\n\r\r\n");
-    }
-    
-    /* sf write 0x00200000 0x01FFF000 0x001000 */
-    
-    for (i = 0; i < 0x1000; i++) 
-    {
-        Xil_Out32((ddr_wr_baseaddr+(i*4)), (i+1));
-    }
-    argc = 4;
-    Status = spi_op(argc, arg_write);   
-    if (Status == 0) 
-    {
-        printf("---QSPI Write Test Application Complete---\n\r\r\n");
-    }
-    else 
-    {
-        printf("---QSPI Write Test Application Failed---\n\r\r\n");
-    }
-    
-    /* sf read 0x00300000 0x01FFF000 0x001000 */
-    argc = 4;
-    Status = spi_op(argc, arg_read);   
-    if (Status == 0)
-    {
-        printf("---QSPI Read Test Application Complete---\n\r\r\n");
-    }
-    else 
-    {
-        printf("---QSPI Read Test Application Failed---\n\r\r\n");
-    }
-    if (memcmp(ddr_wr_baseaddr, ddr_rd_baseaddr, 0x1000) == 0) 
-    {
-        printf("---QSPI Test Complete---\n\r\r\n");
-    }
-    else
-    {
-        printf("---QSPI Test Failed ---\n\r\r\n");
-    }
-    return 0;
 }
 
 
@@ -1030,13 +952,24 @@ int do_star_x7_example (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv
     
 	switch (op_num) 
     {
-
     /* PS test */
     case PS_GPIO_TEST:
         zynq_ps_gpio_led_test();
         break;
-
     
+	case PS_MEMORY_TEST: 
+        zynq_ps_memory_test();
+		break;
+
+    case PS_UART_TEST:
+        zynq_ps_uart_test();
+        break;
+
+        break;
+    case PS_USB_TEST:
+        zynq_ps_usb_test();
+        break;
+
     case PS_I2C_TEMP_TEST:
         zynq_ps_i2c_tmp_test();
         break;
@@ -1045,12 +978,17 @@ int do_star_x7_example (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv
         zynq_ps_qspi_test();
         break;
         
-        
+
         
     case PL_HDMI_TEST:
         zynq_pl_hdmi_test();
         break;
 #if 0
+
+    case PS_I2C_EEPROM_TEST:
+        zynq_ps_i2c_eeprom_test(sub_op_num);
+        break;
+
     case SCU_GIC_SELF_TEST:
         ScuGicSelfTest();
         break;
@@ -1066,26 +1004,12 @@ int do_star_x7_example (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv
         zynq_pl_gpio_key_test();
         break;
 
-	case PS_MEMORY_TEST: 
-        zynq_ps_memory_test();
-		break;
-    case PS_UART_TEST:
-        zynq_ps_uart_test();
-        break;
     case PS_SD_TEST:
         zynq_ps_sd_test();
-        break;
-    case PS_USB_TEST:
-        zynq_ps_usb_test();
-        break;
     case PS_GMAC_TEST:
         zynq_ps_gmac_test();
         break;
 
-
-    case PS_I2C_EEPROM_TEST:
-        zynq_ps_i2c_eeprom_test(sub_op_num);
-        break;
     case PS_I2C_RTC_TEST:
         zynq_ps_i2c_rtc_test();
         break;

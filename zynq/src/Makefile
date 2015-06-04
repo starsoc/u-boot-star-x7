@@ -58,13 +58,23 @@ COBJS-y += common/xiic_l.o
 COBJS-y += common/zynq_i2c.o
 
 
+COBJS-y += ps_memory_test/xil_testmem.o
+
 COBJS-y += ps_i2c_test/xiicps_polled_master_example.o
 COBJS-y += ps_i2c_test/xiicps_rtc.o
 COBJS-y += ps_i2c_test/xiicps_selftest.o
 
+COBJS-y += ps_usb_test/xusbps_sinit.o
+COBJS-y += ps_usb_test/xusbps_intr.o
+COBJS-y += ps_usb_test/xusbps_hw.o
+COBJS-y += ps_usb_test/xusbps_g.o
+COBJS-y += ps_usb_test/xusbps_endpoint.o
+COBJS-y += ps_usb_test/xusbps.o
+COBJS-y += ps_usb_test/zynq_usb.o
 
 #COBJS-y += ps_qspi_test/xqspips_selftest_example.o
 #COBJS-y += ps_qspi_test/xqspips_sinit.o
+
 COBJS-y += ps_qspi_test/xqspips.o
 #COBJS-y += ps_qspi_test/xqspips_g.o
 COBJS-y += ps_qspi_test/xqspips_hw.o
@@ -78,6 +88,7 @@ COBJS-y += ps_gpio_test/xgpiops_g.o
 COBJS-y += ps_gpio_test/xgpiops_hw.o
 COBJS-y += ps_gpio_test/xgpiops_intr.o
 COBJS-y += ps_gpio_test/xgpiops_sinit.o
+COBJS-y += ps_uart_test/zynq_ps_uart.o
 COBJS-y += pl_hdmi_test/zynq_pl_hdmi.o
 
 COBJS	:= $(COBJS-y)
