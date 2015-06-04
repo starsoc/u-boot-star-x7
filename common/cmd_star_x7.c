@@ -61,6 +61,7 @@
 enum {
     /* PS part */
     PS_GPIO_LED_TEST = 1,
+    PS_GPIO_KEY_TEST,
 	PS_MEMORY_TEST,
 	PS_UART_TEST,
 	PS_SD_TEST,
@@ -93,9 +94,12 @@ char *opnum2opstr(int op_num)
     switch (op_num)
     {
     
-	case PS_GPIO_TEST:
+	case PS_GPIO_LED_TEST:
 		strncpy(tmp_op, "PS_GPIO_LED_test", 100);
 		break;
+    case PS_GPIO_KEY_TEST:
+        strncpy(tmp_op, "PS_GPIO_KEY_test", 100);
+        break;
 	case PS_MEMORY_TEST:
 		strncpy(tmp_op, "PS_Memory_test", 100);
 		break;
@@ -313,7 +317,12 @@ int zynq_ps_gpio_led_test()
     return 0;
 }
 
-
+int zynq_ps_gpio_key_test()
+{
+    printf("---Starting PS GPIO Key Test Application---\n\r");
+    printf("---PS GPIO Key Test Application Complete---\n\r");
+    return 0;
+}
 
 void test_memory_range(struct memory_range_s *range) 
 {
@@ -824,10 +833,14 @@ int do_star_x7_example (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv
 	switch (op_num) 
     {
     /* PS test */
-    case PS_GPIO_TEST:
+    case PS_GPIO_LED_TEST:
         zynq_ps_gpio_led_test();
         break;
-    
+        
+    case PS_GPIO_KEY_TEST:
+        zynq_ps_gpio_key_test();
+        break;
+        
 	case PS_MEMORY_TEST: 
         zynq_ps_memory_test();
 		break;
