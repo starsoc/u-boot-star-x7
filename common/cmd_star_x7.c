@@ -60,7 +60,7 @@
 
 enum {
     /* PS part */
-    PS_GPIO_TEST = 1,
+    PS_GPIO_LED_TEST = 1,
 	PS_MEMORY_TEST,
 	PS_UART_TEST,
 	PS_SD_TEST,
@@ -78,13 +78,6 @@ enum {
     PL_HDMI_TEST,
     /* ************************************************/    
     PL_OLED_TEST,
-    SCU_GIC_SELF_TEST,
-    SCU_GIC_INT_SETUP,
-    /* EMAC_PS_INT_TEST */
-    IIC0_PS_SELF_TEST,
-    IIC1_PS_SELF_TEST,
-    QSPI_PS_SELF_TEST,
-    SCU_TIMER_POLL_TEST,
 };
 
 
@@ -147,20 +140,6 @@ char *opnum2opstr(int op_num)
         strncpy(tmp_op, "PL_HDMI_test", 100);
         break;
 		
-    case IIC0_PS_SELF_TEST:        
-		strncpy(tmp_op, "I2C0_self_test", 100);
-        break;
-            
-    case IIC1_PS_SELF_TEST:
-		strncpy(tmp_op, "I2C1_self_test", 100);
-        break;
-
-    case QSPI_PS_SELF_TEST:       
-		strncpy(tmp_op, "QSPI_self_test", 100);
-        break;     
-    case SCU_TIMER_POLL_TEST:        
-		strncpy(tmp_op, "Scu_Timer_Poll_test", 100);
-        break;
     case PL_OLED_TEST:        
         strncpy(tmp_op, "OLED_Test", 100);
         break;
@@ -286,7 +265,6 @@ struct memory_range_s memory_ranges[] = {
 
 int n_memory_ranges = 15;
 
-
 int zynq_ps_gpio_led_test()
 {
     int i;
@@ -305,7 +283,7 @@ int zynq_ps_gpio_led_test()
     {
         return XST_FAILURE;
     }
-
+    
     /* set GPIO_LED_PIN*/
     /* set for Output Direction */
     XGpioPs_SetDirectionPin(&Gpio, GPIO_LED_PIN, GPIO_DIRECTION_OUTPUT);
@@ -703,39 +681,6 @@ void zynq_pl_audio_test()
 }
 
 
-
-int ScuGicSelfTest()
-{
-    int Status;
-
-    printf("\r\n Running ScuGicSelfTestExample() for ps7_scugic_0...\r\n");
-    
-    Status = ScuGicSelfTestExample(XPAR_PS7_SCUGIC_0_DEVICE_ID);
-
-    if (Status == 0) 
-    {
-        printf("ScuGicSelfTestExample PASSED\r\n");
-    }
-    else 
-    {
-        printf("ScuGicSelfTestExample FAILED\r\n");
-    }
-}
-
-int ScuGicIntSetup()
-{
-    int Status;
-    static XScuGic intc;
-    Status = ScuGicInterruptSetup(&intc, XPAR_PS7_SCUGIC_0_DEVICE_ID);
-    if (Status == 0) 
-    {
-        printf("ScuGic Interrupt Setup PASSED\r\n");
-    } 
-    else 
-    {
-        printf("ScuGic Interrupt Setup FAILED\r\n");
-    } 
-}
 #endif
 
 
@@ -774,84 +719,6 @@ int EmacPsIntrTest()
     }
 
 }
-
-
-
-
-int IICPS_SelfTest(int device_id)
-{
-      int Status;
-      
-      printf("\r\n Running IicPsSelfTestExample() for ps7_i2c_0...\r\n");
-      
-      Status = IicPsSelfTestExample(device_id);
-      
-      if (Status == 0) {
-         printf("IicPsSelfTestExample PASSED\r\n");
-      }
-      else {
-         printf("IicPsSelfTestExample FAILED\r\n");
-      }
-      return 0;
-}
-
-
-int QspiPS_SelfTest()
-{
-    int Status;
-
-    printf("\r\n Running QspiSelfTestExample() for ps7_qspi_0...\r\n");
-
-    Status = QspiPsSelfTestExample(XPAR_PS7_QSPI_0_DEVICE_ID);
-
-    if (Status == 0) 
-    {
-        printf("QspiPsSelfTestExample PASSED\r\n");
-    }
-    else 
-    {
-        printf("QspiPsSelfTestExample FAILED\r\n");
-    }
-    return 0;
-}
-int Dcfg_Self_Test()
-{
-    int Status;
-
-    printf("\r\n Running DcfgSelfTestExample() for ps7_dev_cfg_0...\r\n");
-
-    Status = DcfgSelfTestExample(XPAR_PS7_DEV_CFG_0_DEVICE_ID);
-
-    if (Status == 0) 
-    {
-        printf("DcfgSelfTestExample PASSED\r\n");
-    }
-    else 
-    {
-        printf("DcfgSelfTestExample FAILED\r\n");
-    }
-    return 0;
-}
-
-
-int ScuTimer_Poll_Test()
-{
-    int Status;
-
-    printf("\r\n Running ScuTimerPolledExample() for ps7_scutimer_0...\r\n");
-    
-    Status = ScuTimerPolledExample(XPAR_PS7_SCUTIMER_0_DEVICE_ID);
-    
-    if (Status == 0) 
-    {
-        printf("ScuTimerPolledExample PASSED\r\n");
-    }
-    else 
-    {
-        printf("ScuTimerPolledExample FAILED\r\n");
-    }
-}
-
 
 void PL_OLED_Test()
 {
@@ -994,13 +861,7 @@ int do_star_x7_example (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv
         zynq_pl_hdmi_test();
         break;
 #if 0
-    case SCU_GIC_SELF_TEST:
-        ScuGicSelfTest();
-        break;
-    case SCU_GIC_INT_SETUP:
-        ScuGicIntSetup();
-        break;
-
+    
     /* PL test */
     case PL_GPIO_LED_TEST:
         zynq_pl_gpio_led_test();
@@ -1008,7 +869,7 @@ int do_star_x7_example (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv
     case PL_GPIO_KEY_TEST:
         zynq_pl_gpio_key_test();
         break;
-
+        
     case PS_SD_TEST:
         zynq_ps_sd_test();
     case PS_GMAC_TEST:
@@ -1026,24 +887,11 @@ int do_star_x7_example (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv
         PL_OLED_Test();
         break;
 
-    case IIC0_PS_SELF_TEST:
-        IICPS_SelfTest(0);
-        break;
-    case IIC1_PS_SELF_TEST:
-        IICPS_SelfTest(1);
-        break;
-    
-    case QSPI_PS_SELF_TEST:
-        QspiPS_SelfTest();
-        break;
-    case SCU_TIMER_POLL_TEST:
-        ScuTimer_Poll_Test();
-        break;
 #endif
-
+    
 		
     default:
-        printf("invalid parameter, no zynq verification\n");        
+        printf("Invalid parameter, no such testcase, please refer command usage!!!\n");        
         printf("***************************************\n");   
         printf("\r\n");
 		return cmd_usage(cmdtp);
