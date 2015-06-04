@@ -536,6 +536,92 @@ int zynq_ps_sd_test()
 }
 
 
+
+/*****************************************************************************/
+/**
+* Main function to call the Iic EEPROM polled example.
+*
+* @param	None.
+*
+* @return	XST_SUCCESS if successful else XST_FAILURE.
+*
+* @note		None.
+*
+******************************************************************************/
+int zynq_ps_i2c_eeprom_test(int sub_opt_num)
+{
+	int Status;
+    
+    u8 writebuf[9] = {0x00, 0xC0, 0xFD, 0x03, 0x0F, 0x00, 0x00, 0x00, 0x00};
+	u8 readbuf[8] = {0};
+    
+	IicPsEepromPolledInit();
+	/*
+	 * Run the Iic EEPROM Polled Mode example.
+	 */
+	switch (sub_opt_num)
+    {
+		case -1:
+            
+            printf("---Starting EEPROM Test Application---\n\r");
+            Status = IicPsEepromPolledExample();
+            if (Status != XST_SUCCESS) 
+            {
+                printf("IIC EEPROM Polled Mode Example Test Failed\r\n");
+                return XST_FAILURE;
+            }
+            printf("--EEPROM Test Application Complete--\n\r");
+        break;
+        case 1:
+            /* erase the EEPROM */
+            Status = IicPsEepromErase();
+            if (Status != XST_SUCCESS) 
+            {
+                printf("IIC EEPROM Erase Failed\r\n");
+                return XST_FAILURE;
+            }
+            Status = IicPsCheckEepromData();
+            if (Status != XST_SUCCESS) 
+            {
+                printf("IIC EEPROM Check data Failed\r\n");
+                return XST_FAILURE;
+            }
+            break;
+        case 2:
+            printf("EEPROM write data......\r\n");
+            Status = IicPsEepromWrite(writebuf, 9);
+			if (Status != XST_SUCCESS) 
+			{
+			  printf("IIC EEPROM Check data Failed\r\n");
+			  return XST_FAILURE;
+			}
+            printf("EEPROM write data complete\r\n");
+            break;
+        case 3:
+            printf("EEPROM read data:");
+            Status = IicPsEepromRead(readbuf, writebuf, 8);
+			if (Status != XST_SUCCESS) 
+			{
+			  printf("IIC EEPROM Check data Failed\r\n");
+			  return XST_FAILURE;
+			}
+            break;
+        case 4:
+            Status = IicPsCheckEepromData();
+            if (Status != XST_SUCCESS) 
+            {
+                printf("IIC EEPROM Check data Failed\r\n");
+                return XST_FAILURE;
+            }
+            break;
+        default:
+            printf("input para error\r\n");
+            break;        
+    }
+	return XST_SUCCESS;
+}
+
+
 #if 0
 int zynq_ps_gmac_test()
 {
@@ -689,89 +775,7 @@ int EmacPsIntrTest()
 
 }
 
-/*****************************************************************************/
-/**
-* Main function to call the Iic EEPROM polled example.
-*
-* @param	None.
-*
-* @return	XST_SUCCESS if successful else XST_FAILURE.
-*
-* @note		None.
-*
-******************************************************************************/
-int zynq_ps_i2c_eeprom_test(int sub_opt_num)
-{
-	int Status;
-    
-    u8 writebuf[9] = {0x00, 0xC0, 0xFD, 0x03, 0x0F, 0x00, 0x00, 0x00, 0x00};
-	u8 readbuf[8] = {0};
-    
-	IicPsEepromPolledInit();
-	/*
-	 * Run the Iic EEPROM Polled Mode example.
-	 */
-	switch (sub_opt_num)
-    {
-		case -1:
-            
-            printf("---Starting EEPROM Test Application---\n\r");
-            Status = IicPsEepromPolledExample();
-            if (Status != XST_SUCCESS) 
-            {
-                printf("IIC EEPROM Polled Mode Example Test Failed\r\n");
-                return XST_FAILURE;
-            }
-            printf("--EEPROM Test Application Complete--\n\r");
-        break;
-        case 1:
-            /* erase the EEPROM */
-            Status = IicPsEepromErase();
-            if (Status != XST_SUCCESS) 
-            {
-                printf("IIC EEPROM Erase Failed\r\n");
-                return XST_FAILURE;
-            }
-            Status = IicPsCheckEepromData();
-            if (Status != XST_SUCCESS) 
-            {
-                printf("IIC EEPROM Check data Failed\r\n");
-                return XST_FAILURE;
-            }
-            break;
-        case 2:
-            printf("EEPROM write data......\r\n");
-            Status = IicPsEepromWrite(writebuf, 9);
-			if (Status != XST_SUCCESS) 
-			{
-			  printf("IIC EEPROM Check data Failed\r\n");
-			  return XST_FAILURE;
-			}
-            printf("EEPROM write data complete\r\n");
-            break;
-        case 3:
-            printf("EEPROM read data:");
-            Status = IicPsEepromRead(readbuf, writebuf, 8);
-			if (Status != XST_SUCCESS) 
-			{
-			  printf("IIC EEPROM Check data Failed\r\n");
-			  return XST_FAILURE;
-			}
-            break;
-        case 4:
-            Status = IicPsCheckEepromData();
-            if (Status != XST_SUCCESS) 
-            {
-                printf("IIC EEPROM Check data Failed\r\n");
-                return XST_FAILURE;
-            }
-            break;
-        default:
-            printf("input para error\r\n");
-            break;        
-    }
-	return XST_SUCCESS;
-}
+
 
 
 int IICPS_SelfTest(int device_id)
@@ -973,22 +977,23 @@ int do_star_x7_example (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv
     case PS_I2C_TEMP_TEST:
         zynq_ps_i2c_tmp_test();
         break;
-
+    
     case PS_QSPI_TEST:
         zynq_ps_qspi_test();
         break;
-        
-
-        
-    case PL_HDMI_TEST:
-        zynq_pl_hdmi_test();
-        break;
-#if 0
 
     case PS_I2C_EEPROM_TEST:
         zynq_ps_i2c_eeprom_test(sub_op_num);
         break;
 
+    case PS_I2C_RTC_TEST:
+        zynq_ps_i2c_rtc_test();
+        break;
+        
+    case PL_HDMI_TEST:
+        zynq_pl_hdmi_test();
+        break;
+#if 0
     case SCU_GIC_SELF_TEST:
         ScuGicSelfTest();
         break;
@@ -1009,11 +1014,7 @@ int do_star_x7_example (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv
     case PS_GMAC_TEST:
         zynq_ps_gmac_test();
         break;
-
-    case PS_I2C_RTC_TEST:
-        zynq_ps_i2c_rtc_test();
-        break;
-
+    
     case PL_AUDIO_TEST:
         zynq_pl_audio_test();
         break;

@@ -60,6 +60,7 @@ COBJS-y += common/zynq_i2c.o
 
 COBJS-y += ps_memory_test/xil_testmem.o
 
+COBJS-y += ps_i2c_eeprom_test/xiicps_eeprom_polled_example.o
 COBJS-y += ps_i2c_test/xiicps_polled_master_example.o
 COBJS-y += ps_i2c_test/xiicps_rtc.o
 COBJS-y += ps_i2c_test/xiicps_selftest.o
