@@ -84,9 +84,9 @@
 #define AUDIO_BASEADDR DDR_BASEADDR + 0x01000000
 #define DATA_READ_ADDR DDR_BASEADDR + 0x03000000;
 
-//#define SII9022_I2C_ADDR        0x3b			 zturn board
-#define SII9022_I2C_ADDR        0x39		     // star-x7 board
-
+#define ZTURN_SII9022_I2C_ADDR        0x3b			 //zturn board
+#define STAR_X7_SII9022_I2C_ADDR      0x39		     // star-x7 board
+#define SII9022_I2C_ADDR			  STAR_X7_SII9022_I2C_ADDR
 
 XIicPs Iic1Instance;		/* The instance of the IIC device. */
 int g_image_len = 0;
@@ -432,12 +432,12 @@ int SiI9022_i2c_config(void)
     u8 dat;    
     int i  = 0;
     
-    printf("######SiI9134_i2c_config()\r\n"); 
+    printf("######SiI9022_i2c_config()\r\n"); 
     
     sii9022_i2c_init(IIC_DEVICE_ID);
-    printf("######SiI9134_i2c_config() over\r\n"); 
+    printf("######SiI9022_i2c_config() over\r\n"); 
 	int i2c_addr = SII9022_I2C_ADDR;
-    printf("######begin config sii9022, i2caddr:0x%x\r\n", i2c_addr); 
+    printf("######begin config SiI9022_i2c_config, i2caddr:0x%x\r\n", i2c_addr); 
     /* Set 902x in hardware TPI mode on and jump out of D3 state */    
     SiI9022_write(SII9022_I2C_ADDR, 0xc7, 0x00);        
    	

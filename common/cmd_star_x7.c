@@ -566,39 +566,6 @@ int zynq_ps_gmac_test()
     printf("---Starting GMAC Test Application---\n\r");
     // zynq_gem_init
 	eth_current->init(eth_current, NULL);
-#if 0
-    Status = Xgmac_init(NULL, NULL);
-    
-    if (Status == 0 || Status == 1) 
-    {
-        printf("---GMAC Test Application Complete---\n\r\r\n");
-    }
-    else 
-    {
-        printf("---GMAC Test Application Failed, status:%d---\n\r\r\n", Status);
-    }
-    
-    printf("---Starting Ethernet Test Application---\n\r");
-    /* ping to check the ethernet */
-    if ((server_ip= getenv ("serverip")) == NULL) {
-        printf("###set serverip first\r\n");
-        return -1;
-    }
-    else
-    {
-        printf("serverip:%s\r\n", server_ip);
-        NetPingIP = string_to_ip(server_ip);
-        if (NetPingIP == 0)
-            return CMD_RET_USAGE;
-        
-        if (NetLoop(PING) < 0) {
-            printf("ping failed; host %s is not alive\r\n\r\n", server_ip);
-            return -1;
-        }       
-        printf("host %s is alive\r\n\r\n", server_ip);
-    }
-	
-#endif
 	printf("---GMAC Test Complete---\n\r\r\n");
 
     return 0;
@@ -749,29 +716,6 @@ void zynq_pl_hdmi_test()
 
 #if 0
 
-int EmacPsIntrTest()
-{
-    int Status;    
-    static XScuGic intc;
-    static XEmacPs ps7_ethernet_0;
-    
-    printf("\r\n Running Interrupt Test  for ps7_ethernet_0...\r\n");
-    
-    Status = EmacPsDmaIntrExample(&intc, &ps7_ethernet_0, \
-             XPAR_PS7_ETHERNET_0_DEVICE_ID, \
-             XPAR_PS7_ETHERNET_0_INTR);
-
-    if (Status == 0) 
-    {
-        printf("EmacPsDmaIntrExample PASSED\r\n");
-    } 
-    else 
-    {
-        printf("EmacPsDmaIntrExample FAILED\r\n");
-    }
-
-}
-
 void PL_OLED_Test()
 {
     printf("---Starting OLED Test Application---\n\r");
@@ -788,15 +732,6 @@ void zynq_pl_vga_test()
     printf("--Starting VGA Test Application--\n\r");
     pl_vga_init();
     printf("--VGA Test Application Complete--\n\r");
-    printf("\r\n");
-    return;
-}
-
-void PL_Sil9134_config()
-{
-    printf("--Starting Sil9134 Config --\n\r");
-    SiI9134_i2c_config();
-    printf("--Sil9134 Config Complete--\n\r");
     printf("\r\n");
     return;
 }
@@ -927,8 +862,7 @@ int do_star_x7_example (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv
 	case PL_GPIO_KEY_TEST:
 		zynq_pl_gpio_key_test();
 		break;
-			
-
+		
 		
 #if 0
     
