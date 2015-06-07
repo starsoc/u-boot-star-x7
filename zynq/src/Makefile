@@ -90,6 +90,7 @@ COBJS-y += ps_gpio_test/xgpiops_hw.o
 COBJS-y += ps_gpio_test/xgpiops_intr.o
 COBJS-y += ps_gpio_test/xgpiops_sinit.o
 COBJS-y += ps_uart_test/zynq_ps_uart.o
+COBJS-y += pl_gpio_test/zynq_pl_gpio.o
 COBJS-y += pl_hdmi_test/zynq_pl_hdmi.o
 
 COBJS	:= $(COBJS-y)

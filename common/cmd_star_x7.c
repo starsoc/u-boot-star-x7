@@ -360,7 +360,7 @@ int zynq_ps_gpio_key_test()
         	XGpioPs_WritePin(&Gpio, PS_GPIO_LED_PIN, 0x0);
 			mdelay(50);
 			ret = XGpioPs_ReadPin(&Gpio, PS_GPIO_LED_PIN);
-			printf("---After setting GPIO LED HIGH, value:%d\r\n", ret);
+			printf("---After setting GPIO LED ON, value:%d\r\n", ret);
         	b_ps_key_pressed = true;
 			while(b_ps_key_pressed)
 			{
@@ -375,7 +375,7 @@ int zynq_ps_gpio_key_test()
 					XGpioPs_WritePin(&Gpio, PS_GPIO_LED_PIN, 0x1);
 					mdelay(50);
 					ret = XGpioPs_ReadPin(&Gpio, PS_GPIO_LED_PIN);
-					printf("---After setting GPIO LED LOW, value:%d\r\n", ret);	
+					printf("---After setting GPIO LED OFF, value:%d\r\n", ret);	
 					test_count++;
 				}
 			}
@@ -584,6 +584,50 @@ int zynq_ps_sd_test()
 }
 
 
+int zynq_ps_gmac_test()
+{
+    int Status;
+    char *server_ip;
+    printf("---Starting GMAC Test Application---\n\r");
+    
+#if 0
+    Status = Xgmac_init(NULL, NULL);
+    
+    if (Status == 0 || Status == 1) 
+    {
+        printf("---GMAC Test Application Complete---\n\r\r\n");
+    }
+    else 
+    {
+        printf("---GMAC Test Application Failed, status:%d---\n\r\r\n", Status);
+    }
+    
+    printf("---Starting Ethernet Test Application---\n\r");
+    /* ping to check the ethernet */
+    if ((server_ip= getenv ("serverip")) == NULL) {
+        printf("###set serverip first\r\n");
+        return -1;
+    }
+    else
+    {
+        printf("serverip:%s\r\n", server_ip);
+        NetPingIP = string_to_ip(server_ip);
+        if (NetPingIP == 0)
+            return CMD_RET_USAGE;
+        
+        if (NetLoop(PING) < 0) {
+            printf("ping failed; host %s is not alive\r\n\r\n", server_ip);
+            return -1;
+        }       
+        printf("host %s is alive\r\n\r\n", server_ip);
+    }
+	
+#endif
+	printf("---GMAC Test Complete---\n\r\r\n");
+
+    return 0;
+}
+
 
 /*****************************************************************************/
 /**
@@ -670,49 +714,9 @@ int zynq_ps_i2c_eeprom_test(int sub_opt_num)
 }
 
 
-#if 0
-int zynq_ps_gmac_test()
-{
-    int Status;
-    char *server_ip;
-    printf("---Starting GMAC Test Application---\n\r");
-    
-    #if 0
-    Status = Xgmac_init(NULL, NULL);
-    #endif
-    
-    if (Status == 0 || Status == 1) 
-    {
-        printf("---GMAC Test Application Complete---\n\r\r\n");
-    }
-    else 
-    {
-        printf("---GMAC Test Application Failed, status:%d---\n\r\r\n", Status);
-    }
-    
-    printf("---Starting Ethernet Test Application---\n\r");
-    /* ping to check the ethernet */
-    if ((server_ip= getenv ("serverip")) == NULL) {
-        printf("###set serverip first\r\n");
-        return -1;
-    }
-    else
-    {
-        printf("serverip:%s\r\n", server_ip);
-        NetPingIP = string_to_ip(server_ip);
-        if (NetPingIP == 0)
-            return CMD_RET_USAGE;
-        
-        if (NetLoop(PING) < 0) {
-            printf("ping failed; host %s is not alive\r\n\r\n", server_ip);
-            return -1;
-        }       
-        printf("host %s is alive\r\n\r\n", server_ip);
-    }
-    return 0;
-}
-
-
+/* -------------------------------------------------------------------------- */
+/* ------------------------------- PL TEST ------------------------------------ */
+/* -------------------------------------------------------------------------- */
 int zynq_pl_gpio_led_test(void)
 {
 	int Status;
@@ -742,6 +746,8 @@ void zynq_pl_gpio_key_test()
     return;
 }
 
+
+#if 0
 void zynq_pl_audio_test()
 {
     printf("---Starting PL Audio Test Application---\n\r");
@@ -920,6 +926,10 @@ int do_star_x7_example (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv
     case PS_USB_TEST:
         zynq_ps_usb_test();
         break;
+		
+	case PS_GMAC_TEST:
+		zynq_ps_gmac_test();
+		break;
 
     case PS_I2C_TEMP_TEST:
         zynq_ps_i2c_tmp_test();
@@ -936,19 +946,19 @@ int do_star_x7_example (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv
     case PL_HDMI_TEST:
         zynq_pl_hdmi_test();
         break;
+	
+	/* PL test */
+	case PL_GPIO_LED_TEST:
+		zynq_pl_gpio_led_test();
+		break;
+		
+	case PL_GPIO_KEY_TEST:
+		zynq_pl_gpio_key_test();
+		break;
+			
+
+		
 #if 0
-    
-    /* PL test */
-    case PL_GPIO_LED_TEST:
-        zynq_pl_gpio_led_test();
-        break;
-    case PL_GPIO_KEY_TEST:
-        zynq_pl_gpio_key_test();
-        break;
-        
-    case PS_GMAC_TEST:
-        zynq_ps_gmac_test();
-        break;
     
     case PL_AUDIO_TEST:
         zynq_pl_audio_test();
