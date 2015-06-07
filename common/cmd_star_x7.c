@@ -64,7 +64,6 @@ enum {
     PS_GPIO_KEY_TEST,
 	PS_MEMORY_TEST,
 	PS_UART_TEST,
-	PS_SD_TEST,
 	PS_QSPI_TEST,
 	PS_USB_TEST,
 	PS_GMAC_TEST,
@@ -107,9 +106,6 @@ char *opnum2opstr(int op_num)
     case PS_UART_TEST:
 		strncpy(tmp_op, "PS_UART_test", 100);
         break;
-    case PS_SD_TEST:
-		strncpy(tmp_op, "PS_SD_test", 100);
-        break;    
     case PS_QSPI_TEST:
 		strncpy(tmp_op, "PS_QSPI_test", 100);
         break;
@@ -561,35 +557,15 @@ int zynq_ps_qspi_test()
     return 0;
 }
 
-
-int zynq_ps_sd_test()
-{
-    int Status;
-    
-    printf("---Starting SD Test Application---\n\r");
-    #if 0
-    Status = Get_Image_Info_From_SD();
-
-    if (Status == 0) 
-    {
-        printf("---SD Test Application Complete---\n\r\r\n");
-    }
-    else 
-    {
-        printf("---SD Test Application Failed---\n\r\r\n");
-    }
-    #endif
-    
-    return 0;
-}
-
+extern struct eth_device *eth_current;
 
 int zynq_ps_gmac_test()
 {
     int Status;
     char *server_ip;
     printf("---Starting GMAC Test Application---\n\r");
-    
+    // zynq_gem_init
+	eth_current->init(eth_current, NULL);
 #if 0
     Status = Xgmac_init(NULL, NULL);
     
@@ -915,10 +891,6 @@ int do_star_x7_example (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv
         zynq_ps_uart_test();
         break;
 
-	case PS_SD_TEST:
-		zynq_ps_sd_test();
-		break;
-		
 	case PS_QSPI_TEST:
 		zynq_ps_qspi_test();
 		break;
@@ -990,9 +962,9 @@ U_BOOT_CMD (star_x7_example, 3, 1, do_star_x7_example,
 	"[do_zynq_verify] [number]\n"
 	"zynq verify operations no:operation\n"
 	"  1\t  	PS GPIO LED test\n"
-	"  2\t  	PS Memory test\n"
-	"  3\t  	PS UART test\n"
-	"  4\t  	PS SD test\n"
+	"  2\t  	PS GPIO KEY test\n"
+	"  3\t  	PS Memory test\n"
+	"  4\t  	PS UART test\n"
 	"  5\t  	PS QSPI test\n"
 	"  6\t  	PS USB test\n"
 	"  7\t  	PS GMAC test\n"
@@ -1000,9 +972,8 @@ U_BOOT_CMD (star_x7_example, 3, 1, do_star_x7_example,
 	"  9\t  	PS I2C RTC test\n"
 	"  10\t  	PS I2C TEMP test\n"
 	"  100\t	PL GPIO LED test\n"
-	"  101\t  	PL GPIO KEY test\n"
-    "  102\t  	PL Audio test\n"
-    "  103\t 	PL VGA test\n"    
-    "  104\t 	PL HDMI test\n"
+	"  101\t  	PL GPIO KEY test\n"	
+    "  102\t 	PL HDMI test\n"
+    "  103\t  	PL Audio test\n"
+    "  104\t 	PL VGA test\n"    
 );
-

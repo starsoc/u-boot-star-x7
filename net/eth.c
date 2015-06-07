@@ -393,7 +393,7 @@ int eth_init(bd_t *bis)
 		puts("No ethernet found.\n");
 		return -1;
 	}
-
+	
 	/* Sync environment with network devices */
 	dev = eth_devices;
 	do {
@@ -409,7 +409,7 @@ int eth_init(bd_t *bis)
 	old_current = eth_current;
 	do {
 		debug("Trying %s\n", eth_current->name);
-
+		/* add by starsoc  init: zynq_gem_init */
 		if (eth_current->init(eth_current, bis) >= 0) {
 			eth_current->state = ETH_STATE_ACTIVE;
 

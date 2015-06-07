@@ -311,7 +311,7 @@ static int zynq_gem_init(struct eth_device *dev, bd_t * bis)
 			SUPPORTED_100baseT_Full |
 			SUPPORTED_1000baseT_Half |
 			SUPPORTED_1000baseT_Full;
-
+	printf("******zynq_gem_init()\r\n");
 	if (!priv->init) {
 		/* Disable all interrupts */
 		writel(0xFFFFFFFF, &regs->idr);
@@ -557,7 +557,7 @@ int zynq_gem_initialize(bd_t *bis, int base_addr, int phy_addr, u32 emio)
 	dev = calloc(1, sizeof(*dev));
 	if (dev == NULL)
 		return -1;
-
+	
 	dev->priv = calloc(1, sizeof(struct zynq_gem_priv));
 	if (dev->priv == NULL) {
 		free(dev);
