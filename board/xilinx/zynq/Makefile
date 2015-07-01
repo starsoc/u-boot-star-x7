@@ -11,7 +11,7 @@ LIB	= $(obj)lib$(BOARD).o
 
 COBJS-y	:= board.o
 
-# Added by MYIR for MYS-XC7Z010
+# Added by STARSOC for STAR-X7
 COBJS-y	+= starsoc_init.o
 
 COBJS	:= $(sort $(COBJS-y))
