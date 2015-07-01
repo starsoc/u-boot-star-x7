@@ -13,11 +13,11 @@
 #define CONFIG_ZYNQ /* SoC */
 
 /* Default environment */
-#ifndef CONFIG_IPADDR	/* Added by MYIR */
-	#define CONFIG_IPADDR	10.10.70.102
+#ifndef CONFIG_IPADDR	/* Added by STARSOC */
+	#define CONFIG_IPADDR	192.168.1.253
 #endif
-#ifndef CONFIG_SERVERIP /* Added by MYIR */
-	#define CONFIG_SERVERIP	10.10.70.101
+#ifndef CONFIG_SERVERIP /* Added by STARSOC */
+	#define CONFIG_SERVERIP	192.168.1.10
 #endif
 
 #define CONFIG_SYS_SDRAM_BASE	0
@@ -212,7 +212,7 @@
 #endif
 
 /* Default environment */
-/* Added by MYIR */
+/* Added by STARSOC */
 #ifndef CONFIG_EXTRA_ENV_SETTINGS
 #define CONFIG_EXTRA_ENV_SETTINGS	\
 	"ethaddr=00:0a:35:00:01:22\0"	\
@@ -299,7 +299,7 @@
 		"tftp 0x100000 ${boot_image} && " \
 		"zynqrsa 0x100000 && " \
 		"bootm 0x3000000 0x2000000 0x2A00000\0"
-#endif /* ifndef CONFIG_EXTRA_ENV_SETTINGS, MYIR */
+#endif /* ifndef CONFIG_EXTRA_ENV_SETTINGS, STARSOC */
 
 /* default boot is according to the bootmode switch settings */
 #if defined(CONFIG_CMD_ZYNQ_RSA)

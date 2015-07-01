@@ -182,7 +182,8 @@ static void gpio_set_output(u32 gpio, u32 value)
 	u32 pin = GET_GPIO_PIN(gpio);
 	u32 *reg_dirm, *reg_oen;
 
-	if (gpio >= MAX_GPIO) {
+	if (gpio >= MAX_GPIO) 
+	{
 		printf("gpio out of range (should be < %d)!\n", MAX_GPIO);
 		return ;
 	}
@@ -191,7 +192,8 @@ static void gpio_set_output(u32 gpio, u32 value)
 	writel(GPIO_OUTPUT_1V8_CONFIG, &slcr_base->mio_pin[gpio]);
 
 	/* set GPIO to output */
-	switch (bank) {
+	switch (bank) 
+	{
 		case GPIO_BANK0:
 			reg_dirm = &gpio_base->dirm_0;
 			reg_oen = &gpio_base->oen_0;
@@ -219,7 +221,7 @@ static void gpio_init(void)
 
 
 /*
- * Z-turn (MYS-XC7Z010) board init function.
+ * STAR-X7 board init function.
  */
 int starsoc_board_init(void)
 {
