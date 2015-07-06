@@ -490,7 +490,14 @@ static int zynq_qspi_setup_transfer(struct spi_device *qspi,
 		zqspi->speed_hz = req_hz;
 	}
 
-	writel(config_reg, &zynq_qspi_base->confr);
+	// add by starsoc,  QSPI PS_MIO8 cannot be used, clk should not bigger than 40MHZ
+	// TBD
+	/* -----------------------------------
+	config_reg &= 0xFFFFFFC0;
+	config_reg |= 9;
+            -----------------------------------*/
+     
+	writel(config_reg, &zynq_qspi_base->confr);	
 
 	debug("%s: mode %d, %u bits/w, %u clock speed\n", __func__,
 	      qspi->mode & MODEBITS, qspi->bits_per_word, zqspi->speed_hz);
@@ -919,6 +926,11 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 	qspi->slave.rd_cmd = READ_CMD_FULL;
 	qspi->slave.wr_cmd = PAGE_PROGRAM | QUAD_PAGE_PROGRAM;
 	qspi->qspi.master.speed_hz = qspi->qspi.master.input_clk_hz / 2;
+    
+    printf("%s: qspi speed:%d\r\n", __func__, qspi->qspi.master.speed_hz);
+    // TBD
+	// add by starsoc qspi speed no more than 50MHZ
+	//qspi->qspi.master.speed_hz = 50000000;
 	qspi->qspi.max_speed_hz = qspi->qspi.master.speed_hz;
 	qspi->qspi.master.is_dual = is_dual;
 	qspi->qspi.mode = mode;

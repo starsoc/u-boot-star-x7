@@ -76,9 +76,54 @@ int board_init(void)
 	return 0;
 }
 
+static int load_bitstream(u32 boot_mode)
+{
+	int ret_val = 1;
+	int rc;
+	u32 bitstream_start = 0x200000;
+	char cmd_buf[128];
+	
+	if (QSPI_MODE == boot_mode) {
+	
+	} else if (SD_MODE == boot_mode) {
+		printf("sd boot mode\n\r");
+		snprintf(cmd_buf, sizeof(cmd_buf), "mmc rescan");
+		rc = run_command(cmd_buf, 0);
+		if (rc) {
+			printf("%s: %s err: %d", __func__, cmd_buf, rc);
+			return 1;
+		}
+
+		snprintf(cmd_buf, sizeof(cmd_buf), "fatload mmc 0 0x%x %s.bit",
+				bitstream_start, fpga.name);
+		rc = run_command(cmd_buf, 0);
+		if (rc) {
+			printf("%s: %s err: %d", __func__, cmd_buf, rc);
+			return 1;
+		}
+
+		snprintf(cmd_buf, sizeof(cmd_buf), "fpga loadb 0 0x%x ${filesize}",
+				bitstream_start);
+		rc = run_command(cmd_buf, 0);
+		if (rc) {
+			printf("%s: %s err: %d", __func__, cmd_buf, rc);
+			return 1;
+		}
+
+		ret_val = 0;
+	}
+
+	return ret_val;
+}
+
+
 int board_late_init(void)
 {
-	switch ((zynq_slcr_get_boot_mode()) & BOOT_MODES_MASK) {
+	u32 boot_mode;
+
+	boot_mode = (zynq_slcr_get_boot_mode()) & BOOT_MODES_MASK;
+	
+	switch (boot_mode) {
 	case QSPI_MODE:
 		setenv("modeboot", "qspiboot");
 		break;
@@ -98,6 +143,8 @@ int board_late_init(void)
 		setenv("modeboot", "");
 		break;
 	}
+
+	//load_bitstream(boot_mode);
 
 	return 0;
 }
@@ -163,3 +210,4 @@ int dram_init(void)
 
 	return 0;
 }
+

@@ -415,7 +415,7 @@ static int spi_flash_test(struct spi_flash *flash, uint8_t *buf, ulong len,
 		}
 	}
 	spi_test_next_stage(&test);
-
+    
 	if (spi_flash_write(flash, offset, len, buf)) {
 		printf("Write failed\n");
 		return -1;

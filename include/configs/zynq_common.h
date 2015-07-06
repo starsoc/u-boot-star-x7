@@ -33,7 +33,9 @@
 #endif
 
 /* Total Size of Environment Sector */
+#ifndef CONFIG_ENV_SIZE
 #define CONFIG_ENV_SIZE			(128 << 10)
+#endif
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
@@ -198,7 +200,10 @@
 #  define CONFIG_ENV_IS_NOWHERE
 # endif
 
+#ifndef CONFIG_ENV_SECT_SIZE
 # define CONFIG_ENV_SECT_SIZE		CONFIG_ENV_SIZE
+#endif
+
 # ifndef CONFIG_ENV_OFFSET
 #  define CONFIG_ENV_OFFSET		0xE0000
 # endif
@@ -309,6 +314,8 @@
 #endif
 #define CONFIG_BOOTDELAY		3 /* -1 to Disable autoboot */
 #define CONFIG_SYS_LOAD_ADDR		0 /* default? */
+#define	CONFIG_ZERO_BOOTDELAY_CHECK	1
+
 
 #define CONFIG_CMD_CACHE
 

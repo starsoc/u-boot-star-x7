@@ -24,10 +24,10 @@
 #define CONFIG_ZYNQ_QSPI
 
 #define CONFIG_ZYNQ_BOOT_FREEBSD
-#define CONFIG_DEFAULT_DEVICE_TREE	zynq-zed
+#define CONFIG_DEFAULT_DEVICE_TREE	zynq-starsoc
 
 #define CONFIG_IPADDR	192.168.1.253
-#define CONFIG_SERVERIP	192.168.1.7
+#define CONFIG_SERVERIP	192.168.1.10
 
 /* modify by starsoc, using winbond QSPI instead of spansion */
 /* #define CONFIG_SPI_FLASH_SPANSION */
@@ -35,6 +35,19 @@
 
 
 #define CONFIG_EXTRA_ENV_SETTINGS	\
+	"qbit_size=0x600000\0"  \
+	"qbit_addr=0x0120004\0" \
+	"qbitsize_addr=0x0120000\0" \
+	"qboot_addr=0x000000\0" \
+	"qbootenv_addr=0x100000\0" \
+	"qbootenv_size=0x020000\0" \
+	"qkernel_addr=0x720000\0" \
+	"qdevtree_addr=0xD20000\0" \
+	"qramdisk_addr=0xD40000\0" \
+	"kernel_size=0x600000\0"	\
+	"devicetree_size=0x020000\0"	\
+	"ramdisk_size=0xC00000\0"	\
+	"boot_size=0x100000\0"	\
 	"ethaddr=00:0a:35:00:01:22\0"	\
 	"kernel_image=uImage\0"	\
 	"kernel_load_address=0x2080000\0" \
@@ -46,20 +59,17 @@
 	"boot_image=BOOT.bin\0"	\
 	"loadbit_addr=0x100000\0"	\
 	"loadbootenv_addr=0x2000000\0" \
-	"kernel_size=0x500000\0"	\
-	"devicetree_size=0x20000\0"	\
-	"ramdisk_size=0x5E0000\0"	\
-	"boot_size=0xF00000\0"	\
 	"fdt_high=0x20000000\0"	\
 	"initrd_high=0x20000000\0"	\
 	"bootenv=uEnv.txt\0" \
+	"optargs=hdmi\0" \
 	"loadbootenv=fatload mmc 0 ${loadbootenv_addr} ${bootenv}\0" \
 	"importbootenv=echo Importing environment from SD ...; " \
 		"env import -t ${loadbootenv_addr} $filesize\0" \
 	"mmc_loadbit_fat=echo Loading bitstream from SD/MMC/eMMC to RAM.. && " \
-		"mmcinfo && " \
+		"get_bitstream_name && mmcinfo && " \
 		"fatload mmc 0 ${loadbit_addr} ${bitstream_image} && " \
-		"fpga load 0 ${loadbit_addr} ${filesize}\0" \
+		"fpga loadb 0 ${loadbit_addr} ${filesize}\0" \
 	"norboot=echo Copying Linux from NOR flash to RAM... && " \
 		"cp.b 0xE2100000 ${kernel_load_address} ${kernel_size} && " \
 		"cp.b 0xE2600000 ${devicetree_load_address} ${devicetree_size} && " \
@@ -77,6 +87,10 @@
 		"fi\0" \
 	"sdboot=if mmcinfo; then " \
 			"run uenvboot; " \
+			"get_bitstream_name && " \
+			"echo - load ${bitname} to PL... && " \
+			"fatload mmc 0 0x200000 ${bitname} && " \
+			"fpga loadb 0 0x200000 ${filesize} && " \
 			"echo Copying Linux from SD to RAM... && " \
 			"fatload mmc 0 ${kernel_load_address} ${kernel_image} && " \
 			"fatload mmc 0 ${devicetree_load_address} ${devicetree_image} && " \
@@ -97,6 +111,11 @@
 		"echo Copying ramdisk... && " \
 		"nand read ${ramdisk_load_address} 0x620000 ${ramdisk_size} && " \
 		"bootm ${kernel_load_address} ${ramdisk_load_address} ${devicetree_load_address}\0" \
+	"mmc_rootfs_args=setenv bootargs console=ttyPS0,115200 " \
+		"root=/dev/mmcblk0p1 rw earlyprintk rootfstype=ext4 rootwait " \
+		"ip=none devtmpfs.mount=1 ${optargs}\0" \
+	"ram_rootfs_args=setenv bootargs console=ttyPS0,115200 " \
+		"root=/dev/ram rw earlyprintk ip=none ${optargs}\0" \
 	"jtagboot=echo TFTPing Linux to RAM... && " \
 		"tftpboot ${kernel_load_address} ${kernel_image} && " \
 		"tftpboot ${devicetree_load_address} ${devicetree_image} && " \
@@ -123,36 +142,48 @@
 		"tftpboot 0x100000 ${boot_image} && " \
 		"zynqrsa 0x100000 && " \
 		"bootm ${kernel_load_address} ${ramdisk_load_address} ${devicetree_load_address}\0" \
-	"qspiboot=echo Copying Linux from QSPI flash to RAM... && " \
+	"qspiload_image=echo Copying Linux from QSPI flash to RAM... && " \
 		"sf probe 0 0 0 && " \
-		"sf read ${kernel_load_address} 0x300000 ${kernel_size} && " \
-		"sf read ${devicetree_load_address} 0x800000 ${devicetree_size} && " \
+		"qspi_get_bitsize ${qbitsize_addr} && " \
+		"sf read ${loadbit_addr} ${qbit_addr} ${bitsize} && " \
+		"fpga loadb 0 ${loadbit_addr} ${bitsize} && " \
+		"sf read ${kernel_load_address} ${qkernel_addr} ${kernel_size} && " \
+		"sf read ${devicetree_load_address} ${qdevtree_addr} ${devicetree_size} \0" \
+	"qspiboot=run qspiload_image && " \
+		"run mmc_rootfs_args && " \
+		"bootm ${kernel_load_address} - ${devicetree_load_address}\0" \
+	"qspiboot_ram_rootfs= run qspiload_image && " \
 		"echo Copying ramdisk... && " \
-		"sf read ${ramdisk_load_address} 0x820000 ${ramdisk_size} && " \
+		"sf read ${ramdisk_load_address} ${qramdisk_addr} ${ramdisk_size} && " \
+		"run ram_rootfs_args && " \
 		"bootm ${kernel_load_address} ${ramdisk_load_address} ${devicetree_load_address}\0" \
 	"qspiupdate=echo Update qspi images from sd card... && " \
 		"echo - Init mmc... && mmc rescan && " \
 		"echo - Init qspi flash... && sf probe 0 0 0 && " \
 		"echo - Write boot.bin... && " \
-		"mw.b 0x200000 0x600000 && " \
 		"fatload mmc 0 0x200000 boot.bin && " \
-		"sf erase 0 0x300000 && " \
-		"sf write 0x200000 0 0x300000 && " \
+		"sf erase ${qboot_addr} ${boot_size} && " \
+		"sf erase ${qbootenv_addr} ${qbootenv_size} && " \
+		"sf write 0x200000 0 ${filesize} && " \
+		"get_bitstream_name && " \
+		"echo - Write ${bitstream_image}... && " \
+		"fatload mmc 0 0x200000 ${bitstream_image} && " \
+		"sf erase ${qbitsize_addr} ${qbit_size} && " \
+		"mw.l 0x100000 ${filesize} && " \
+		"sf write 0x100000 ${qbitsize_addr} 4 && " \
+		"sf write 0x200000 ${qbit_addr} ${filesize} && " \
 		"echo - Write uImage... && " \
-		"mw.b 0x200000 0x600000 && " \
 		"fatload mmc 0 0x200000 uImage && " \
-		"sf erase 0x300000 ${kernel_size} && " \
-		"sf write 0x200000 0x300000 ${kernel_size} && " \
+		"sf erase ${qkernel_addr} ${kernel_size} && " \
+		"sf write 0x200000 ${qkernel_addr} ${filesize} && " \
 		"echo - Write device tree... && " \
-		"mw.b 0x200000 0x600000 && " \
 		"fatload mmc 0 0x200000 devicetree.dtb && " \
-		"sf erase 0x800000 ${devicetree_size} && " \
-		"sf write 0x200000 0x800000 ${devicetree_size} && " \
+		"sf erase ${qdevtree_addr} ${devicetree_size} && " \
+		"sf write 0x200000 ${qdevtree_addr} ${filesize} && " \
 		"echo - Write Ramdisk... && " \
-		"mw.b 0x200000 0x600000 && " \
 		"fatload mmc 0 0x200000 uramdisk.image.gz && " \
-		"sf erase 0x820000 ${ramdisk_size} && " \
-		"sf write 0x200000 0x820000 ${ramdisk_size} && " \
+		"sf erase ${qramdisk_addr} ${ramdisk_size} && " \
+		"sf write 0x200000 ${qramdisk_addr} ${filesize} && " \
 		"echo - Done.\0"
 
 #include <configs/zynq_common.h>

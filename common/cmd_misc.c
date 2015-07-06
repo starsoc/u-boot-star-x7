@@ -64,3 +64,76 @@ U_BOOT_CMD(
 	"timer get   - Print the time since 'start'."
 );
 #endif
+
+#define	ZYNQ_7Z010	0x02
+#define	ZYNQ_7Z015	0x1b
+#define	ZYNQ_7Z020	0x07
+
+static int do_get_bitstream_name(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+	ulong device_code;
+	
+	device_code = (*((volatile ulong *)0xF8000530) >> 12) & 0x1f;
+
+	switch(device_code) {
+	case ZYNQ_7Z010:
+		return setenv("bitstream_image", "7z010.bit");
+		
+	case ZYNQ_7Z015:
+		return setenv("bitstream_image", "7z015.bit");
+
+	case ZYNQ_7Z020:
+		return setenv("bitstream_image", "7z020.bit");
+		
+	default
+:
+		break;
+	}
+
+	return 1;
+}
+
+
+U_BOOT_CMD(
+	get_bitstream_name, 1, 0, do_get_bitstream_name, 
+	"get bitstream name according to device code",
+	"get_bitstream_name");
+
+static int do_qspi_get_bitsize(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+	int rc;
+	u32 bitsize;
+	u32 addr;
+	char cmd_buf[128];
+	
+	if (argc != 2)
+		return cmd_usage(cmdtp);
+
+	addr = 0x200000;
+	snprintf(cmd_buf, sizeof(cmd_buf), "sf read 0x%x %s 4", addr, argv[1]);
+	rc = run_command(cmd_buf, 0);
+	if (rc) {
+		printf("%s err: %d\n\r", cmd_buf, rc);
+		return 1;
+	}
+
+	bitsize = *((volatile u32 *)addr);
+	rc = setenv_hex("bitsize", bitsize);
+	if (rc) {
+		printf("set bitsize err: %d\n\r", rc);
+		return 1;
+	}
+	
+	return 0;
+}
+
+
+U_BOOT_CMD(
+	qspi_get_bitsize, 2, 0, do_qspi_get_bitsize, 
+	"get bitstream size from qspi addr",
+	"qspi_get_bitsize bitsize_addr"
+);
+
+
+
+
