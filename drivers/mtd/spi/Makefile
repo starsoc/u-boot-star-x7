@@ -20,7 +20,7 @@ endif
 COBJS-$(CONFIG_SPI_FLASH) += sf_probe.o sf_ops.o
 COBJS-$(CONFIG_SPI_FRAM_RAMTRON) += ramtron.o
 COBJS-$(CONFIG_SPI_M95XXX) += eeprom_m95xxx.o
-COBJS-$(CONFIG_SPI_FLASH_WINBOND)	+= winbond.o
+
 COBJS	:= $(COBJS-y)
 SRCS	:= $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS))

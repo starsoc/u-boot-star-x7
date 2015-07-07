@@ -86,8 +86,6 @@ static ulong bytes_per_second(unsigned int len, ulong start_ms)
 		return 1024 * len / max(get_timer(start_ms), 1);
 }
 
-
-
 static int do_spi_flash_probe(int argc, char * const argv[])
 {
 	unsigned int bus = CONFIG_SF_DEFAULT_BUS;
@@ -122,10 +120,9 @@ static int do_spi_flash_probe(int argc, char * const argv[])
 		if (*argv[3] == 0 || *endp != 0)
 			return -1;
 	}
-    
+
 	new = spi_flash_probe(bus, cs, speed, mode);
-	if (!new) 
-    {
+	if (!new) {
 		printf("Failed to initialize SPI flash at %u:%u\n", bus, cs);
 		return 1;
 	}
@@ -133,7 +130,7 @@ static int do_spi_flash_probe(int argc, char * const argv[])
 	if (flash)
 		spi_flash_free(flash);
 	flash = new;
-    
+
 	return 0;
 }
 
@@ -308,7 +305,7 @@ static int do_spi_flash_erase(int argc, char * const argv[])
 
 	if (argc < 3)
 		return -1;
-	
+
 	offset = simple_strtoul(argv[1], &endp, 16);
 	if (*argv[1] == 0 || *endp != 0)
 		return -1;
@@ -415,7 +412,7 @@ static int spi_flash_test(struct spi_flash *flash, uint8_t *buf, ulong len,
 		}
 	}
 	spi_test_next_stage(&test);
-    
+
 	if (spi_flash_write(flash, offset, len, buf)) {
 		printf("Write failed\n");
 		return -1;

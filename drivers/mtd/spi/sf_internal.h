@@ -107,11 +107,6 @@ int spi_flash_cmd(struct spi_slave *spi, u8 cmd, void *response, size_t len);
 int spi_flash_cmd_read(struct spi_slave *spi, const u8 *cmd,
 		size_t cmd_len, void *data, size_t data_len);
 
-int spi_flash_cmd_read_fast(struct spi_flash *flash, u32 offset, size_t len, void *data);
-
-int spi_flash_cmd_write_multi(struct spi_flash *flash, u32 offset,
-		size_t len, const void *buf);
-
 /*
  * Send a multi-byte command to the device followed by (optional)
  * data. Used for programming the flash array, etc.
@@ -173,10 +168,5 @@ int spi_flash_read_common(struct spi_flash *flash, const u8 *cmd,
 /* Flash read operation, support all possible read commands */
 int spi_flash_cmd_read_ops(struct spi_flash *flash, u32 offset,
 		size_t len, void *data);
-
-struct spi_flash *spi_flash_probe_winbond(struct spi_slave *spi, u8 *idcode);
-
-/* Erase sectors. */
-int spi_flash_cmd_erase(struct spi_flash *flash, u8 erase_cmd, u32 offset, size_t len);
 
 #endif /* _SF_INTERNAL_H_ */

@@ -20,10 +20,6 @@
 #include <asm/arch/hardware.h>
 #include <asm/arch/sys_proto.h>
 
-#undef debug
-#define debug(fmt, args...)			printf(fmt, ##args);
-
-
 /* Bit/mask specification */
 #define ZYNQ_GEM_PHYMNTNC_OP_MASK	0x40020000 /* operation mask bits */
 #define ZYNQ_GEM_PHYMNTNC_OP_R_MASK	0x20000000 /* read operation */
@@ -250,7 +246,7 @@ static void phy_detection(struct eth_device *dev)
 			priv->phyaddr = -1;
 		}
 	}
-	
+
 	debug("detecting phy address\n");
 	if (priv->phyaddr == -1) {
 		/* detect the PHY address */
@@ -373,7 +369,7 @@ static int zynq_gem_init(struct eth_device *dev, bd_t * bis)
 		printf("%s: No link.\n", phydev->dev->name);
 		return -1;
 	}
-	
+
 	switch (phydev->speed) {
 	case SPEED_1000:
 		writel(ZYNQ_GEM_NWCFG_INIT | ZYNQ_GEM_NWCFG_SPEED1000,
@@ -394,10 +390,11 @@ static int zynq_gem_init(struct eth_device *dev, bd_t * bis)
 	if (!priv->emio)
 		zynq_slcr_gem_clk_setup(dev->iobase !=
 					ZYNQ_GEM_BASEADDR0, clk_rate);
+
 #else
 	/* PHY Setup */
 	phywrite(dev, priv->phyaddr, 22, 2);	/* page 2 */
-	
+
 	/* rx clock transition when data stable */
 	phywrite(dev, priv->phyaddr, 21, 0x3030);
 
@@ -535,7 +532,7 @@ static int zynq_gem_miiphyread(const char *devname, uchar addr,
 	int ret;
 
 	ret = phyread(dev, addr, reg, val);
-	// debug("%s 0x%x, 0x%x, 0x%x\n", __func__, addr, reg, *val);
+	debug("%s 0x%x, 0x%x, 0x%x\n", __func__, addr, reg, *val);
 	return ret;
 }
 
@@ -557,7 +554,7 @@ int zynq_gem_initialize(bd_t *bis, int base_addr, int phy_addr, u32 emio)
 	dev = calloc(1, sizeof(*dev));
 	if (dev == NULL)
 		return -1;
-	
+
 	dev->priv = calloc(1, sizeof(struct zynq_gem_priv));
 	if (dev->priv == NULL) {
 		free(dev);

@@ -63,6 +63,7 @@ U_BOOT_CMD(
 	"start - Reset the timer reference.\n"
 	"timer get   - Print the time since 'start'."
 );
+
 #endif
 
 #define	ZYNQ_7Z010	0x02

@@ -15,6 +15,10 @@
 
 #include "sf_internal.h"
 
+#undef debug
+#define debug(fmt,args...)	printf (fmt ,##args)
+
+
 static void spi_flash_addr(u32 addr, u8 *cmd)
 {
 	/* cmd[0] is actual command */

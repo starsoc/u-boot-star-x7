@@ -18,6 +18,8 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+
+
 /**
  * struct spi_flash_params - SPI/QSPI flash device params structure
  *
@@ -175,44 +177,6 @@ static const struct spi_flash_params spi_flash_params_table[] = {
 	 */
 };
 
-
-
-#define IDCODE_CONT_LEN 1
-#define IDCODE_PART_LEN 5
-static const struct {
-	const u8 shift;
-	const u8 idcode;
-	struct spi_flash *(*probe) (struct spi_slave *spi, u8 *idcode);
-} flashes[] = {
-	/* Keep it sorted by define name */
-#ifdef CONFIG_SPI_FLASH_ATMEL
-	{ 0, 0x1f, spi_flash_probe_atmel, },
-#endif
-#ifdef CONFIG_SPI_FLASH_EON
-	{ 0, 0x1c, spi_flash_probe_eon, },
-#endif
-#ifdef CONFIG_SPI_FLASH_MACRONIX
-	{ 0, 0xc2, spi_flash_probe_macronix, },
-#endif
-#ifdef CONFIG_SPI_FLASH_SST
-	{ 0, 0xbf, spi_flash_probe_sst, },
-#endif
-#ifdef CONFIG_SPI_FLASH_WINBOND
-	{ 0, 0xef, spi_flash_probe_winbond, },
-#endif
-#ifdef CONFIG_SPI_FRAM_RAMTRON
-	{ 6, 0xc2, spi_fram_probe_ramtron, },
-# undef IDCODE_CONT_LEN
-# define IDCODE_CONT_LEN 6
-#endif
-	/* Keep it sorted by best detection */
-#ifdef CONFIG_SPI_FRAM_RAMTRON_NON_JEDEC
-	{ 0, 0xff, spi_fram_probe_ramtron, },
-#endif
-};
-#define IDCODE_LEN (IDCODE_CONT_LEN + IDCODE_PART_LEN)
-
-
 static struct spi_flash *spi_flash_validate_params(struct spi_slave *spi,
 		u8 *idcode)
 {
@@ -222,7 +186,7 @@ static struct spi_flash *spi_flash_validate_params(struct spi_slave *spi,
 	u8 qeb_status, cmd, data[2];
 	u16 jedec = idcode[1] << 8 | idcode[2];
 	u16 ext_jedec = idcode[3] << 8 | idcode[4];
-    
+
 	/* Get the flash id (jedec = manuf_id + dev_id, ext_jedec) */
 	for (i = 0; i < ARRAY_SIZE(spi_flash_params_table); i++) {
 		params = &spi_flash_params_table[i];
@@ -235,14 +199,14 @@ static struct spi_flash *spi_flash_validate_params(struct spi_slave *spi,
 			}
 		}
 	}
-	
+
 	if (i == ARRAY_SIZE(spi_flash_params_table)) {
 		printf("SF: Unsupported flash IDs: ");
 		printf("manuf %02x, jedec %04x, ext_jedec %04x\n",
 		       idcode[0], jedec, ext_jedec);
 		return NULL;
 	}
-	
+
 	flash = malloc(sizeof(*flash));
 	if (!flash) {
 		debug("SF: Failed to allocate spi_flash\n");
@@ -394,43 +358,72 @@ struct spi_flash *spi_flash_probe(unsigned int bus, unsigned int cs,
 {
 	struct spi_slave *spi;
 	struct spi_flash *flash = NULL;
-	u8 idcode[5], *idp;
-	int ret, i, shift;
-	/* add by starsoc */
-	init_qspi();
-	read_qspi_id(idcode);
+	u8 idcode[5];
+	int ret;
 
-	printf("QSPI idcode: 0x%x, 0x%x, 0x%x, 0x%x, 0x%x\n",
-			idcode[0], idcode[1], idcode[2], idcode[3], idcode[4]);
-
-	/* count the number of continuation bytes */
-	for (shift = 0, idp = idcode; shift < IDCODE_CONT_LEN; ++shift, ++idp)
-		continue;
-	printf("idp value: 0x%x\r\n", *idp);
-		
-	/* search the table for matches in shift and id */
-	for (i = 0; i < ARRAY_SIZE(flashes); ++i)
-		if (flashes[i].idcode == *idp) 
-		{
-			
-			/* we have a match, call probe */
-			/* spi_flash_probe_winbond idcode: 0xef */
-			flash = flashes[i].probe(spi, idp);			
-			if (flash)
-				break;
-		}
-    
-	if (!flash) 
-	{
-		printf("SF: Unsupported manufacturer %02x\n", idcode[1]);
+	/* Setup spi_slave */
+	spi = spi_setup_slave(bus, cs, max_hz, spi_mode);
+	if (!spi) {
+		printf("SF: Failed to set up slave\n");
 		return NULL;
 	}
-	
+
+	/* Claim spi bus */
+	ret = spi_claim_bus(spi);
+	if (ret) {
+		debug("SF: Failed to claim SPI bus: %d\n", ret);
+		goto err_claim_bus;
+	}
+
+	/* Read the ID codes */
+	ret = spi_flash_cmd(spi, CMD_READ_ID, idcode, sizeof(idcode));
+	if (ret) {
+		printf("SF: Failed to get idcodes\n");
+		goto err_read_id;
+	}
+
+//#ifdef DEBUG
+	printf("SF: Got idcodes\n");
+	print_buffer(0, idcode, 1, sizeof(idcode), 0);
+//#endif
+
+	/* Validate params from spi_flash_params table */
+	flash = spi_flash_validate_params(spi, idcode);
+	if (!flash)
+		goto err_read_id;
+
+#ifdef CONFIG_OF_CONTROL
+	if (spi_flash_decode_fdt(gd->fdt_blob, flash)) {
+		debug("SF: FDT decode error\n");
+		goto err_read_id;
+	}
+#endif
+#ifndef CONFIG_SPL_BUILD
 	printf("SF: Detected %s with page size ", flash->name);
-	print_size(flash->sector_size, ", total ");
-	print_size(flash->size, "\n");
-	
+	print_size(flash->page_size, ", erase size ");
+	print_size(flash->erase_size, ", total ");
+	print_size(flash->size, "");
+	if (flash->memory_map)
+		printf(", mapped at %p", flash->memory_map);
+	puts("\n");
+#endif
+#ifndef CONFIG_SPI_FLASH_BAR
+	if (flash->size > SPI_FLASH_16MB_BOUN) {
+		puts("SF: Warning - Only lower 16MiB accessible,");
+		puts(" Full access #define CONFIG_SPI_FLASH_BAR\n");
+	}
+#endif
+
+	/* Release spi bus */
+	spi_release_bus(spi);
+
 	return flash;
+
+err_read_id:
+	spi_release_bus(spi);
+err_claim_bus:
+	spi_free_slave(spi);
+	return NULL;
 }
 
 void spi_flash_free(struct spi_flash *flash)

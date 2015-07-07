@@ -16,11 +16,6 @@
 #include <asm/arch/sys_proto.h>
 #include <asm/arch/clk.h>
 
-// add by starsoc
-#undef debug
-#define debug(fmt, args...)			printf(fmt, ##args);
-
-
 /* QSPI Transmit Data Register */
 #define ZYNQ_QSPI_TXD_00_00_OFFSET	0x1C /* Transmit 4-byte inst, WO */
 #define ZYNQ_QSPI_TXD_00_01_OFFSET	0x80 /* Transmit 1-byte inst, WO */
@@ -492,11 +487,9 @@ static int zynq_qspi_setup_transfer(struct spi_device *qspi,
 
 	// add by starsoc,  QSPI PS_MIO8 cannot be used, clk should not bigger than 40MHZ
 	// TBD
-	/* -----------------------------------
 	config_reg &= 0xFFFFFFC0;
 	config_reg |= 9;
-            -----------------------------------*/
-     
+	     
 	writel(config_reg, &zynq_qspi_base->confr);	
 
 	debug("%s: mode %d, %u bits/w, %u clock speed\n", __func__,
@@ -566,7 +559,7 @@ static int zynq_qspi_irq_poll(struct zynq_qspi *zqspi)
 	u32 rxcount;
 
 	// debug("%s: zqspi: 0x%08x\n", __func__, (u32)zqspi);
-    
+	
 	/* Poll until any of the interrupt status bits are set */
 	max_loop = 0;
 	do {
@@ -670,26 +663,22 @@ static int zynq_qspi_start_transfer(struct spi_device *qspi,
 	zqspi->rxbuf = transfer->rx_buf;
 	zqspi->bytes_to_transfer = transfer->len;
 	zqspi->bytes_to_receive = transfer->len;
-	
+
 	if (zqspi->txbuf)
 		instruction = *(u8 *)zqspi->txbuf;
-	
-	// add by starsoc
-	printf("######%s, instruction:%d\r\n", __func__, instruction);
-	
+
 	if (instruction && zqspi->is_inst) {
 		for (index = 0; index < ARRAY_SIZE(flash_inst); index++)
 			if (instruction == flash_inst[index].opcode)
 				break;
-		// add by starsoc
-		printf("######%s, find instruction:0x%x, index:%d\r\n", __func__, instruction, index);
+
 		/*
 		 * Instruction might have already been transmitted. This is a
 		 * 'data only' transfer
 		 */
 		if (index == ARRAY_SIZE(flash_inst))
 			goto xfer_data;
-        
+
 		zqspi->curr_inst = &flash_inst[index];
 		zqspi->inst_response = 1;
 
@@ -822,9 +811,9 @@ static int zynq_qspi_transfer(struct spi_device *qspi,
 
 		break;
 	}
-    
+
 	zynq_qspi_setup_transfer(qspi, NULL);
-    
+
 	return 0;
 }
 
@@ -925,12 +914,12 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 	qspi->slave.is_dual = is_dual;
 	qspi->slave.rd_cmd = READ_CMD_FULL;
 	qspi->slave.wr_cmd = PAGE_PROGRAM | QUAD_PAGE_PROGRAM;
-	qspi->qspi.master.speed_hz = qspi->qspi.master.input_clk_hz / 2;
+	//qspi->qspi.master.speed_hz = qspi->qspi.master.input_clk_hz / 2;
     
     printf("%s: qspi speed:%d\r\n", __func__, qspi->qspi.master.speed_hz);
     // TBD
 	// add by starsoc qspi speed no more than 50MHZ
-	//qspi->qspi.master.speed_hz = 50000000;
+	qspi->qspi.master.speed_hz = 50000000;
 	qspi->qspi.max_speed_hz = qspi->qspi.master.speed_hz;
 	qspi->qspi.master.is_dual = is_dual;
 	qspi->qspi.mode = mode;
@@ -976,7 +965,7 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 	transfer.tx_buf = dout;
 	transfer.rx_buf = din;
 	transfer.len = bitlen / 8;
-    
+
 	/*
 	 * Festering sore.
 	 * Assume that the beginning of a transfer with bits to

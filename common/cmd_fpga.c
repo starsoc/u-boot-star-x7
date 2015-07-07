@@ -110,6 +110,7 @@ int do_fpga(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 		op = FPGA_NONE;	/* force usage display */
 		break;
 	}
+	
 
 	if (dev == FPGA_INVALID_DEVICE) {
 		puts("FPGA device not specified\n");
