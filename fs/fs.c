@@ -245,7 +245,7 @@ int do_load(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 		return CMD_RET_USAGE;
 	if (argc > 7)
 		return CMD_RET_USAGE;
-
+	
 	if (fs_set_blk_dev(argv[1], (argc >= 3) ? argv[2] : NULL, fstype))
 		return 1;
 
@@ -281,17 +281,17 @@ int do_load(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 	time = get_timer(time);
 	if (len_read <= 0)
 		return 1;
-
-	printf("%d bytes read in %lu ms", len_read, time);
+	
+	printf("addr:0x%x, filename:%s, %d bytes read in %lu ms\r\n", addr, filename, len_read, time);
 	if (time > 0) {
 		puts(" (");
 		print_size(len_read / time * 1000, "/s");
 		puts(")");
 	}
 	puts("\n");
-
+	
 	setenv_hex("filesize", len_read);
-
+	
 	return 0;
 }
 

@@ -50,11 +50,11 @@
 	"boot_size=0x100000\0"	\
 	"ethaddr=00:0a:35:00:01:22\0"	\
 	"kernel_image=uImage\0"	\
-	"kernel_load_address=0x2080000\0" \
-	"ramdisk_image=uramdisk.image.gz\0"	\
-	"ramdisk_load_address=0x4000000\0"	\
+	"kernel_load_address=0x7fc0\0" \
+	"ramdisk_image=uramdisk.image.gz\0"\
+	"ramdisk_load_address=0x10000000\0"	\
 	"devicetree_image=devicetree.dtb\0"	\
-	"devicetree_load_address=0x2000000\0"	\
+	"devicetree_load_address=0x1000000\0"	\
 	"bitstream_image=system.bit.bin\0"	\
 	"boot_image=BOOT.bin\0"	\
 	"loadbit_addr=0x100000\0"	\
@@ -95,7 +95,7 @@
 			"fatload mmc 0 ${kernel_load_address} ${kernel_image} && " \
 			"fatload mmc 0 ${devicetree_load_address} ${devicetree_image} && " \
 			"fatload mmc 0 ${ramdisk_load_address} ${ramdisk_image} && " \
-			"bootm ${kernel_load_address} ${ramdisk_load_address} ${devicetree_load_address}; " \
+			"bootm ${kernel_load_address} - ${devicetree_load_address}; " \
 		"fi\0" \
 	"usbboot=if usb start; then " \
 			"run uenvboot; " \

@@ -42,7 +42,19 @@
 #include "i2c.h"
 #include "ff.h"
 
-#define IIC_DEVICE_ID	XPAR_XIICPS_0_DEVICE_ID
+// #define SII9134			  
+#define ZTURN_SII9022_I2C_ADDR        0x3b			 //zturn board
+#define STAR_X7_SII9022_I2C_ADDR      0x39		     // star-x7 board
+
+#ifdef SII9134
+#define IIC_DEVICE_ID					XPAR_XIICPS_1_DEVICE_ID
+#else
+#define IIC_DEVICE_ID					XPAR_XIICPS_0_DEVICE_ID
+// #define SII9022_I2C_ADDR			  	STAR_X7_SII9022_I2C_ADDR
+#define SII9022_I2C_ADDR			  	ZTURN_SII9022_I2C_ADDR
+#endif
+
+
 #define INTC_DEVICE_ID	XPAR_SCUGIC_SINGLE_DEVICE_ID
 #define IIC_INTR_ID	    XPAR_XIICPS_0_INTR
 
@@ -84,9 +96,6 @@
 #define AUDIO_BASEADDR DDR_BASEADDR + 0x01000000
 #define DATA_READ_ADDR DDR_BASEADDR + 0x03000000;
 
-#define ZTURN_SII9022_I2C_ADDR        0x3b			 //zturn board
-#define STAR_X7_SII9022_I2C_ADDR      0x39		     // star-x7 board
-#define SII9022_I2C_ADDR			  STAR_X7_SII9022_I2C_ADDR
 
 XIicPs Iic1Instance;		/* The instance of the IIC device. */
 int g_image_len = 0;
@@ -337,15 +346,14 @@ int SiI9134_i2c_config(void)
     int Status;
     u8 ReadBuffer[2];    
     
+    int i2c_addr = IIC_DEVICE_ID;
+    sii9022_i2c_init(i2c_addr);
     printf("######SiI9134_i2c_config()\r\n"); 
-    
-    sii9022_i2c_init(IIC_DEVICE_ID);
-    
     
     SiI9022_write(0x39, 0x05, 0x01);        //soft reset
     SiI9022_write(0x39, 0x05, 0x00);        //soft reset
     SiI9022_write(0x39, 0x08, 0xfd);        //PD#=1,power on mode
-
+	
     SiI9022_write(0x3d, 0x2f, 0x21);        //HDMI mode enable, 24bit per pixel(8 bits per channel; no packing)
     SiI9022_write(0x3d, 0x3e, 0x03);        //Enable AVI infoFrame transmission, Enable(send in every VBLANK period)
     SiI9022_write(0x3d, 0x40, 0x82);
@@ -358,7 +366,6 @@ int SiI9134_i2c_config(void)
     SiI9022_write(0x3d, 0x47, 0x00);
     SiI9022_write(0x3d, 0x3d, 0x07);
       
-    
     
 	//display Device ID information
     Status = SiI9022_read(0x39, 0x02, ReadBuffer);
@@ -464,8 +471,10 @@ int SiI9022_i2c_config(void)
     printf("\r\n");
     
     /*enable cable hot plug irq*/
-    SiI9022_write(SII9022_I2C_ADDR, 0x3C, 0x01);      
-
+    SiI9022_write(SII9022_I2C_ADDR, 0x3C, 0x01); 
+	
+    sii902x_setup();
+	
 	Status = SiI9022_read(SII9022_I2C_ADDR, 0x3D, &dat);
     printf("-0x%02X\r\n", dat);
     if (dat > 0)
@@ -482,7 +491,7 @@ int SiI9022_i2c_config(void)
         }
     }
     // TBD:
-    sii902x_setup();
+    // sii902x_setup();
     return 0;
 }
 
@@ -491,8 +500,12 @@ int HDMI_init( void )
 {
     u32 data;
     
-    //SiI9022_i2c_config();
-	// return 0;
+	u32 mm2s_frmstore = 0;
+	
+	u32 mm2s_dmasr = 0;
+	u32 s2mm_dmasr = 0;
+	
+    u32 hsize_sts, vsize_sts; 
 	
     /*for logicvc,*/
     ddr_video_wr();
@@ -505,6 +518,14 @@ int HDMI_init( void )
         return(0);
     }
     
+	/* C_NUM_FSTORES: */
+	mm2s_frmstore = Xil_In32(VDMA_BASEADDR + 0x18);
+    
+	mm2s_dmasr = Xil_In32(VDMA_BASEADDR + 0x4);
+	
+    printf("before vdma transfer, mm2s_frmstore:0x%x, mm2s_dmasr:0x%x\r\n", 
+		mm2s_frmstore, mm2s_dmasr);
+	
     //**********configure VDMA**************//
     Xil_Out32((VDMA_BASEADDR + 0x000), 0x00000003); // enable circular mode
     Xil_Out32((VDMA_BASEADDR + 0x05c), VIDEO_BASEADDR); // start address
@@ -513,7 +534,27 @@ int HDMI_init( void )
     Xil_Out32((VDMA_BASEADDR + 0x058), (H_STRIDE*4)); // h offset (2048 * 4) bytes
     Xil_Out32((VDMA_BASEADDR + 0x054), (H_ACTIVE*4)); // h size (1920 * 4) bytes
     Xil_Out32((VDMA_BASEADDR + 0x050), V_ACTIVE); // v size (1080)
+
 	
+#if 0
+	
+	// ************* S2MM VDMA *************************
+	s2mm_dmasr = Xil_In32(VDMA_BASEADDR + 0x34);	// DMA status register
+    printf("S2MM DMA Status Register:0x%x\r\n", s2mm_dmasr);
+	
+	Xil_Out32((VDMA_BASEADDR + 0x030), 0x00000003); // enable circular mode
+	Xil_Out32((VDMA_BASEADDR + 0x0Ac), VIDEO_BASEADDR); // start address
+	Xil_Out32((VDMA_BASEADDR + 0x0B0), VIDEO_BASEADDR); // start address
+	Xil_Out32((VDMA_BASEADDR + 0x0B4), VIDEO_BASEADDR); // start address    
+	Xil_Out32((VDMA_BASEADDR + 0x0A8), (H_STRIDE*4)); // h offset (2048 * 4) bytes
+	Xil_Out32((VDMA_BASEADDR + 0x0A4), (H_ACTIVE*4)); // h size (1920 * 4) bytes
+	Xil_Out32((VDMA_BASEADDR + 0x0A0), V_ACTIVE); // v size (1080)
+	
+	hsize_sts = Xil_In32(VDMA_BASEADDR + 0xF0);	// S2MM hsize status register
+	vsize_sts = Xil_In32(VDMA_BASEADDR + 0xF4);	// S2MM vsize status register
+    printf("hsize_sts:0x%x, vsize_sts:0x%x\r\n", hsize_sts, vsize_sts);
+#endif
+
     //**********configure axi_hdmi_tx_24b**************//
     Xil_Out32((CFV_BASEADDR + 0x08), ((H_WIDTH << 16) | H_COUNT));      //HSYNC Width
     Xil_Out32((CFV_BASEADDR + 0x0c), ((H_DE_MIN << 16) | H_DE_MAX));    //HSYNC DE MAX
@@ -522,9 +563,20 @@ int HDMI_init( void )
     Xil_Out32((CFV_BASEADDR + 0x04), 0x00000002);                       //bit2=0: disable test pattern,Bypass the CSC, Video output disable
     Xil_Out32((CFV_BASEADDR + 0x04), 0x00000003);                       //Video output enable
 
-    // SiI9134_i2c_config();
-    
-    SiI9022_i2c_config();
+		
+#ifdef SII9134
+	SiI9134_i2c_config();
+#else
+	SiI9022_i2c_config();
+#endif
+
+	
+	mm2s_dmasr = Xil_In32(VDMA_BASEADDR + 0x4);
+	
+	s2mm_dmasr = Xil_In32(VDMA_BASEADDR + 0x34);	// DMA status register
+	
+    printf("After vdma transfer, mm2s_dmasr:0x%x, s2mm_dmasr:0x%x\r\n", mm2s_dmasr, s2mm_dmasr);
+	
 	
     return 0;
 }
